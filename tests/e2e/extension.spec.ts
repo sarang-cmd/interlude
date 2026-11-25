@@ -1162,3 +1162,23 @@ test("Focus Guard counts active play, locks at the budget, and unlocks live", as
   await expect(host).toHaveAttribute("data-interlude-scene", "ready");
   await cdp.detach();
 });
+
+test("toolbar pause stops all site activity and can be resumed without reload", async () => {
+  await worker.evaluate(() =>
+    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
+  );
+  await openFixture();
+  await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]');
+  await expect(host).toBeVisible();
+  const popup = await context.newPage();
+  await popup.goto(`chrome-extension://${new URL(worker.url()).hostname}/popup.html`);
+  await expect(popup.getByRole("button")).toHaveCount(2);
+  await expect(popup.getByRole("link")).toHaveCount(1);
+  await popup.getByRole("button", { name: "PAUSE FOR 1 HOUR" }).click();
+  await expect(host).toBeHidden();
+  expect((await diagnostic()).activity.observers).toBe(0);
+  await expect(popup.getByRole("button", { name: "RESUME NOW" })).toBeVisible();
+  await popup.getByRole("button", { name: "RESUME NOW" }).click();
+  await expect(host).toBeVisible();
+});

@@ -37,3 +37,22 @@ chrome.runtime.onMessage.addListener((message: unknown, _sender, respond) => {
   );
   return true;
 });
+
+import { PAUSE_KEY, loadPauseUntil } from "../shared/pause";
+const PAUSE_ALARM = "interlude-pause-expiry";
+async function schedulePause(): Promise<void> {
+  const until = await loadPauseUntil();
+  if (until) await chrome.alarms.create(PAUSE_ALARM, { when: until });
+  else await chrome.alarms.clear(PAUSE_ALARM);
+}
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes[PAUSE_KEY]) void schedulePause();
+});
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name !== PAUSE_ALARM) return;
+  void loadPauseUntil().then(async (until) => {
+    if (until) await chrome.alarms.create(PAUSE_ALARM, { when: until });
+    else await chrome.storage.local.remove(PAUSE_KEY);
+  });
+});
+void schedulePause();

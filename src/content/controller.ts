@@ -66,9 +66,11 @@ export class InterludeController {
   private guardTimer: ReturnType<typeof setInterval> | undefined;
   private lockTimer: ReturnType<typeof setTimeout> | undefined;
   private flushing = false;
+  private pauseUntil = 0;
 
-  constructor(settings: InterludeSettings, adapter: SiteAdapter) {
+  constructor(settings: InterludeSettings, adapter: SiteAdapter, pauseUntil = 0) {
     this.settings = settings;
+    this.pauseUntil = pauseUntil;
     this.adapter = adapter;
     this.guard = new FocusGuard(settings);
     this.guardReady = loadStats()
@@ -124,7 +126,7 @@ export class InterludeController {
     window.addEventListener("popstate", this.onNavigation);
     window.addEventListener("pageshow", this.onPageShow);
     this.adapter.configure(settings);
-    if (settings.enabled) {
+    if (settings.enabled && !this.isGloballyPaused()) {
       this.adapter.start();
       this.adapter.setStreamHook(settings.streamHookEnabled);
     }
@@ -163,7 +165,7 @@ export class InterludeController {
     this.adapter.configure(next);
     this.updateGuard(this.guard.snapshot());
     if (old.enabled !== next.enabled) {
-      if (next.enabled) {
+      if (next.enabled && !this.isGloballyPaused()) {
         this.adapter.start();
         this.adapter.setStreamHook(next.streamHookEnabled);
       } else {
@@ -171,7 +173,11 @@ export class InterludeController {
         this.adapter.setStreamHook(false);
         this.adapter.stop();
       }
-    } else if (next.enabled && old.streamHookEnabled !== next.streamHookEnabled)
+    } else if (
+      next.enabled &&
+      !this.isGloballyPaused() &&
+      old.streamHookEnabled !== next.streamHookEnabled
+    )
       this.adapter.setStreamHook(next.streamHookEnabled);
     if (old.game !== next.game) this.gameReady = this.prepareGame(next.game);
     if (old.placement !== next.placement && this.panel.isVisible) {
@@ -179,6 +185,21 @@ export class InterludeController {
       if (point) this.panel.remount(point, next.placement);
     }
   }
+  private isGloballyPaused(): boolean {
+    return this.pauseUntil > Date.now();
+  }
+  setGlobalPause(until: number): void {
+    this.pauseUntil = Number.isFinite(until) ? until : 0;
+    if (this.isGloballyPaused()) {
+      this.close(false);
+      this.adapter.setStreamHook(false);
+      this.adapter.stop();
+    } else if (this.settings.enabled) {
+      this.adapter.start();
+      this.adapter.setStreamHook(this.settings.streamHookEnabled);
+    }
+  }
+
   private onSignal(active: boolean): void {
     this.generating = active;
     if (active) {

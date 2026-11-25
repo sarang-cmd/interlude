@@ -1,26 +1,29 @@
-import { loadSettings, saveSettings } from "../shared/storage";
-const toggle = document.getElementById("enabled") as HTMLInputElement;
-const label = document.getElementById("powerLabel") as HTMLElement;
-const placement = document.getElementById("placement") as HTMLElement;
-const delay = document.getElementById("delay") as HTMLElement;
-const site = document.getElementById("site") as HTMLElement;
-const settings = await loadSettings();
-toggle.checked = settings.enabled;
-label.textContent = settings.enabled ? "Ready for Claude" : "Page integration off";
-placement.textContent = {
-  inline: "INLINE",
-  overlay: "OVERLAY",
-  "docked-composer": "COMPOSER",
-  "side-panel": "SIDE",
-}[settings.placement];
-delay.textContent = `${settings.delayMs} MS`;
-const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-try {
-  site.textContent = new URL(tabs[0]?.url ?? "").hostname === "claude.ai" ? "CLAUDE" : "OTHER";
-} catch {
-  site.textContent = "OTHER";
+import { loadPauseUntil, PAUSE_KEY, setPauseUntil, tomorrow } from "../shared/pause";
+const hour = document.getElementById("hour") as HTMLButtonElement;
+const tomorrowButton = document.getElementById("tomorrow") as HTMLButtonElement;
+const status = document.getElementById("status") as HTMLElement;
+let until = await loadPauseUntil();
+function render(): void {
+  const paused = until > Date.now();
+  hour.textContent = paused ? "RESUME NOW" : "PAUSE FOR 1 HOUR";
+  status.textContent = paused
+    ? `PAUSED UNTIL ${new Date(until).toLocaleString()}`
+    : "CABINETS READY";
 }
-toggle.addEventListener("change", () => {
-  label.textContent = toggle.checked ? "Ready for Claude" : "Page integration off";
-  void saveSettings({ enabled: toggle.checked });
+hour.addEventListener("click", () => {
+  until = until > Date.now() ? 0 : Date.now() + 3600000;
+  render();
+  void setPauseUntil(until);
 });
+tomorrowButton.addEventListener("click", () => {
+  until = tomorrow(Date.now());
+  render();
+  void setPauseUntil(until);
+});
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes[PAUSE_KEY]) {
+    until = Number(changes[PAUSE_KEY].newValue ?? 0);
+    render();
+  }
+});
+render();
