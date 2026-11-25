@@ -4,6 +4,7 @@ import type { ArcadeGame } from "../games/types";
 import { GAME_MANIFESTS } from "../games/manifest";
 import type { MountPointResult, Placement } from "../adapters/types";
 import type { InterludeSettings } from "../shared/storage";
+import { GAME_ACTIONS, type GameId } from "../settings/schema";
 
 const fontUrl = (name: string): string => chrome.runtime.getURL(`fonts/${name}.woff2`);
 const CSS = `
@@ -35,6 +36,19 @@ canvas{display:block;width:100%;max-width:640px;height:auto;margin:0 auto;image-
 .controls button{padding:7px 9px;min-width:33px;min-height:30px;touch-action:none;user-select:none;font-weight:600}
 .foot{display:flex;justify-content:space-between;gap:6px;border-top:1px solid #382C15;padding:6px 10px;color:#A88A4D;font-size:9px;line-height:1.4;letter-spacing:.03em}
 .foot span{min-width:0}.foot .keys{text-align:right}
+[hidden]{display:none!important}
+.gear{width:27px;height:27px;font-size:17px;line-height:1;flex:none}
+.drawer{padding:10px;border-bottom:1px solid #7A5600;background:#171209;font-size:10px}
+.drawer-row{display:grid;grid-template-columns:1fr minmax(110px,180px);gap:8px;align-items:center;padding:5px 0}
+.drawer input{width:100%;accent-color:#FFB000}.drawer select{width:100%;max-width:none}
+.lock-message{padding:28px 12px;color:#FFB000;font:14px Silkscreen,monospace;text-align:center;line-height:1.6}
+.notice{padding:8px 10px;color:#FFD36B;background:#221A10;font-size:10px}
+.daily{font-size:9px;color:#C2A86B}
+.machine[data-border="bright"]{border-color:#FFB000}.machine[data-border="double"]{border:3px double #FFB000}
+.machine[data-theme="light"]{background:#E9DFC8;color:#2A2118;box-shadow:4px 4px 0 #7A5600}
+.machine[data-theme="light"] .top,.machine[data-theme="light"] .drawer{background:#D9C9AA}
+.machine[data-theme="light"] .brand,.machine[data-theme="light"] .meta,.machine[data-theme="light"] .foot,.machine[data-theme="light"] .daily{color:#523700}
+.machine[data-theme="light"] .state{color:#24602A}
 @media(max-width:450px){.tag{display:none}.top{gap:6px}.brand{font-size:10px}select{min-width:92px;max-width:135px}.controls .caption{width:100%}.foot{font-size:8px}}
 `;
 
@@ -92,6 +106,7 @@ function node<K extends keyof HTMLElementTagNameMap>(
 
 export interface PanelEvents {
   onChoose(choice: string): void;
+  onQuickChange(patch: Record<string, unknown>): void;
   onClose(): void;
   onResume(): void;
   onEscape(): void;
@@ -114,6 +129,18 @@ export class Panel {
   private readonly controls = node("div", "controls");
   private readonly hint = node("span", "", "ALT+G FOCUS · ESC RELEASE");
   private readonly screen = node("div", "screen");
+  private readonly drawer = node("div", "drawer");
+  private readonly gear = node("button", "gear", "⚙");
+  private readonly quickGame = node("select");
+  private readonly quickPlacement = node("select");
+  private readonly quickVolume = node("input");
+  private readonly quickWidth = node("input");
+  private readonly daily = node("span", "daily");
+  private readonly notice = node("div", "notice");
+  private readonly lockMessage = node("div", "lock-message", "OUT OF COINS. BACK TO WORK.");
+  private locked = false;
+  private settings: InterludeSettings;
+  private currentGameId = "";
   private visible = false;
   private placement: Placement = "inline";
   private position: { x: number; y: number } | null = null;
@@ -127,6 +154,7 @@ export class Panel {
     private readonly siteName: string,
     private readonly events: PanelEvents,
   ) {
+    this.settings = settings;
     this.host.dataset.interlude = "panel";
     this.host.dataset.interludeVisible = "false";
     this.host.setAttribute("aria-label", "Interlude arcade");
@@ -157,9 +185,64 @@ export class Panel {
     close.type = "button";
     close.setAttribute("aria-label", "Close Interlude");
     close.addEventListener("click", () => this.events.onClose());
-    this.top.append(brand, this.picker, close);
+    this.gear.type = "button";
+    this.gear.setAttribute("aria-label", "Quick settings");
+    this.gear.setAttribute("aria-expanded", "false");
+    this.gear.addEventListener("click", () => {
+      this.drawer.hidden = !this.drawer.hidden;
+      this.gear.setAttribute("aria-expanded", String(!this.drawer.hidden));
+    });
+    this.top.append(brand, this.picker, this.gear, close);
+    this.drawer.hidden = true;
+    this.drawer.setAttribute("aria-label", "Quick settings");
+    const row = (labelText: string, control: HTMLElement): void => {
+      const label = node("label", "drawer-row");
+      label.append(node("span", "", labelText), control);
+      this.drawer.append(label);
+    };
+    for (const option of Array.from(this.picker.options))
+      this.quickGame.append(option.cloneNode(true));
+    this.quickGame.setAttribute("aria-label", "Quick game");
+    this.quickGame.addEventListener("change", () => this.events.onChoose(this.quickGame.value));
+    row("GAME", this.quickGame);
+    this.quickVolume.type = "range";
+    this.quickVolume.min = "0";
+    this.quickVolume.max = "100";
+    this.quickVolume.setAttribute("aria-label", "Sound volume");
+    this.quickVolume.addEventListener("change", () =>
+      this.events.onQuickChange({ volume: Number(this.quickVolume.value) }),
+    );
+    row("VOLUME", this.quickVolume);
+    this.quickWidth.type = "range";
+    this.quickWidth.min = "240";
+    this.quickWidth.max = "960";
+    this.quickWidth.step = "10";
+    this.quickWidth.setAttribute("aria-label", "Panel width");
+    this.quickWidth.addEventListener("change", () =>
+      this.events.onQuickChange({ panelWidth: Number(this.quickWidth.value) }),
+    );
+    row("PANEL WIDTH", this.quickWidth);
+    for (const [value, label] of [
+      ["inline", "INLINE"],
+      ["overlay", "OVERLAY"],
+      ["docked-composer", "COMPOSER"],
+      ["side-panel", "SIDE PANEL"],
+    ]) {
+      const option = node("option", "", label);
+      option.value = value!;
+      this.quickPlacement.append(option);
+    }
+    this.quickPlacement.setAttribute("aria-label", "Quick placement");
+    this.quickPlacement.addEventListener("change", () =>
+      this.events.onQuickChange({ placement: this.quickPlacement.value }),
+    );
+    row("PLACEMENT", this.quickPlacement);
     const meta = node("div", "meta");
-    meta.append(this.cabinet, this.stateLabel);
+    meta.append(this.cabinet, this.daily, this.stateLabel);
+    this.notice.hidden = true;
+    this.notice.setAttribute("role", "status");
+    this.lockMessage.hidden = true;
+    this.lockMessage.setAttribute("role", "status");
     this.canvas.tabIndex = 0;
     this.canvas.setAttribute(
       "aria-label",
@@ -177,7 +260,16 @@ export class Panel {
     this.done.append(resume, doneClose);
     const foot = node("footer", "foot");
     foot.append(this.hint, node("span", "keys", "NO CHAT CONTENT READ"));
-    this.machine.append(this.top, meta, this.screen, this.controls, foot);
+    this.machine.append(
+      this.top,
+      this.drawer,
+      meta,
+      this.notice,
+      this.lockMessage,
+      this.screen,
+      this.controls,
+      foot,
+    );
     this.shadow.append(this.machine);
     this.engine = new Engine(this.canvas, {
       settings,
@@ -194,6 +286,14 @@ export class Panel {
       "keydown",
       (event) => {
         if (!(event instanceof KeyboardEvent) || event.key !== "Escape") return;
+        if (!this.drawer.hidden) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.drawer.hidden = true;
+          this.gear.setAttribute("aria-expanded", "false");
+          this.gear.focus();
+          return;
+        }
         const target = event.composedPath()[0];
         const textField =
           target instanceof HTMLInputElement ||
@@ -206,7 +306,10 @@ export class Panel {
       true,
     );
     this.canvas.addEventListener("keydown", (event) => {
-      if (event.code === "KeyP" && this.engine.getState() === "paused") {
+      if (
+        this.engine.input.actionFor(event.code) === "pause" &&
+        this.engine.getState() === "paused"
+      ) {
         event.preventDefault();
         // Input also listens on the canvas. Do not enqueue the same P as a new
         // pause after resuming, and do not resume on keyboard auto-repeat.
@@ -241,6 +344,7 @@ export class Panel {
     this.onScene?.(state);
   }
   setGame(game: ArcadeGame, best: number, bindings: Record<string, string>): void {
+    this.currentGameId = game.manifest.id;
     const index = GAME_MANIFESTS.findIndex((entry) => entry.id === game.manifest.id);
     this.cabinet.textContent = `${String(index + 1).padStart(2, "0")} / ${game.manifest.name}`;
     this.controls.replaceChildren();
@@ -250,6 +354,12 @@ export class Panel {
       button.type = "button";
       button.setAttribute("aria-label", `${game.manifest.name}: ${label}`);
       button.addEventListener("pointerdown", (event) => {
+        if (
+          event.pointerType === "touch"
+            ? !this.settings.touchEnabled
+            : !this.settings.pointerEnabled
+        )
+          return;
         event.preventDefault();
         this.focus();
         try {
@@ -271,14 +381,81 @@ export class Panel {
       });
       this.controls.append(button);
     }
-    this.engine.input.setKeymapOverrides(bindings);
     this.engine.setGame(game, best);
+    this.applyBindings(bindings);
     this.host.dataset.interludeGame = game.manifest.id;
   }
+  private applyBindings(legacy: Record<string, string> = {}): void {
+    const map: Record<string, string> = { ...legacy };
+    for (const action of GAME_ACTIONS[this.currentGameId as GameId] ?? []) {
+      const value = this.settings[`key.${this.currentGameId}.${action}`];
+      if (typeof value === "string") map[action] = value;
+    }
+    this.engine.input.setKeymapOverrides(map);
+  }
   updateSettings(settings: InterludeSettings): void {
+    this.settings = settings;
     this.picker.value = settings.game;
+    this.quickGame.value = settings.game;
+    this.quickPlacement.value = settings.placement;
+    this.quickVolume.value = String(settings.volume);
+    this.quickWidth.value = String(settings.panelWidth);
+    for (const picker of [this.picker, this.quickGame])
+      for (const option of Array.from(picker.options))
+        option.disabled =
+          option.value !== "last" &&
+          option.value !== "random" &&
+          settings[`game.${option.value}.enabled`] === false;
+    this.machine.dataset.border = settings.borderStyle;
+    this.controls.style.flexDirection = settings.leftHanded ? "row-reverse" : "row";
     this.hint.textContent = `${settings.focusHotkey.toUpperCase()} FOCUS · ESC RELEASE`;
     this.engine.setSettings(settings);
+    this.applyBindings();
+    if (this.visible) {
+      this.updateWidth();
+      this.lastScreenWidth = 0;
+      this.scaleCanvas();
+    }
+  }
+  setTheme(theme: "light" | "dark"): void {
+    this.machine.dataset.theme = this.settings.themeMode === "match" ? theme : "dark";
+  }
+  setDaily(totalMs: number, enabled: boolean): void {
+    this.daily.hidden = !enabled;
+    this.daily.textContent = `${Math.floor(totalMs / 60000)} MIN TODAY`;
+  }
+  setNotice(message: string): void {
+    this.notice.textContent = message;
+    this.notice.hidden = !message;
+  }
+  get isLocked(): boolean {
+    return this.locked;
+  }
+  showLock(point: MountPointResult, placement: Placement): void {
+    this.engine.stop();
+    this.engine.unwatchVisibility();
+    this.setHostPosition(point, placement);
+    this.visible = true;
+    this.locked = true;
+    this.host.dataset.interludeVisible = "true";
+    this.host.dataset.interludeScene = "locked";
+    this.screen.hidden = true;
+    this.controls.hidden = true;
+    this.lockMessage.hidden = false;
+    this.picker.disabled = true;
+    this.quickGame.disabled = true;
+    this.stateLabel.textContent = "OUT OF COINS";
+    this.prop("height", "auto");
+    this.prop("transition", "none");
+  }
+  private updateWidth(): void {
+    const width = this.settings.panelWidth;
+    this.prop(
+      "width",
+      this.placement === "inline" || this.placement === "docked-composer"
+        ? `min(100%, ${width}px)`
+        : `min(${width}px, calc(100vw - 24px))`,
+    );
   }
   get isVisible(): boolean {
     return this.visible;
@@ -355,6 +532,7 @@ export class Panel {
       this.prop("top", "auto");
       this.prop("right", "auto");
     }
+    this.updateWidth();
     if (point.position === "after") point.anchor.insertAdjacentElement("afterend", this.host);
     else if (point.position === "before")
       point.anchor.insertAdjacentElement("beforebegin", this.host);
@@ -372,6 +550,12 @@ export class Panel {
     this.collapseHandler = null;
     this.setHostPosition(point, placement);
     this.visible = true;
+    this.locked = false;
+    this.screen.hidden = false;
+    this.controls.hidden = false;
+    this.lockMessage.hidden = true;
+    this.picker.disabled = false;
+    this.quickGame.disabled = false;
     this.host.dataset.interludeVisible = "true";
     this.startCanvasScaling();
     this.setDone(false);
@@ -390,7 +574,10 @@ export class Panel {
   }
   remount(point: MountPointResult, placement: Placement): void {
     if (!this.visible) return;
+    const focused =
+      this.shadow.activeElement instanceof HTMLElement ? this.shadow.activeElement : null;
     this.setHostPosition(point, placement);
+    focused?.focus({ preventScroll: true });
     this.lastScreenWidth = 0;
     this.scaleCanvas();
     this.prop("height", "auto");
@@ -400,6 +587,9 @@ export class Panel {
   close(smooth: boolean): void {
     if (!this.visible) return;
     this.visible = false;
+    this.locked = false;
+    this.drawer.hidden = true;
+    this.gear.setAttribute("aria-expanded", "false");
     this.host.dataset.interludeVisible = "false";
     this.engine.stop();
     this.engine.unwatchVisibility();
@@ -444,7 +634,7 @@ export class Panel {
     if (available <= 0 || available === this.lastScreenWidth) return;
     this.lastScreenWidth = available;
     const divisor = Math.max(1, Math.ceil(640 / available));
-    this.canvas.style.width = `${640 / divisor}px`;
+    this.canvas.style.width = `${this.settings.integerScaling ? 640 / divisor : Math.min(640, available)}px`;
   }
   private startCanvasScaling(): void {
     this.lastScreenWidth = 0;

@@ -65,6 +65,9 @@ export class InterludeController {
     this.adapter = adapter;
     this.panel = new Panel(settings, adapter.displayName, {
       onChoose: (choice) => this.choose(choice),
+      onQuickChange: (patch) => {
+        void saveSettings(patch, this.adapter.id as import("../settings/schema").SiteId);
+      },
       onClose: () => {
         this.close(true);
         this.adapter.getComposerInput()?.focus({ preventScroll: true });
@@ -93,6 +96,7 @@ export class InterludeController {
     });
     this.unsubStructure = this.adapter.onStructureChange(() => this.onStructure());
     this.panel.updateSettings(settings);
+    this.panel.setTheme(this.adapter.getTheme());
     this.gameReady = this.prepareGame(settings.game);
     void loadOverlayPositions().then((positions) =>
       this.panel.setPosition(positions[this.adapter.id] ?? null),
@@ -132,12 +136,13 @@ export class InterludeController {
     this.settings = { ...this.settings, game: choice };
     this.panel.updateSettings(this.settings);
     this.gameReady = this.prepareGame(choice);
-    void saveSettings({ game: choice });
+    void saveSettings({ game: choice }, this.adapter.id as import("../settings/schema").SiteId);
   }
   applySettings(next: InterludeSettings): void {
     const old = this.settings;
     this.settings = next;
     this.panel.updateSettings(next);
+    this.panel.setTheme(this.adapter.getTheme());
     this.adapter.configure(next);
     if (old.enabled !== next.enabled) {
       if (next.enabled) {
@@ -245,7 +250,12 @@ export class InterludeController {
         )
           return;
         const point = this.adapter.findMountPoint(this.settings.placement);
-        if (point) this.panel.show(point, this.settings.placement, this.settings.skipBoot);
+        if (point)
+          this.panel.show(
+            point,
+            this.settings.placement,
+            this.settings.skipBoot || this.settings.reduceMotion,
+          );
         // No anchor: fail closed. A subsequent DOM mutation retries immediately.
       });
     });
@@ -278,7 +288,7 @@ export class InterludeController {
     this.cancelClose();
     if (this.remountFrame !== undefined) cancelAnimationFrame(this.remountFrame);
     this.remountFrame = undefined;
-    this.panel.close(!this.settings.skipBoot);
+    this.panel.close(!this.settings.skipBoot && !this.settings.reduceMotion);
     if (!this.generating && this.settings.game === "random")
       this.gameReady = this.prepareGame("random");
   }

@@ -144,7 +144,7 @@ test("inline reveal is beneath the indicator, timely and remains READY until inp
     };
   });
   expect(placement.adjacent).toBe(true);
-  expect(Math.abs(placement.panelWidth - placement.indicatorWidth)).toBeLessThan(1);
+  expect(Math.abs(placement.panelWidth - Math.min(640, placement.indicatorWidth))).toBeLessThan(1);
   const state = await diagnostic();
   expect(state.lastSignalToFrameMs).toBeGreaterThanOrEqual(490);
   expect(state.panel.overheadMs).toBeLessThan(80);
@@ -1057,4 +1057,51 @@ test("latest active turn wins across mixed selector markup, including nested mat
   });
   await expect.poll(() => nextTo("newer")).toBe("panel");
   await expect(host).toHaveCount(1);
+});
+
+test("in-panel gear drawer updates the site profile live and Escape closes it", async () => {
+  await worker.evaluate(() =>
+    chrome.storage.local.set({
+      "interlude.settings": { delayMs: 0, skipBoot: true, muted: true, autoClose: false },
+    }),
+  );
+  await openFixture();
+  await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]');
+  await expect(host).toBeVisible();
+  await shadowClick(".gear");
+  const cdp = await context.newCDPSession(page);
+  const setControl = async (selector: string, value: string) => {
+    const id = await shadowNode(cdp, selector);
+    const { object } = await cdp.send("DOM.resolveNode", { nodeId: id });
+    await cdp.send("Runtime.callFunctionOn", {
+      objectId: object.objectId!,
+      functionDeclaration:
+        "function(value) { this.value=value; this.dispatchEvent(new Event('change', { bubbles:true })); }",
+      arguments: [{ value }],
+    });
+  };
+  await setControl('[aria-label="Panel width"]', "400");
+  await expect
+    .poll(() => host.evaluate((element) => Math.round(element.getBoundingClientRect().width)))
+    .toBe(400);
+  await setControl('[aria-label="Sound volume"]', "60");
+  await expect
+    .poll(() =>
+      worker.evaluate(
+        async () =>
+          (await chrome.storage.sync.get("interlude.settings.v2"))["interlude.settings.v2"]?.sites
+            ?.claude?.volume,
+      ),
+    )
+    .toBe(60);
+  await setControl('[aria-label="Quick placement"]', "overlay");
+  await expect
+    .poll(() => host.evaluate((element) => getComputedStyle(element).position))
+    .toBe("fixed");
+  await page.keyboard.press("Escape");
+  const drawer = await shadowNode(cdp, ".drawer");
+  const attributes = (await cdp.send("DOM.getAttributes", { nodeId: drawer })).attributes;
+  expect(attributes).toContain("hidden");
+  await cdp.detach();
 });
