@@ -1,0 +1,54 @@
+{
+  "composerArea": [
+    "[data-testid='chat-composer']",
+    "[data-testid='composer']",
+    "form:has([contenteditable='true'])",
+    "form:has(textarea)",
+    "[class*='composer']:has([contenteditable='true'])"
+  ],
+  "composerInput": [
+    "[data-testid='chat-input']",
+    "[contenteditable='true'][data-placeholder]",
+    "[contenteditable='true'][role='textbox']",
+    "div.ProseMirror[contenteditable='true']",
+    "form textarea"
+  ],
+  "stopControl": [
+    "[data-testid='stop-button']",
+    "button[aria-label='Stop response']",
+    "button[aria-label='Stop generating']",
+    "button[aria-label*='Stop']",
+    "button[title*='Stop']"
+  ],
+  "assistantTurn": [
+    "[data-testid='assistant-turn']",
+    "[data-message-author-role='assistant']",
+    "[data-testid='assistant-message']",
+    "[data-is-streaming]",
+    ".font-claude-response"
+  ],
+  "indicator": [
+    "[data-testid='thinking-indicator']",
+    "[data-testid='streaming-indicator']",
+    "[data-testid='loading-indicator']",
+    "[data-is-streaming='true'] [role='status']",
+    "[aria-label*='Thinking']",
+    "[aria-label*='thinking']",
+    "[aria-label*='Generating']",
+    "[data-state='thinking']"
+  ],
+  "conversationColumn": [
+    "[data-testid='conversation-column']",
+    "[data-testid='conversation']",
+    "main [role='log']",
+    "main"
+  ],
+  "startTrigger": [
+    "[data-testid='send-button']",
+    "[data-testid='regenerate-button']",
+    "button[aria-label*='Send']",
+    "button[aria-label*='Retry']",
+    "button[aria-label*='Regenerate']",
+    "button[type='submit']"
+  ]
+}
