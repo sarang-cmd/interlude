@@ -18,12 +18,14 @@ declared MAIN-world content script, so no scripting permission is needed.
 ## Data and observation
 
 The adapters query ordered CSS candidates and observe DOM structure and mutation
-timing. They do not read or transmit chat messages, response bodies, prompts,
-page titles or URLs with paths. The off-by-default timing hook wraps page-owned
-fetch/stream readers only when enabled: it observes an event-stream content type
-and the reader's `done` flag, never request URLs, bodies or chunk values. It is
-diagnostic, not a generation vote. The page's own requests are unaffected and
-are not extension-origin telemetry.
+timing. They do not read or transmit chat messages, response bodies, prompts or
+page titles. Host matching parses the current tab URL to compare its hostname;
+page paths are not used, stored or sent. The off-by-default timing hook wraps
+page-owned fetch/stream readers only when enabled: it observes an event-stream
+content type and the reader's `done` flag, never request URLs, bodies or chunk
+values. It is diagnostic, not a generation vote. The hook forwards the site's
+requests and bytes, but wrapping page APIs can affect compatibility on unusual
+sites; page traffic is not extension-origin telemetry.
 
 Settings, including a user-specified selector URL, may be synced by Chrome to
 the user's browser account via `chrome.storage.sync`; a local mirror/fallback is
@@ -32,7 +34,10 @@ selector overrides, pause state and timing averages are in
 `chrome.storage.local`. Local debug logging is off by default and limited to
 structural state transitions. The JSON backup is created locally, contains
 settings and local records, and is only sent elsewhere if the user chooses to
-share the file.
+share the file. Close supported chat tabs before wiping to avoid new records
+being written. If sync cannot be cleared, the wipe reports that the remote copy
+may remain; an empty local fallback prevents old synced settings from silently
+reappearing on this device. Retry the wipe when sync is available.
 
 ## Extension-initiated network requests
 

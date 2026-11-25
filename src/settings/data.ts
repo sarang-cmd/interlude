@@ -3,6 +3,8 @@ import {
   loadSettingsDocument,
   migrateSettings,
   replaceSettings,
+  SETTINGS_KEY,
+  LOCAL_PREFERRED_KEY,
   type SettingsDocument,
 } from "./store";
 
@@ -72,11 +74,28 @@ export async function importBackup(raw: unknown): Promise<void> {
   await chrome.storage.local.set(local);
   await replaceSettings(migrateSettings(backup.settings));
 }
-export async function wipeEverything(): Promise<void> {
-  await chrome.storage.local.clear();
+/** Wipe both storage areas. Keep an empty local tombstone if sync is unavailable,
+ * so a previously synced settings document cannot silently repopulate this device. */
+export async function wipeEverything(): Promise<{ syncCleared: boolean }> {
+  await chrome.storage.local.set({
+    [SETTINGS_KEY]: migrateSettings({}),
+    [LOCAL_PREFERRED_KEY]: true,
+  });
+  let syncCleared = false;
   try {
+    if (!chrome.storage.sync) throw new Error("sync unavailable");
     await chrome.storage.sync.clear();
+    syncCleared = true;
   } catch {
-    /* local fallback has already been cleared */
+    // The user is explicitly told to retry; data may remain in Chrome sync.
   }
+  if (syncCleared) await chrome.storage.local.clear();
+  else {
+    const local = await chrome.storage.local.get(null);
+    const remove = Object.keys(local).filter(
+      (key) => key !== SETTINGS_KEY && key !== LOCAL_PREFERRED_KEY,
+    );
+    if (remove.length) await chrome.storage.local.remove(remove);
+  }
+  return { syncCleared };
 }

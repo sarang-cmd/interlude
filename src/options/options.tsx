@@ -356,13 +356,25 @@ function DataPane({
   const wipe = async () => {
     if (
       !window.confirm(
-        "Wipe ALL settings, profiles, scores, play statistics, selectors and local state? This cannot be undone.",
+        "Wipe ALL settings, profiles, scores, play statistics, selectors and local state? This cannot be undone. Close supported chat tabs first to prevent new records being written.",
       )
     )
       return;
-    await wipeEverything();
-    refresh();
-    tell({ message: "LOCAL AND SYNC DATA WIPED" });
+    try {
+      const { syncCleared } = await wipeEverything();
+      refresh();
+      tell(
+        syncCleared
+          ? { message: "LOCAL AND SYNC DATA WIPED" }
+          : {
+              message: "LOCAL DATA WIPED / SYNC COULD NOT BE CLEARED. RETRY WHEN AVAILABLE.",
+              error: true,
+            },
+      );
+    } catch {
+      refresh();
+      tell({ message: "WIPE FAILED / CHECK STORAGE AND RETRY", error: true });
+    }
   };
   return (
     <>

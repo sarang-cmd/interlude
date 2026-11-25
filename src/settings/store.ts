@@ -12,7 +12,7 @@ import {
 
 export const SETTINGS_KEY = "interlude.settings.v2";
 export const LEGACY_SETTINGS_KEY = "interlude.settings";
-const LOCAL_PREFERRED_KEY = "interlude.settings.localPreferred";
+export const LOCAL_PREFERRED_KEY = "interlude.settings.localPreferred";
 export interface SettingsDocument {
   version: number;
   global: Record<string, SettingValue>;

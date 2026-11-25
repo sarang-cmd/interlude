@@ -60,7 +60,9 @@ nudges and lockout are off by default.** If a user explicitly enables lockout,
 the cabinet shows `OUT OF COINS. BACK TO WORK.` at the budget and will not open
 until the next local day or lockout is disabled. Multiple active tabs share
 serialized play-time totals. Export/import settings and local records as JSON or
-confirm a complete wipe under **Data**.
+confirm a wipe under **Data**. Close supported chat tabs first so they cannot
+write new records. If Chrome sync cannot be cleared, the UI reports the partial
+wipe and asks you to retry; a local fallback prevents old settings reappearing.
 
 ## Diagnostics and privacy
 
