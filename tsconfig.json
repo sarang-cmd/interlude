@@ -12,7 +12,9 @@
     "useDefineForClassFields": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["chrome", "node", "vite/client"]
+    "types": ["chrome", "node", "vite/client"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   },
   "include": ["src", "tests", "vite.config.ts", "playwright.config.ts"],
   "exclude": ["node_modules", "dist"]

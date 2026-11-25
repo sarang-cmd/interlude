@@ -19,7 +19,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ["**/*.{js,mjs,ts}"],
+    files: ["**/*.{js,mjs,ts,tsx}"],
     languageOptions: { globals: { ...globals.browser, ...globals.node, chrome: "readonly" } },
     rules: {
       "@typescript-eslint/no-unused-vars": [

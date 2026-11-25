@@ -28,6 +28,8 @@ export type EngineState =
 export interface EngineOptions {
   settings: InterludeSettings;
   highScore: number;
+  /** Preview sessions never persist scores. */
+  preview?: boolean;
   doneLabel?: string;
   /** Called after a run ends and the new best (if any) is persisted. */
   onHighScore?: (best: number, isRecord: boolean) => void;
@@ -436,7 +438,9 @@ export class Engine implements GameContext {
     this.hiScore = Math.max(score, this.hiScore);
     this.setState("gameover");
     this.sound.play("gameOver");
-    const { best, isRecord } = await saveHighScore(gameId, score);
+    const { best, isRecord } = this.options.preview
+      ? { best: this.hiScore, isRecord: this.recordedBest }
+      : await saveHighScore(gameId, score);
     if (this.game === endedGame && this.runVersion === endedRun && this.getState() === "gameover") {
       this.hiScore = best;
       this.recordedBest = isRecord;

@@ -389,12 +389,13 @@ test("settings and diagnostic selector bench operate inside the built extension"
   const options = await context.newPage();
   await options.goto(`chrome-extension://${id}/options.html`);
   await expect(options.getByRole("heading", { name: /OPERATOR/ })).toBeVisible();
+  await options.getByRole("button", { name: /^GAMES/ }).click();
   await options.selectOption("#pongDifficulty", "rookie");
   await expect
     .poll(() =>
       worker.evaluate(
         async () =>
-          (await chrome.storage.local.get("interlude.settings"))["interlude.settings"]
+          (await chrome.storage.sync.get("interlude.settings.v2"))["interlude.settings.v2"]?.global
             ?.pongDifficulty,
       ),
     )

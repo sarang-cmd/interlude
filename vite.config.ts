@@ -27,7 +27,7 @@ export default defineConfig({
         background: resolve(__dirname, "src/background/serviceWorker.ts"),
         "content-entry": resolve(__dirname, "src/content/main.ts"),
         popup: resolve(__dirname, "src/popup/popup.ts"),
-        options: resolve(__dirname, "src/options/options.ts"),
+        options: resolve(__dirname, "src/options/options.tsx"),
         diagnostics: resolve(__dirname, "src/diagnostics/diagnostics.ts"),
       },
       output: {
