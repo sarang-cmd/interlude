@@ -1125,8 +1125,9 @@ test("toolbar pause stops all site activity and can be resumed without reload", 
   await expect(host).toBeVisible();
   const popup = await context.newPage();
   await popup.goto(`chrome-extension://${new URL(worker.url()).hostname}/popup.html`);
-  await expect(popup.getByRole("button")).toHaveCount(2);
-  await expect(popup.getByRole("link")).toHaveCount(1);
+  await expect(popup.getByRole("button", { name: "PLAY A GAME" })).toBeVisible();
+  await expect(popup.getByRole("button", { name: "PAUSE UNTIL TOMORROW" })).toBeVisible();
+  await expect(popup.getByRole("link", { name: /OPTIONS/ })).toBeVisible();
   await popup.getByRole("button", { name: "PAUSE FOR 1 HOUR" }).click();
   await expect(host).toBeHidden();
   expect((await diagnostic()).activity.observers).toBe(0);

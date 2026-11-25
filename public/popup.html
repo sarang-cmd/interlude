@@ -9,29 +9,43 @@
     <style>
       html,
       body {
-        width: 330px;
+        width: 380px;
+        max-width: 100%;
       }
       .popup {
-        padding: 20px;
+        padding: 16px;
       }
       .head {
-        padding-bottom: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 13px;
         border-bottom: 1px solid #7a5600;
       }
       .head .wordmark {
-        font-size: 13px;
+        font-size: 12px;
+      }
+      .head-note,
+      .eyebrow {
+        color: #c7a964;
+        font-size: 9px;
+        letter-spacing: 0.1em;
+      }
+      .eyebrow {
+        margin: 20px 0 8px;
       }
       h1 {
-        font:
-          20px Silkscreen,
-          monospace;
+        margin: 0 0 8px;
         color: #ffb000;
-        margin: 24px 0 6px;
+        font:
+          20px/1.35 Silkscreen,
+          monospace;
       }
       .desc {
-        font-size: 11px;
-        color: #c5b99f;
         margin: 0 0 20px;
+        color: #c5b99f;
+        font-size: 11px;
       }
       .actions {
         display: grid;
@@ -42,10 +56,152 @@
         width: 100%;
       }
       .status {
-        min-height: 18px;
-        margin-top: 14px;
+        min-height: 16px;
+        margin: 12px 0 0;
         color: #c7a964;
         font-size: 10px;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      button:disabled,
+      select:disabled {
+        cursor: not-allowed;
+        opacity: 0.48;
+      }
+      .arcade-top {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 9px;
+        align-items: end;
+        margin: 12px 0 9px;
+      }
+      .arcade-top label,
+      .ai-options label {
+        display: grid;
+        gap: 4px;
+        color: #c7a964;
+        font-size: 9px;
+        letter-spacing: 0.06em;
+      }
+      .arcade-top select,
+      .ai-options select {
+        width: 100%;
+        min-width: 0;
+        padding: 7px 8px;
+        font-size: 11px;
+      }
+      .arcade-top button {
+        min-height: 35px;
+        padding: 7px 11px;
+      }
+      .screen-meta,
+      .hint-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 9px;
+        align-items: baseline;
+        color: #c7a964;
+        font-size: 9px;
+        line-height: 1.4;
+      }
+      .screen-meta {
+        margin: 0 0 6px;
+        letter-spacing: 0.07em;
+      }
+      #game-state {
+        color: #ffd36b;
+        white-space: nowrap;
+      }
+      .screen {
+        position: relative;
+        background: #0e0b07;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        image-rendering: pixelated;
+        touch-action: none;
+      }
+      canvas:focus-visible {
+        outline: none;
+      }
+      .gate {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        padding: 18px;
+        background: #171209;
+        color: #c5b99f;
+        text-align: center;
+        font-size: 11px;
+      }
+      .gate strong {
+        color: #ffb000;
+        font:
+          13px/1.5 Silkscreen,
+          monospace;
+      }
+      .hint-row {
+        margin: 7px 0 8px;
+      }
+      .hint-row p {
+        margin: 0;
+      }
+      #game-focus {
+        flex: none;
+        color: #5fbf6a;
+      }
+      .game-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 10px;
+      }
+      .game-controls button {
+        flex: 1 1 auto;
+        min-width: 39px;
+        min-height: 34px;
+        padding: 6px 8px;
+        touch-action: none;
+        user-select: none;
+      }
+      .ai-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 0 0 10px;
+      }
+      .arcade-actions {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+      }
+      .arcade-actions button {
+        min-height: 38px;
+        padding: 8px 12px;
+      }
+      .arcade-note {
+        margin: 9px 0 0;
+        color: #c7a964;
+        font-size: 9px;
+        line-height: 1.45;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
     </style>
   </head>
@@ -53,16 +209,77 @@
     <div class="popup">
       <header class="head">
         <span class="wordmark"><span class="brandmark" aria-hidden="true"></span>INTERLUDE</span>
+        <span class="head-note">ARCADE / LOCAL</span>
       </header>
       <main>
-        <h1>TAKE A<br />BREAK.</h1>
-        <p class="desc">Put every cabinet on hold.</p>
-        <div class="actions">
-          <button id="hour" type="button">PAUSE FOR 1 HOUR</button
-          ><button id="tomorrow" type="button">PAUSE UNTIL TOMORROW</button
-          ><a class="button primary" href="options.html" target="_blank">OPTIONS ↗</a>
-        </div>
-        <p class="status" id="status" role="status"></p>
+        <section id="home" aria-label="Interlude controls">
+          <p class="eyebrow">ARCADE / ON YOUR DEVICE</p>
+          <h1>TAKE A<br />BREAK.</h1>
+          <p class="desc">Open a cabinet, or put every game on hold.</p>
+          <div class="actions">
+            <button class="primary" id="open-arcade" type="button" aria-controls="arcade">
+              PLAY A GAME
+            </button>
+            <button id="hour" type="button">PAUSE FOR 1 HOUR</button>
+            <button id="tomorrow" type="button">PAUSE UNTIL TOMORROW</button>
+            <a class="button" href="options.html" target="_blank">OPTIONS ↗</a>
+          </div>
+          <p class="status" id="status" role="status"></p>
+        </section>
+        <section id="arcade" aria-label="Popup arcade" hidden>
+          <div class="arcade-top">
+            <label
+              >CHOOSE CABINET
+              <select id="game-picker" aria-label="Choose game"></select
+            ></label>
+            <button id="back" type="button">← BACK</button>
+          </div>
+          <div class="screen-meta">
+            <span id="game-name">LOADING</span><span id="game-state">WAIT</span>
+          </div>
+          <div class="screen">
+            <canvas
+              id="game-canvas"
+              width="640"
+              height="360"
+              tabindex="0"
+              aria-label="Game screen"
+              aria-describedby="game-hint game-announcement"
+              role="application"
+            ></canvas>
+            <div id="gate" class="gate" role="status" hidden>
+              <strong id="gate-title"></strong><span id="gate-detail"></span>
+            </div>
+          </div>
+          <div id="game-announcement" class="sr-only" role="status" aria-live="polite"></div>
+          <div class="hint-row">
+            <p id="game-hint">Select a cabinet to begin.</p>
+            <span id="game-focus" role="status" hidden>KEYS ACTIVE</span>
+          </div>
+          <div
+            id="game-controls"
+            class="game-controls"
+            role="group"
+            aria-label="Game controls"
+          ></div>
+          <div id="ai-options" class="ai-options" hidden>
+            <label
+              >CPU LEVEL
+              <select id="cpu-level" aria-label="CPU level"></select
+            ></label>
+            <label
+              >MODE
+              <select id="cpu-mode" aria-label="CPU mode"></select
+            ></label>
+          </div>
+          <div class="arcade-actions">
+            <button class="primary" id="play" type="button" disabled>START GAME</button>
+            <button id="reset" type="button" disabled>RESET</button>
+          </div>
+          <p class="arcade-note">
+            <span id="guard-summary"></span> <span id="notice" role="status"></span>
+          </p>
+        </section>
       </main>
     </div>
     <script type="module" src="popup.js"></script>

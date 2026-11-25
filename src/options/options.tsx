@@ -356,7 +356,7 @@ function DataPane({
   const wipe = async () => {
     if (
       !window.confirm(
-        "Wipe ALL settings, profiles, scores, play statistics, selectors and local state? This cannot be undone. Close supported chat tabs first to prevent new records being written.",
+        "Wipe ALL settings, profiles, scores, play statistics, selectors and local state? This cannot be undone. Close supported chat tabs and any open popup game first to prevent new records being written.",
       )
     )
       return;

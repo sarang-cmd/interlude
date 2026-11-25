@@ -9,6 +9,7 @@ MV3 classic content bootstrap → extension-owned ES module
   → local scores / serialized Focus Guard statistics
 extension service worker → validated, serialized settings writes / alarms
 options (Preact) → schema / profiles / playable preview / embedded diagnostics
+popup → on-demand extension cabinet → engine / global settings / Focus Guard
 ```
 
 The standalone website reuses the same canvas engine and lazy game registry,
@@ -32,6 +33,26 @@ web-accessible extension resources to the three hosts. Fonts and game assets are
 bundled; no network fonts. The options preview uses the same engine but neither
 score nor 2048 best-tile writes are persisted.
 
+## Toolbar cabinet
+
+The unreleased popup imports `src/popup/arcade.ts` only after **Play a game**.
+That extension-owned document uses the same lazy registry, engine, key settings,
+local scores and worker bridge as the site cabinet; it never embeds the public
+website. It uses the global profile, filters disabled games, and exposes the
+Pong and Tic-Tac-Toe CPU controls. Back or `pagehide` destroys the engine and
+cancels pending AI work. A hidden popup stops its loop and play-time accounting.
+
+A popup-local Focus Guard reads a consistent settings/stats/pause snapshot
+before enabling play, then responds to storage changes from other windows. It
+counts only visible, actively playing time and writes through the same serialized
+service-worker queue as the site panels. Deltas are flushed roughly once a
+second and on state changes; on teardown only the unsent suffix is dispatched,
+so an in-flight prefix is not counted twice. This final write is best-effort if
+the browser kills the popup without allowing lifecycle work. Global pause,
+quiet/study schedules, disabled games and budget lockout cannot be bypassed by
+the popup; an unreadable required storage snapshot fails closed. As elsewhere,
+these are gentle browser-local controls, not a tamper-proof enforcement system.
+
 ## Game catalog and build surfaces
 
 `src/games/manifest.ts` describes the shipped games and their shared modes.
@@ -49,8 +70,8 @@ Tic-Tac-Toe starts a dedicated worker only on a CPU turn. A website worker is
 loaded from a same-origin static asset. A Chrome content script cannot directly
 construct a `chrome-extension://` worker from the chat page's origin; the
 extension instead opens a short-lived, extension-origin worker-host iframe in
-its closed cabinet shadow root. The options preview uses the same host in its
-extension document. A private `MessageChannel` sends only a bounded game
+its closed cabinet shadow root. The options preview and toolbar cabinet use the
+same host in their extension documents. A private `MessageChannel` sends only a bounded game
 position and search parameters to the host; the host accepts one port from its
 immediate supported parent, validates the task, and starts the packaged worker.
 No chat content is read or sent. The host HTML alone is web-accessible on the

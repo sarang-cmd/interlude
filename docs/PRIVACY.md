@@ -34,10 +34,20 @@ selector overrides, pause state and timing averages are in
 `chrome.storage.local`. Local debug logging is off by default and limited to
 structural state transitions. The JSON backup is created locally, contains
 settings and local records, and is only sent elsewhere if the user chooses to
-share the file. Close supported chat tabs before wiping to avoid new records
-being written. If sync cannot be cleared, the wipe reports that the remote copy
-may remain; an empty local fallback prevents old synced settings from silently
-reappearing on this device. Retry the wipe when sync is available.
+share the file. Close supported chat tabs and any open popup game before wiping
+to avoid new records being written. If sync cannot be cleared, the wipe reports
+that the remote copy may remain; an empty local fallback prevents old synced
+settings from silently reappearing on this device. Retry the wipe when sync is available.
+
+## Toolbar cabinet (unreleased)
+
+Opening a game in the popup loads bundled extension resources, not the website
+or a chat page. Its human scores and active-play time use the existing
+`chrome.storage.local` records shared with the extension's site panels. The
+popup uses global settings and listens for local pause, settings and play-time
+changes to honor Focus Guard. No current game state is retained when it closes.
+The popup adds no network request, analytics, host permission or account. The
+separate optional metadata checks described below retain their normal schedule.
 
 ## Browser arcade
 

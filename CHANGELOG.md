@@ -2,6 +2,9 @@
 
 ## Unreleased / browser arcade
 
+- Add a playable toolbar popup with lazy-loaded enabled cabinets, local scores,
+  CPU controls and the same global pause and Focus Guard restrictions. Closing
+  the popup ends the run; it does not save game state.
 - Add Tic-Tac-Toe on both surfaces with five CPU levels, CPU watch and a
   website-only shared-board hot-seat mode. A bounded local worker performs
   search; watch and hot-seat matches do not write solo scores.

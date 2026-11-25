@@ -43,9 +43,14 @@ solo records. Speed controls cover 25% to 400%.
    the composer. When a response finishes, the run freezes; resume or close it.
    Auto-close is on by default with a **10-second** grace period.
 
-The toolbar popup offers **pause for one hour**, **pause until tomorrow**, and
-an options link; the first button becomes **resume now** during a pause. The
-cabinet's gear opens quick controls for game, volume, size and placement.
+The published toolbar popup offers **pause for one hour**, **pause until
+tomorrow**, and an options link; the first button becomes **resume now** during
+a pause. This branch adds **Play a game** directly in the popup, even when no
+chat is generating. It uses globally enabled games, global control and CPU
+settings, extension-local scores and Focus Guard; site-specific overrides still
+apply only in their respective sites. Back or closing the popup ends the run.
+This popup addition is not in the published release yet. The cabinet's gear
+opens quick controls for game, volume, size and placement.
 **Options** has searchable categories, individual/section resets, a changed-only
 filter, Global/Claude/ChatGPT/Gemini profiles and a playable non-recording
 preview. Site-specific values override global values, then schema defaults.
@@ -80,9 +85,10 @@ nudges and lockout are off by default.** If a user explicitly enables lockout,
 the cabinet shows `OUT OF COINS. BACK TO WORK.` at the budget and will not open
 until the next local day or lockout is disabled. Multiple active tabs share
 serialized play-time totals. Export/import settings and local records as JSON or
-confirm a wipe under **Data**. Close supported chat tabs first so they cannot
-write new records. If Chrome sync cannot be cleared, the UI reports the partial
-wipe and asks you to retry; a local fallback prevents old settings reappearing.
+confirm a wipe under **Data**. Close supported chat tabs and any open popup
+game first so they cannot write new records. If Chrome sync cannot be cleared,
+the UI reports the partial wipe and asks you to retry; a local fallback prevents
+old settings reappearing.
 
 ## Diagnostics and privacy
 

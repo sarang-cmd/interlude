@@ -22,6 +22,19 @@ run. The shared manifest lists default player-one keys, inputs, categories and
 estimated run lengths. The settings catalogue and manifest read the same key
 binding defaults.
 
+## Toolbar cabinet (unreleased)
+
+The extension popup can open each enabled extension cabinet directly, without a
+chat response in progress. Only the selected game is loaded. It uses global
+settings and key remaps, while site-specific overrides remain on their sites.
+Pong and Tic-Tac-Toe expose CPU level and play/watch controls in the popup;
+changing them updates the global settings. Website-only local matches do not
+appear there. Human runs use ordinary extension-local high scores; CPU watch
+runs do not. Active popup play contributes to the same local Focus Guard totals
+as site cabinets, and global pause, study, quiet hours and budget lockout apply.
+Back or closing the popup destroys the game and ends the run; there is no saved
+or restored state. The popup is not part of the published release yet.
+
 ## Build boundary
 
 `__PLATFORM__` is a compile-time literal. The extension build rejects any module

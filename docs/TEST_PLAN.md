@@ -4,15 +4,15 @@ Automated site checks use synthetic pages rather than signed-in Claude, ChatGPT
 or Gemini sessions. Use disposable prompts. Never copy conversation text into an
 issue. Times are approximate and assume the accounts are already signed in.
 
-| Time       | Check                                                                                                                                                                                                                                                                                                           |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0:00–1:00  | Verify `SHA256SUMS.txt`, unzip and load the folder with `manifest.json` via `chrome://extensions` → Developer mode → Load unpacked. Reload existing site tabs once. Open Options → Diagnostics.                                                                                                                 |
-| 1:00–3:00  | **Claude:** verify no idle stub, send a several-second prompt, check inline placement below the indicator and no answer overlap. Inspect A/B, selector fallback, mount and first-frame timing. Click/Alt+G to play, Escape to composer, finish and check freeze/resume/close. Try one regenerate or navigation. |
-| 3:00–5:00  | **ChatGPT (BETA):** repeat idle → long response → completion, focus/Escape and regenerate/navigation. Confirm the cabinet never covers the answer and diagnostics identifies ChatGPT. If signals fail, document match numbers and inspect structural attributes only.                                           |
-| 5:00–7:00  | **Gemini (BETA):** repeat the same signal, placement, keyboard and completion checks; verify Gemini diagnostics and a turn/navigation change. Do not assume a selector works if the panel stays hidden.                                                                                                         |
-| 7:00–8:00  | Open the panel gear; change game, volume, width and placement and verify live changes. In Options search for a setting, change a site override, use changed-only and reset it. Play the preview; verify its runs do not alter scores.                                                                           |
-| 8:00–9:00  | Check default auto-close/10 s grace, toolbar pause/resume, and hidden-tab pause in a normal Chrome profile. Optionally enable a 1-minute budget and lock, play until it locks, then disable it. Budgets/lockout are off by default.                                                                             |
-| 9:00–10:00 | Export and re-import a backup, check local stats/score charts, and inspect the clean copied diagnostics report for accidental content before sharing. Check selector/update status and the CORS-enabled endpoints. The selector feed uses a staging key and remains off by default.                             |
+| Time       | Check                                                                                                                                                                                                                                                                                                                            |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0:00–1:00  | Verify `SHA256SUMS.txt`, unzip and load the folder with `manifest.json` via `chrome://extensions` → Developer mode → Load unpacked. Reload existing site tabs once. Open Options → Diagnostics.                                                                                                                                  |
+| 1:00–3:00  | **Claude:** verify no idle stub, send a several-second prompt, check inline placement below the indicator and no answer overlap. Inspect A/B, selector fallback, mount and first-frame timing. Click/Alt+G to play, Escape to composer, finish and check freeze/resume/close. Try one regenerate or navigation.                  |
+| 3:00–5:00  | **ChatGPT (BETA):** repeat idle → long response → completion, focus/Escape and regenerate/navigation. Confirm the cabinet never covers the answer and diagnostics identifies ChatGPT. If signals fail, document match numbers and inspect structural attributes only.                                                            |
+| 5:00–7:00  | **Gemini (BETA):** repeat the same signal, placement, keyboard and completion checks; verify Gemini diagnostics and a turn/navigation change. Do not assume a selector works if the panel stays hidden.                                                                                                                          |
+| 7:00–8:00  | Open the panel gear; change game, volume, width and placement and verify live changes. In Options search for a setting, change a site override, use changed-only and reset it. Play the preview; verify its runs do not alter scores.                                                                                            |
+| 8:00–9:00  | Check default auto-close/10 s grace, toolbar pause/resume, and hidden-tab pause in a normal Chrome profile. On this branch, open a game from the real toolbar popup and check that Back/closing ends it. Optionally enable a 1-minute budget and lock, play until it locks, then disable it. Budgets/lockout are off by default. |
+| 9:00–10:00 | Export and re-import a backup, check local stats/score charts, and inspect the clean copied diagnostics report for accidental content before sharing. Check selector/update status and the CORS-enabled endpoints. The selector feed uses a staging key and remains off by default.                                              |
 
 If a live site's markup differs, use the local selector bench with structural
 attributes only. Re-run the affected scenario and record the actual browser
@@ -22,6 +22,12 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
 
 ## Extended checks (beyond ten minutes)
 
+- Open the actual Chrome toolbar popup (not just its URL in a tab). Try every
+  enabled game, keyboard remaps, touch controls, Pong/Tic-Tac-Toe CPU levels and
+  watch mode. Verify disabled games, global pause, quiet/study schedules, budget
+  lockout, scores and that Back or closing destroys the run. Automated popup
+  tests open its extension URL in a tab and synthesize document hiding; they do
+  not prove native toolbar focus/close behavior on every Chrome platform.
 - Visit the browser arcade, choose each game and play with keyboard and touch.
   Check pause/resume, sound, mobile layout, offscreen freezing and that a completed
   run's website-local score survives a reload. In Pong, select the local match,
