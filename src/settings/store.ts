@@ -23,6 +23,26 @@ const record = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
+/** chrome.storage may reorder object properties; compare values, not key order. */
+function equivalent(a: unknown, b: unknown): boolean {
+  if (Array.isArray(a) || Array.isArray(b))
+    return (
+      Array.isArray(a) &&
+      Array.isArray(b) &&
+      a.length === b.length &&
+      a.every((value, index) => equivalent(value, b[index]))
+    );
+  if (a && b && typeof a === "object" && typeof b === "object") {
+    const left = record(a),
+      right = record(b),
+      keys = Object.keys(left);
+    return (
+      keys.length === Object.keys(right).length &&
+      keys.every((key) => Object.hasOwn(right, key) && equivalent(left[key], right[key]))
+    );
+  }
+  return a === b;
+}
 let memory: SettingsDocument = empty();
 let writes: Promise<void> = Promise.resolve();
 
@@ -98,7 +118,7 @@ export async function loadSettingsDocument(): Promise<SettingsDocument> {
   raw ??= local[SETTINGS_KEY] ?? local[LEGACY_SETTINGS_KEY];
   if (!raw) return empty();
   const result = migrateSettings(raw);
-  if (JSON.stringify(raw) !== JSON.stringify(result)) await persist(result);
+  if (!equivalent(raw, result)) await persist(result);
   return result;
 }
 

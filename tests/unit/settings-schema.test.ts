@@ -93,3 +93,17 @@ describe("settings schema and storage", () => {
     expect(local["interlude.settings.localPreferred"]).toBe(true);
   });
 });
+
+it("does not rewrite valid sync documents merely because chrome reordered object keys", async () => {
+  const { sync } = fakeStorage();
+  sync[SETTINGS_KEY] = {
+    global: { volume: 30, delayMs: 700 },
+    sites: { gemini: { enabled: false } },
+    version: 2,
+  };
+  const before = structuredClone(sync[SETTINGS_KEY]);
+  const set = vi.spyOn(chrome.storage.sync, "set");
+  for (let i = 0; i < 3; i++) await loadSettingsDocument();
+  expect(sync[SETTINGS_KEY]).toEqual(before);
+  expect(set).not.toHaveBeenCalled();
+});
