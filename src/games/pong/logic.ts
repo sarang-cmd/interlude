@@ -52,6 +52,8 @@ export class PongLogic {
   watch: boolean;
   alive = true;
   winner: "player" | "ai" | null = null;
+  /** Optional paddle driver for alternate opponents. Values are clamped to the field. */
+  opponentDriver?: (dt: number, currentY: number) => number;
   private readonly adaptiveAI: AdaptiveDifficulty;
   private adaptiveBase: PongDifficulty;
   private aiErrorOffset = 0;
@@ -71,6 +73,7 @@ export class PongLogic {
       firstTo?: number;
       adaptive?: boolean;
       watch?: boolean;
+      initialDirection?: 1 | -1;
     } = {},
   ) {
     this.width = options.width ?? 640;
@@ -86,7 +89,8 @@ export class PongLogic {
     this.aiY = this.height / 2 - PADDLE_H / 2;
     this.aiTargetY = FIELD_TOP + (this.height - FIELD_TOP) / 2;
     this.playerBotTargetY = this.aiTargetY;
-    this.serve(this.rng.chance(0.5) ? 1 : -1);
+    const sampledDirection = this.rng.chance(0.5) ? 1 : -1;
+    this.serve(options.initialDirection ?? sampledDirection);
   }
 
   get isServing(): boolean {
@@ -139,17 +143,23 @@ export class PongLogic {
       return events;
     }
 
-    // Sample the ball only on a reaction tick, then commit to the target.
-    const level = this.effectiveDifficulty;
-    const model = AI_MODEL[level];
-    if (this.aiClock.tick(dt, AI_PROFILES[level].reactionSeconds)) {
-      this.aiErrorOffset = aimError(this.rng, model.error);
-      this.aiTargetY =
-        this.ball.vx > 0
-          ? this.ball.y + this.aiErrorOffset
-          : FIELD_TOP + (this.height - FIELD_TOP) / 2;
+    if (this.opponentDriver) {
+      const target = this.opponentDriver(dt, this.aiY);
+      if (Number.isFinite(target))
+        this.aiY = Math.max(FIELD_TOP, Math.min(this.height - PADDLE_H, target));
+    } else {
+      // Sample the ball only on a reaction tick, then commit to the target.
+      const level = this.effectiveDifficulty;
+      const model = AI_MODEL[level];
+      if (this.aiClock.tick(dt, AI_PROFILES[level].reactionSeconds)) {
+        this.aiErrorOffset = aimError(this.rng, model.error);
+        this.aiTargetY =
+          this.ball.vx > 0
+            ? this.ball.y + this.aiErrorOffset
+            : FIELD_TOP + (this.height - FIELD_TOP) / 2;
+      }
+      this.aiY = this.moveBot(this.aiY, this.aiTargetY, model.maxSpeed, dt);
     }
-    this.aiY = this.moveBot(this.aiY, this.aiTargetY, model.maxSpeed, dt);
 
     if (this.watch) {
       const leftModel = AI_MODEL[this.difficulty];

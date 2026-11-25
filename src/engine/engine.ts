@@ -624,7 +624,9 @@ export class Engine implements GameContext {
     ctx.textAlign = "right";
     ctx.fillStyle = TOKENS.phosphorDim;
     ctx.fillText(
-      `HI ${String(Math.max(this.hiScore, this.game?.score ?? 0)).padStart(6, "0")}`,
+      this.game?.recordsAllowed === false
+        ? "NO RECORD"
+        : `HI ${String(Math.max(this.hiScore, this.game?.score ?? 0)).padStart(6, "0")}`,
       w - 10,
       8,
     );
@@ -654,7 +656,11 @@ export class Engine implements GameContext {
     ctx.font = "17px VT323, monospace";
     ctx.fillStyle = TOKENS.phosphorHot;
     const finalScore = this.game?.score ?? 0;
-    ctx.fillText(`SCORE ${String(finalScore).padStart(6, "0")}`, w / 2, 176);
+    ctx.fillText(
+      this.game?.resultLabel ?? `SCORE ${String(finalScore).padStart(6, "0")}`,
+      w / 2,
+      176,
+    );
     if (this.recordedBest) {
       ctx.fillStyle = TOKENS.signalGreen;
       ctx.fillText("★ NEW HI-SCORE ★", w / 2, 202);

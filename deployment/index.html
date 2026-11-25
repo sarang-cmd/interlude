@@ -64,9 +64,7 @@
               <p class="eyebrow">01 / FREE PLAY</p>
               <h2 id="arcade-title">Pick a game. Take a break.</h2>
             </div>
-            <p class="heading-note">
-              ONE PLAYER <span>/</span> EIGHT GAMES <span>/</span> ALL YOURS
-            </p>
+            <p class="heading-note">SOLO <span>/</span> VS CPU <span>/</span> LOCAL PONG</p>
           </div>
           <div class="arcade-layout">
             <div class="machine" aria-label="Playable arcade cabinet">
@@ -126,32 +124,6 @@
                   </button>
                 </div>
               </div>
-              <div class="game-settings" aria-label="Game settings">
-                <label class="game-setting" for="game-speed">
-                  <span>GAME SPEED</span
-                  ><select id="game-speed"></select>
-                </label>
-                <div id="pong-settings" class="pong-settings" hidden>
-                  <label class="game-setting" for="pong-mode">
-                    <span>PONG MODE</span
-                    ><select id="pong-mode"></select>
-                  </label>
-                  <label class="game-setting" for="pong-ai">
-                    <span>CPU LEVEL</span
-                    ><select id="pong-ai"></select>
-                  </label>
-                  <label class="game-setting" for="pong-target">
-                    <span>FIRST TO</span
-                    ><select id="pong-target"></select>
-                  </label>
-                  <label class="game-setting check-setting" for="pong-adaptive">
-                    <span>ADAPTIVE CPU</span><input type="checkbox" id="pong-adaptive" />
-                  </label>
-                  <p class="settings-note">
-                    Changing mode or match length restarts Pong. Watch matches do not save scores.
-                  </p>
-                </div>
-              </div>
               <div class="control-panel">
                 <div class="control-heading">
                   <span>PLAYER CONTROLS</span><span>KEYBOARD / TOUCH</span>
@@ -162,12 +134,44 @@
                   role="group"
                   aria-label="On-screen game controls"
                 ></div>
+                <div id="local-pong-controls" class="local-controls" hidden></div>
                 <p class="control-hint" id="control-hint">ARROWS STEER · SWIPE ON TOUCH</p>
                 <p class="sr-only" id="game-instructions">
                   Press Start or focus the game screen and use a game key. Press P to pause or
                   resume. Escape releases focus.
                 </p>
               </div>
+              <div class="game-settings" aria-label="Game settings">
+                <label class="game-setting" for="game-speed">
+                  <span>GAME SPEED</span
+                  ><select id="game-speed"></select>
+                </label>
+                <div id="pong-settings" class="pong-settings" hidden>
+                  <label class="game-setting" for="pong-mode">
+                    <span>PONG MODE</span
+                    ><select id="pong-mode"></select>
+                  </label>
+                  <label class="game-setting" for="pong-ai" id="pong-ai-field">
+                    <span>CPU LEVEL</span
+                    ><select id="pong-ai"></select>
+                  </label>
+                  <label class="game-setting" for="pong-target">
+                    <span>FIRST TO</span
+                    ><select id="pong-target"></select>
+                  </label>
+                  <label
+                    class="game-setting check-setting"
+                    for="pong-adaptive"
+                    id="pong-adaptive-field"
+                  >
+                    <span>ADAPTIVE CPU</span><input type="checkbox" id="pong-adaptive" />
+                  </label>
+                  <p class="settings-note">
+                    Changing mode or match length restarts Pong. Watch matches do not save scores.
+                  </p>
+                </div>
+              </div>
+              <div id="local-pong" class="local-pong" hidden></div>
             </div>
             <aside class="selector" aria-labelledby="selector-title">
               <p class="micro-label">THE GAME LIBRARY / 08</p>

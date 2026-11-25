@@ -68,8 +68,10 @@ export interface ArcadeGame {
   readonly manifest: GameManifest;
   /** Current score; engine renders it in the HUD. */
   readonly score: number;
-  /** False for a run involving automation, even if play resumes manually. */
+  /** False for runs excluded from the ordinary high-score table. */
   readonly recordsAllowed?: boolean;
+  /** Optional result text in place of the numeric score. */
+  readonly resultLabel?: string;
   init(ctx: GameContext): void;
   fixedUpdate(dt: number): void;
   /** Apply rule changes to an existing run without replacing it. */

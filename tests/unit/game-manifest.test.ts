@@ -44,7 +44,8 @@ describe("game metadata and surface modes", () => {
     expect(PLATFORM).toBe("extension");
     expect(await availableModes("pong")).toEqual(sharedModesFor("pong", "extension"));
     expect((await availableModes("pong")).map((mode) => mode.id)).toEqual(["cpu", "watch"]);
-    expect(localModesFor("pong")).toEqual([]);
+    expect(localModesFor("pong").map((mode) => mode.id)).toEqual(["local"]);
+    expect(localModesFor("snake")).toEqual([]);
     await expect(loadGame("pong", "local")).rejects.toThrow("Mode unavailable");
     await expect(loadGame("missing")).rejects.toThrow("Unknown game");
     expect(sharedModesFor("missing", "web")).toEqual([]);

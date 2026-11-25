@@ -15,7 +15,9 @@ browser, separately from extension scores; if storage is blocked they last only
 for the current page session. The web arcade does not connect to your chats.
 Install the extension below if you want the cabinet to appear inside a chat.
 Pong offers five CPU levels, optional adaptive difficulty and a watch mode.
-Watch runs do not change records. Speed controls cover 25% to 400%.
+Watch runs do not change records. The website also offers local two-player
+Pong with remappable keys, touch controls and a series scoreboard. Speed
+controls cover 25% to 400%.
 
 > Claude, ChatGPT and Gemini use structural signals. ChatGPT and Gemini are
 > **BETA**. Automated site checks use synthetic pages rather than signed-in

@@ -7,7 +7,8 @@ import {
   getManifest,
   loadGame,
 } from "../src/games/manifest";
-import type { GameManifest } from "../src/games/types";
+import type { GameManifest, GameMode } from "../src/games/types";
+import type { PongLocalGame } from "../src/games/pong/pong.2p";
 import { defaults, type InterludeSettings, type SettingValue } from "../src/settings/schema";
 import { isAIDifficulty } from "../src/ai/difficulty";
 import {
@@ -26,7 +27,6 @@ function element<T extends Element>(selector: string): T {
 }
 
 const canvas = element<HTMLCanvasElement>("#game-canvas");
-const machineElement = element<HTMLElement>(".machine");
 const stateLabel = element<HTMLElement>("#game-state");
 const nameLabel = element<HTMLElement>("#game-name");
 const numberLabel = element<HTMLElement>("#game-number");
@@ -45,6 +45,10 @@ const pongMode = element<HTMLSelectElement>("#pong-mode");
 const pongAI = element<HTMLSelectElement>("#pong-ai");
 const pongTarget = element<HTMLSelectElement>("#pong-target");
 const pongAdaptive = element<HTMLInputElement>("#pong-adaptive");
+const pongAIField = element<HTMLElement>("#pong-ai-field");
+const pongAdaptiveField = element<HTMLElement>("#pong-adaptive-field");
+const localPong = element<HTMLElement>("#local-pong");
+const localControls = element<HTMLElement>("#local-pong-controls");
 
 const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> = {
   snake: [
@@ -110,6 +114,9 @@ for (const [game, speed] of Object.entries(preferences.speeds)) {
   settings[`game.${game}.speed`] = speed;
 }
 let selectedGame = DEFAULT_GAME_ID;
+let pongModeId = preferences.pongWatch ? "watch" : "cpu";
+let pongModes: readonly GameMode[] = getManifest("pong")!.modes;
+let removeLocalUI: (() => void) | null = null;
 let requestNumber = 0;
 let canvasVisible = true;
 let loaded = false;
@@ -149,7 +156,7 @@ function updateBest(): void {
   scoreLabel.textContent = String(scores[selectedGame] ?? 0).padStart(6, "0");
 }
 function focusGame(reveal = false): void {
-  if (reveal) machineElement.scrollIntoView({ block: "nearest", behavior: "auto" });
+  if (reveal) canvas.scrollIntoView({ block: "nearest", behavior: "auto" });
   canvas.focus({ preventScroll: true });
   engine.setFocused(true);
 }
@@ -246,6 +253,8 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
   if (!manifest) return;
   const sequence = ++requestNumber;
   loaded = false;
+  removeLocalUI?.();
+  removeLocalUI = null;
   engine.stop();
   playButton.disabled = true;
   resetButton.disabled = true;
@@ -253,8 +262,15 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
   stateLabel.textContent = "LOADING";
   selectButtons(id);
   try {
-    const mode = id === "pong" ? (settings.pongWatch ? "watch" : "cpu") : undefined;
-    const [game, modes] = await Promise.all([loadGame(id, mode), availableModes(id)]);
+    const mode = id === "pong" ? pongModeId : undefined;
+    const local = id === "pong" && mode === "local";
+    const localUI =
+      __PLATFORM__ === "web" && local ? import("../src/twoplayer/pong-ui") : Promise.resolve(null);
+    const [game, modes, localModule] = await Promise.all([
+      loadGame(id, mode),
+      availableModes(id),
+      localUI,
+    ]);
     if (sequence !== requestNumber) return;
     if (!modes.length || (mode && !modes.some((item) => item.id === mode)))
       throw new Error("No mode available");
@@ -263,11 +279,20 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     numberLabel.textContent = `GAME ${String(index + 1).padStart(2, "0")} / ${String(GAME_MANIFESTS.length).padStart(2, "0")}`;
     nameLabel.textContent = manifest.name;
     descriptionLabel.textContent = manifest.description;
-    hintLabel.textContent =
-      id === "pong" && settings.pongWatch
+    hintLabel.textContent = local
+      ? "LOCAL MATCH · SET KEYS BELOW · P PAUSES"
+      : id === "pong" && settings.pongWatch
         ? "WATCH CPU · P PAUSES · ESC RELEASES FOCUS"
         : `${manifest.controls} · P PAUSES`;
     pongSettings.hidden = id !== "pong";
+    pongAIField.hidden = local;
+    pongAdaptiveField.hidden = local;
+    if (id === "pong") {
+      pongModes = modes;
+      pongMode.replaceChildren();
+      for (const choice of modes) addOption(pongMode, choice.id, choice.label);
+      pongMode.value = pongModeId;
+    }
     speedSelect.value = String(preferences.speeds[id] ?? 100);
     canvas.dataset.game = id;
     canvas.setAttribute("aria-label", `${manifest.name} game screen`);
@@ -275,6 +300,16 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     makeControls(manifest);
     engine.setGame(game, scores[id] ?? 0);
     engine.start();
+    if (local && localModule) {
+      removeLocalUI = localModule.mountLocalPong({
+        root: localPong,
+        controlRoot: localControls,
+        game: game as PongLocalGame,
+        storage,
+        focusGame: () => focusGame(true),
+        acceptsInput: () => loaded && engine.getState() !== "paused",
+      });
+    }
     updateVisibility();
     loaded = true;
     playButton.disabled = false;
@@ -282,7 +317,7 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     // On narrow screens the picker sits below the screen. Bring the selected
     // cabinet back into view so touch controls never start an unseen game.
     if (reveal && window.matchMedia("(max-width: 740px)").matches) {
-      machineElement.scrollIntoView({ block: "nearest", behavior: "auto" });
+      canvas.scrollIntoView({ block: "nearest", behavior: "auto" });
     }
   } catch {
     if (sequence !== requestNumber) return;
@@ -340,8 +375,9 @@ speedSelect.addEventListener("change", () => {
   saveWebPreferences(storage, preferences);
 });
 pongMode.addEventListener("change", () => {
-  if (pongMode.value !== "watch" && pongMode.value !== "cpu") return;
-  preferences.pongWatch = pongMode.value === "watch";
+  if (!pongModes.some((mode) => mode.id === pongMode.value)) return;
+  pongModeId = pongMode.value;
+  preferences.pongWatch = pongModeId === "watch";
   changeSettings({ pongWatch: preferences.pongWatch });
   saveWebPreferences(storage, preferences);
   void chooseGame("pong");

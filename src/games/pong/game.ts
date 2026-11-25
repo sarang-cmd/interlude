@@ -14,14 +14,20 @@ export class PongGame implements ArcadeGame {
   readyHint = "MOUSE OR ARROWS · FIRST TO 5";
   score = 0;
 
-  private g!: GameContext;
-  private logic!: PongLogic;
+  protected g!: GameContext;
+  protected logic!: PongLogic;
   private watchedThisRun = false;
 
   constructor(private readonly watchOverride?: boolean) {}
 
   get recordsAllowed(): boolean {
     return !this.watchedThisRun;
+  }
+
+  get resultLabel(): string | undefined {
+    if (!this.watchedThisRun || this.logic.alive || !this.logic.winner) return undefined;
+    const winner = this.logic.winner === "player" ? this.leftLabel : this.rightLabel;
+    return `${winner} WINS · ${this.logic.playerScore} / ${this.logic.aiScore}`;
   }
 
   init(ctx: GameContext): void {
@@ -32,7 +38,11 @@ export class PongGame implements ArcadeGame {
     this.readyHint = watch
       ? `WATCH CPU · FIRST TO ${ctx.settings.pongFirstTo}`
       : `MOUSE OR ARROWS · FIRST TO ${ctx.settings.pongFirstTo}`;
-    this.logic = new PongLogic({
+    this.logic = this.createLogic(ctx, watch);
+  }
+
+  protected createLogic(ctx: GameContext, watch: boolean): PongLogic {
+    return new PongLogic({
       seed: Math.floor(ctx.rng.next() * 0xffffffff),
       difficulty: ctx.settings.pongDifficulty,
       adaptive: ctx.settings.pongAdaptive,
@@ -51,14 +61,7 @@ export class PongGame implements ArcadeGame {
     this.logic.watch = this.watchOverride ?? this.g.settings.pongWatch;
     this.logic.firstTo = this.g.settings.pongFirstTo;
     if (this.logic.watch) this.watchedThisRun = true;
-    else {
-      const input = this.g.input;
-      const pointer = input.pointerPosition();
-      if (input.isDown("up")) this.logic.nudgePlayer(-430 * dt);
-      else if (input.isDown("down")) this.logic.nudgePlayer(430 * dt);
-      else if (pointer.hasPosition) this.logic.movePlayer(pointer.y - PADDLE_H / 2);
-      if (pointer.isDown) this.logic.movePlayer(pointer.y - PADDLE_H / 2);
-    }
+    else this.movePlayer(dt);
 
     const events = this.logic.update(dt);
     for (const event of events) {
@@ -90,6 +93,25 @@ export class PongGame implements ArcadeGame {
     this.score = this.logic.playerScore * 1000 + this.logic.rallyHits;
   }
 
+  protected movePlayer(dt: number): void {
+    const input = this.g.input;
+    const pointer = input.pointerPosition();
+    if (input.isDown("up")) this.logic.nudgePlayer(-430 * dt);
+    else if (input.isDown("down")) this.logic.nudgePlayer(430 * dt);
+    else if (pointer.hasPosition) this.logic.movePlayer(pointer.y - PADDLE_H / 2);
+    if (pointer.isDown) this.logic.movePlayer(pointer.y - PADDLE_H / 2);
+  }
+
+  protected get leftLabel(): string {
+    return this.logic.watch ? "CPU A" : "PLAYER 1";
+  }
+  protected get rightLabel(): string {
+    return this.logic.watch ? "CPU B" : "MACHINE";
+  }
+  protected get statusLine(): string {
+    return `FIRST TO ${this.logic.firstTo} · ${this.logic.effectiveDifficulty.toUpperCase()}${this.logic.adaptive ? " / AUTO" : ""}`;
+  }
+
   render(_alpha: number): void {
     const ctx = this.g.ctx;
     const w = this.g.width;
@@ -117,12 +139,12 @@ export class PongGame implements ArcadeGame {
       color: TOKENS.phosphorDim,
       align: "center",
     });
-    drawText(ctx, this.logic.watch ? "CPU A" : "PLAYER 1", w / 2 - 70, 108, {
+    drawText(ctx, this.leftLabel, w / 2 - 70, 108, {
       font: '11px "IBM Plex Mono", monospace',
       color: TOKENS.phosphorDim,
       align: "center",
     });
-    drawText(ctx, this.logic.watch ? "CPU B" : "MACHINE", w / 2 + 70, 108, {
+    drawText(ctx, this.rightLabel, w / 2 + 70, 108, {
       font: '11px "IBM Plex Mono", monospace',
       color: TOKENS.phosphorDim,
       align: "center",
@@ -155,16 +177,10 @@ export class PongGame implements ArcadeGame {
       font: "12px VT323, monospace",
       color: TOKENS.phosphorDim,
     });
-    drawText(
-      ctx,
-      `FIRST TO ${this.logic.firstTo} · ${this.logic.effectiveDifficulty.toUpperCase()}${this.logic.adaptive ? " / AUTO" : ""}`,
-      w - 10,
-      h - 10,
-      {
-        font: "12px VT323, monospace",
-        color: TOKENS.phosphorDim,
-        align: "right",
-      },
-    );
+    drawText(ctx, this.statusLine, w - 10, h - 10, {
+      font: "12px VT323, monospace",
+      color: TOKENS.phosphorDim,
+      align: "right",
+    });
   }
 }

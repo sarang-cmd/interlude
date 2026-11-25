@@ -1,20 +1,20 @@
 # Game modes
 
-The extension runs one player or one player against the CPU. The website uses
-the same game code and will load local match modes from web-only modules. A mode
-is listed only after its implementation ships. Local matches use one device and
-never use networking.
+The extension runs one player, one player against the CPU, or a CPU watch match.
+The website uses the same game code and loads local match modes from web-only
+modules. A mode appears only after implementation. Local matches use one device
+and never use networking.
 
-| Game          | Extension         | Website           | Save a run |
-| ------------- | ----------------- | ----------------- | ---------- |
-| Snake         | Solo              | Solo              | No         |
-| Breakout      | Solo              | Solo              | No         |
-| Flapper       | Solo              | Solo              | No         |
-| 2048          | Solo              | Solo              | No         |
-| Pong          | vs CPU, watch CPU | vs CPU, watch CPU | No         |
-| Blockfall     | Solo              | Solo              | No         |
-| Rockfall Belt | Solo              | Solo              | No         |
-| Dashline      | Solo              | Solo              | No         |
+| Game          | Extension         | Website                        | Save a run |
+| ------------- | ----------------- | ------------------------------ | ---------- |
+| Snake         | Solo              | Solo                           | No         |
+| Breakout      | Solo              | Solo                           | No         |
+| Flapper       | Solo              | Solo                           | No         |
+| 2048          | Solo              | Solo                           | No         |
+| Pong          | vs CPU, watch CPU | vs CPU, watch CPU, local match | No         |
+| Blockfall     | Solo              | Solo                           | No         |
+| Rockfall Belt | Solo              | Solo                           | No         |
+| Dashline      | Solo              | Solo                           | No         |
 
 Scores persist separately on each surface. The existing 2048 undo is not a saved
 run. The shared manifest lists default player-one keys, inputs, categories and
@@ -30,8 +30,24 @@ emits `bundle-report.json` with JavaScript byte counts and budget limits. The
 website build must include the local-mode registry, so the separation check does
 not pass solely because both builds dropped the registry.
 
-No local modes are included yet. The registry returns an empty list until a
-playable mode and tests are added. Unknown or unavailable modes are rejected.
+Pong is the first local mode. The remaining seven original games do not yet
+have local match modes. Unknown or unavailable modes are rejected.
+
+## Local Pong
+
+The website has a same-device match with two paddles. Default keys are W/S and
+Up/Down. Both sets of keys work at once. Four remappable actions reject
+conflicts and reserve P for pause. Two connected gamepads use the first pad for
+player one and the second for player two. Touch buttons are available for both
+players. Players choose names and individual paddle speeds of 70%, 100% or
+130%.
+
+A match uses the shared Pong physics and a configurable seed. The opening
+serve uses the same seeded angle and alternates sides after each round. A series
+runs best of one, three or five matches. The on-screen scoreboard offers
+rematches and a series reset. Up to 100 match results and the local control
+preferences stay in browser storage, separate from single-player scores. The
+current series scoreboard resets on reload. No match data is transmitted.
 
 ## Pong AI and speed
 
