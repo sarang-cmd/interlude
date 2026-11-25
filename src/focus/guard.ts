@@ -167,6 +167,10 @@ export class FocusGuard {
     } else if (this.runningSince !== null && now < this.runningSince) this.runningSince = now;
     const today = dayKey(now);
     const total = dayTotal(this.currentStats(), today);
+    this.detectCrossings(before, total, today);
+    return this.snapshot();
+  }
+  private detectCrossings(before: number, total: number, today: string): void {
     if (this.settings.nudgesEnabled) {
       for (const value of this.settings.nudgeMinutes) {
         const mark = Number(value),
@@ -187,7 +191,6 @@ export class FocusGuard {
       this.notified.add(budgetKey);
       this.notices.push({ type: "budget" });
     }
-    return this.snapshot();
   }
   currentStats(): PlayStats {
     return applyDeltas(this.base, this.pending);
@@ -230,11 +233,17 @@ export class FocusGuard {
     return this.pending.map((delta) => ({ ...delta }));
   }
   acknowledge(count: number, remote: PlayStats): void {
+    const today = dayKey(this.now());
+    const before = dayTotal(this.currentStats(), today);
     this.pending.splice(0, count);
     this.base = cleanStats(remote);
+    this.detectCrossings(before, dayTotal(this.currentStats(), today), today);
   }
   replaceBase(remote: PlayStats): void {
+    const today = dayKey(this.now());
+    const before = dayTotal(this.currentStats(), today);
     this.base = cleanStats(remote);
+    this.detectCrossings(before, dayTotal(this.currentStats(), today), today);
   }
 }
 

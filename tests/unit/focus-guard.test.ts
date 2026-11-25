@@ -7,6 +7,7 @@ import {
   emptyStats,
   inSchedule,
   streak,
+  type PlayStats,
 } from "../../src/focus/guard";
 import { DEFAULT_SETTINGS } from "../../src/shared/storage";
 
@@ -87,4 +88,43 @@ describe("Focus Guard with a fake local clock", () => {
     );
     expect(guard.snapshot().block).toBe("study");
   });
+});
+
+it("merges concurrent tabs and notices thresholds crossed by another tab", () => {
+  let now = new Date(2026, 10, 25, 12).getTime();
+  const day = dayKey(now);
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    budgetEnabled: true,
+    budgetMinutes: 1,
+    budgetLockout: true,
+    nudgesEnabled: true,
+    nudgeMinutes: ["1"],
+  };
+  let persisted: PlayStats = {
+    version: 1,
+    days: { [day]: { games: { snake: 59000 }, sessions: 1 } },
+  };
+  const a = new FocusGuard(settings, persisted, () => now);
+  const b = new FocusGuard(settings, persisted, () => now);
+  a.begin("snake");
+  b.begin("pong");
+  now += 600;
+  expect(a.tick().todayMs).toBe(59600);
+  expect(b.tick().todayMs).toBe(59600);
+  const first = a.pendingDeltas();
+  persisted = applyDeltas(persisted, first);
+  a.acknowledge(first.length, persisted);
+  const second = b.pendingDeltas();
+  persisted = applyDeltas(persisted, second);
+  b.acknowledge(second.length, persisted);
+  expect(b.snapshot().todayMs).toBe(60200);
+  expect(b.snapshot().block).toBe("lock");
+  expect(b.takeNotices()).toEqual([{ type: "nudge", minutes: 1 }, { type: "budget" }]);
+  a.replaceBase(persisted);
+  expect(a.snapshot().todayMs).toBe(60200);
+  expect(a.snapshot().block).toBe("lock");
+  expect(a.takeNotices()).toEqual([{ type: "nudge", minutes: 1 }, { type: "budget" }]);
+  a.replaceBase(persisted);
+  expect(a.takeNotices()).toEqual([]);
 });

@@ -67,6 +67,8 @@ export class InterludeController {
   private guardTimer: ReturnType<typeof setInterval> | undefined;
   private lockTimer: ReturnType<typeof setTimeout> | undefined;
   private flushing = false;
+  private statsDirty = false;
+  private statsRevision = 0;
   private pauseUntil = 0;
   private responseCount = 0;
   private expectedMs: number | null = null;
@@ -471,15 +473,35 @@ export class InterludeController {
         const deltas = this.guard.pendingDeltas();
         const remote = await saveDeltas(deltas);
         this.guard.acknowledge(deltas.length, remote);
+        if (!this.destroyed) this.updateGuard(this.guard.snapshot());
       }
     } catch {
       /* pending deltas remain for the next active tick */
     } finally {
       this.flushing = false;
     }
+    // A different tab can write after our worker response but before the write
+    // settles here. Reconcile any storage events that arrived during the flush.
+    if (this.statsDirty && !this.destroyed) {
+      this.statsDirty = false;
+      const revision = this.statsRevision;
+      try {
+        const latest = await loadStats();
+        if (
+          revision === this.statsRevision &&
+          !this.flushing &&
+          !this.guard.pendingDeltas().length
+        ) {
+          this.guard.replaceBase(latest);
+          this.updateGuard(this.guard.snapshot());
+        } else if (this.flushing || this.guard.pendingDeltas().length) this.statsDirty = true;
+      } catch {
+        this.statsDirty = true;
+      }
+    }
   }
   private updateGuard(snapshot: GuardSnapshot): void {
-    if (!this.panel) return;
+    if (!this.panel || this.destroyed) return;
     this.panel.setDaily(snapshot.todayMs, this.settings.budgetEnabled);
     for (const notice of this.guard.takeNotices())
       this.panel.setNotice(
@@ -516,10 +538,15 @@ export class InterludeController {
     );
   }
   refreshStats(raw: unknown): void {
-    if (!this.flushing && !this.guard.pendingDeltas().length) {
-      this.guard.replaceBase(cleanStats(raw));
-      this.updateGuard(this.guard.snapshot());
+    this.statsRevision++;
+    if (this.flushing || this.guard.pendingDeltas().length) {
+      this.statsDirty = true;
+      if (!this.flushing) void this.flushStats();
+      return;
     }
+    this.statsDirty = false;
+    this.guard.replaceBase(cleanStats(raw));
+    this.updateGuard(this.guard.snapshot());
   }
   private scheduleGuardBoundary(): void {
     if (this.boundaryTimer !== undefined) clearTimeout(this.boundaryTimer);
