@@ -10,6 +10,7 @@ import {
 import type { GameManifest, GameMode } from "../src/games/types";
 import type { PongLocalGame } from "../src/games/pong/pong.2p";
 import type { SplitRaceGame } from "../src/twoplayer/split-race";
+import type { Coop2048Game } from "../src/games/2048/coop.2p";
 import { defaults, type InterludeSettings, type SettingValue } from "../src/settings/schema";
 import { isAIDifficulty } from "../src/ai/difficulty";
 import {
@@ -275,17 +276,23 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     const mode = id === "pong" ? pongModeId : (raceModeByGame[id] ?? "solo");
     const local = id === "pong" && mode === "local";
     const splitRace = id !== "pong" && mode === "local";
+    const sharedCoop = id === "twenty48" && mode === "coop";
     const localUI =
       __PLATFORM__ === "web" && local ? import("../src/twoplayer/pong-ui") : Promise.resolve(null);
     const raceUI =
       __PLATFORM__ === "web" && splitRace
         ? import("../src/twoplayer/race-ui")
         : Promise.resolve(null);
-    const [game, modes, localModule, raceModule] = await Promise.all([
+    const coopUI =
+      __PLATFORM__ === "web" && sharedCoop
+        ? import("../src/twoplayer/coop-ui")
+        : Promise.resolve(null);
+    const [game, modes, localModule, raceModule, coopModule] = await Promise.all([
       loadGame(id, mode),
       availableModes(id),
       localUI,
       raceUI,
+      coopUI,
     ]);
     if (sequence !== requestNumber) return;
     if (!modes.length || (mode && !modes.some((item) => item.id === mode)))
@@ -299,9 +306,11 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
       ? "LOCAL MATCH · SET KEYS BELOW · P PAUSES"
       : splitRace
         ? "SPLIT SCREEN · TWO SETS OF CONTROLS · P PAUSES"
-        : id === "pong" && settings.pongWatch
-          ? "WATCH CPU · P PAUSES · ESC RELEASES FOCUS"
-          : `${manifest.controls} · P PAUSES`;
+        : sharedCoop
+          ? "SHARED BOARD · TAKE TURNS · P PAUSES"
+          : id === "pong" && settings.pongWatch
+            ? "WATCH CPU · P PAUSES · ESC RELEASES FOCUS"
+            : `${manifest.controls} · P PAUSES`;
     pongSettings.hidden = id !== "pong";
     raceModeField.hidden = id === "pong" || !modes.some((choice) => choice.players === 2);
     if (id !== "pong") {
@@ -322,10 +331,10 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     canvas.dataset.game = id;
     canvas.setAttribute(
       "aria-label",
-      `${manifest.name}${splitRace ? " two-player split screen" : " game screen"}`,
+      `${manifest.name}${splitRace ? " two-player split screen" : sharedCoop ? " shared co-op board" : " game screen"}`,
     );
     updateBest();
-    makeControls(manifest, splitRace);
+    makeControls(manifest, splitRace || sharedCoop);
     engine.setGame(game, scores[id] ?? 0);
     engine.start();
     if (local && localModule) {
@@ -342,6 +351,15 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
         root: localRace,
         controlRoot: localRaceControls,
         game: game as SplitRaceGame,
+        storage,
+        focusGame: () => focusGame(false),
+        acceptsInput: () => loaded && engine.getState() !== "paused",
+      });
+    } else if (sharedCoop && coopModule) {
+      removeLocalUI = coopModule.mountCoop2048({
+        root: localRace,
+        controlRoot: localRaceControls,
+        game: game as Coop2048Game,
         storage,
         focusGame: () => focusGame(false),
         acceptsInput: () => loaded && engine.getState() !== "paused",

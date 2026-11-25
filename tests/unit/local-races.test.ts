@@ -80,7 +80,9 @@ function setup() {
 describe("website-only split races", () => {
   it("loads every original race from a separate web-only module", async () => {
     for (const id of RACE_GAMES) {
-      expect(localModesFor(id).map((mode) => mode.id)).toEqual(["local"]);
+      expect(localModesFor(id).map((mode) => mode.id)).toEqual(
+        id === "twenty48" ? ["local", "coop"] : ["local"],
+      );
       const game = await loadLocalGame(id, "local");
       expect(game.manifest.id).toBe(id);
       expect(game.recordsAllowed).toBe(false);

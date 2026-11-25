@@ -22,7 +22,7 @@ test("built extension excludes web-only modules and both surfaces meet their bud
   for (const chunk of extension.chunks) {
     const code = await readFile(`dist/${chunk.file}`, "utf8");
     expect(code).not.toMatch(
-      /TWO PLAYERS|PLAYER 2|pong-local|p2Up|race\.records|split.screen|\.2p/i,
+      /TWO PLAYERS|PLAYER 2|pong-local|p2Up|race\.records|coop2048|split.screen|\.2p/i,
     );
   }
   for (const report of [extension, web]) {

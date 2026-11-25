@@ -591,8 +591,8 @@ h1 {
   touch-action: none;
   user-select: none;
 }
-.game-control:hover,
-.game-control:active {
+.game-control:not(:disabled):hover,
+.game-control:not(:disabled):active {
   background: var(--amber);
   color: var(--ink);
   border-color: var(--amber);

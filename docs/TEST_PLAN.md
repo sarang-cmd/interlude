@@ -28,8 +28,9 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
   hold W and Down together, try a remap conflict, and finish a short series.
   Check the recent local match record and the separate solo high score. For each
   other cabinet, select the split-screen race, play both sides, finish a round,
-  and check the seed, handicaps, series score and browser-local record. Repeat
-  with two gamepads and narrow touch controls.
+  and check the seed, handicaps, series score and browser-local record. In 2048
+  co-op, alternate moves, try undo, and finish a round. Repeat with two gamepads
+  and narrow touch controls.
 - Play all eight games on keyboard, pointer/touch and a standard focused
   gamepad; check game-specific rules, remaps/conflicts, sounds, preview and
   records. Assess human difficulty and run length; simulation tests do not prove

@@ -17,12 +17,24 @@ const RACE_LOCAL: GameMode = {
   surfaces: ["web"],
 };
 
+const COOP_2048: GameMode = {
+  id: "coop",
+  label: "TWO PLAYERS / SHARED BOARD CO-OP",
+  description: "Take turns on one 2048 board and reach the target together.",
+  players: 2,
+  surfaces: ["web"],
+};
+
 export function localModesFor(gameId: string): readonly GameMode[] {
   if (gameId === "pong") return [PONG_LOCAL];
+  if (gameId === "twenty48") return [RACE_LOCAL, COOP_2048];
   return isRaceGame(gameId) ? [RACE_LOCAL] : [];
 }
 
 export async function loadLocalGame(gameId: string, modeId: string): Promise<ArcadeGame> {
+  if (gameId === "twenty48" && modeId === "coop") {
+    return new (await import("../games/2048/coop.2p")).Coop2048Game();
+  }
   if (modeId !== "local") throw new Error("Mode unavailable");
   switch (gameId) {
     case "pong":

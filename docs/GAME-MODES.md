@@ -10,7 +10,7 @@ and never use networking.
 | Snake         | Solo              | Solo, split-screen race        | No         |
 | Breakout      | Solo              | Solo, split-screen race        | No         |
 | Flapper       | Solo              | Solo, split-screen race        | No         |
-| 2048          | Solo              | Solo, split-screen race        | No         |
+| 2048          | Solo              | Solo, race, shared-board co-op | No         |
 | Pong          | vs CPU, watch CPU | vs CPU, watch CPU, local match | No         |
 | Blockfall     | Solo              | Solo, split-screen race        | No         |
 | Rockfall Belt | Solo              | Solo, split-screen race        | No         |
@@ -57,8 +57,24 @@ An eliminated board freezes while the other continues until its game ends or
 the clock expires. The solo 2048 clock is off during a race so both boards use
 the shared race clock. No local race updates a solo high score or best tile.
 The last 100 race results and per-game preferences stay in browser storage. The
-active scoreboard resets on reload. Race data is never transmitted. Shared-board
-co-op and private hot-seat games are not part of these race modes.
+active scoreboard resets on reload. Race data is never transmitted. Private
+hot-seat games are not part of these race modes.
+
+## Shared-board 2048 co-op
+
+Two players share one 2048 board and alternate after each valid move. Both work
+toward one configurable tile target. Invalid moves leave the turn unchanged.
+The current player may spend a shared undo to restore the previous board and
+return the turn to the previous player. The same 2048 merge and seeded spawn
+logic runs on both surfaces. This mode contains no hidden information.
+
+The team chooses names, key bindings, a seed, target tile, undo count and a
+30 to 300 game-second clock between rounds. Two controller slots remain assigned
+for the round. Touch controls enable the active player's row. A win or loss is
+recorded when the target is reached, no legal move remains, or the clock runs
+out. Up to 100 team results stay in browser storage, apart from solo records.
+The team tally resets on reload. A rematch increments the seed. P pauses and
+all gameplay remains on one device.
 
 ## Local Pong
 

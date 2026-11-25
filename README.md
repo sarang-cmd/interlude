@@ -18,9 +18,9 @@ The public site currently runs the earlier eight-game build. This branch adds
 five Pong CPU levels, adaptive difficulty, watch mode and website-only local
 matches. Pong uses two paddles. The other seven cabinets use split-screen races
 with seeded starts, remappable keys, touch controls and a series scoreboard.
-Race boards are independent rather than shared-board co-op. These additions are
-not deployed yet. Watch and local matches do not change solo records. Speed
-controls cover 25% to 400%.
+Race boards are independent. 2048 also has a shared-board co-op mode with
+alternating turns. These additions are not deployed yet. Watch and local
+matches do not change solo records. Speed controls cover 25% to 400%.
 
 > Claude, ChatGPT and Gemini use structural signals. ChatGPT and Gemini are
 > **BETA**. Automated site checks use synthetic pages rather than signed-in
