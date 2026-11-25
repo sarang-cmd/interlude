@@ -26,3 +26,13 @@ describe("engine clock", () => {
     expect(scenes.current).toBe("paused"); expect(scenes.pop()).toBe("playing");
   });
 });
+
+it("does not perform catch-up steps or render after a callback stops the loop", () => {
+  let frame: FrameRequestCallback = () => {};
+  vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { frame = callback; return 1; });
+  vi.stubGlobal("cancelAnimationFrame", () => {});
+  vi.spyOn(performance, "now").mockReturnValue(0);
+  const loop = new GameLoop(); const update = vi.fn(() => loop.stop()); const render = vi.fn();
+  loop.onFixedUpdate = update; loop.onRender = render; loop.start(); frame(100);
+  expect(update).toHaveBeenCalledTimes(1); expect(render).not.toHaveBeenCalled(); expect(loop.isRunning).toBe(false);
+});

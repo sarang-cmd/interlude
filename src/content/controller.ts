@@ -168,6 +168,7 @@ export class InterludeController {
     });
   }
   private resume(): void {
+    this.panel.engine.sound.unlock();
     this.panel.setDone(false);
     this.panel.engine.resumeFromDone();
     this.panel.focus();

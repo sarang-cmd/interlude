@@ -74,6 +74,7 @@ export class Engine implements GameContext {
   private scanPattern: CanvasPattern | null = null;
   private firstFrameFired = false;
   private recordedBest = false;
+  private runVersion = 0;
   private pauseReason: "done" | "user" = "done";
 
   constructor(canvas: HTMLCanvasElement, options: EngineOptions) {
@@ -87,7 +88,17 @@ export class Engine implements GameContext {
     this.options = options;
     this.hiScore = options.highScore;
     this.sound.setMuted(options.settings.muted);
-    this.input.onGesture = () => this.sound.unlock();
+    this.input.onGesture = () => {
+      this.sound.unlock();
+      // A real key/pointer/button gesture retries immediately, even if the
+      // previous death is still in hit-stop. Its action is then buffered for
+      // the new run by Input.
+      if (this.active && this.state === "gameover") {
+        this.loop.clearHitStop();
+        this.beginRun();
+        this.render(0);
+      }
+    };
 
     this.loop.onFixedUpdate = (dt) => this.fixedUpdate(dt);
     this.loop.onRender = (alpha) => this.render(alpha);
@@ -152,6 +163,7 @@ export class Engine implements GameContext {
 
   setGame(game: ArcadeGame, highScore = 0): void {
     const preservePause = this.active && this.state === "paused";
+    this.runVersion++;
     if (this.game) this.game.destroy();
     this.game = game;
     this.rngState = new RNG(randomSeed());
@@ -230,6 +242,7 @@ export class Engine implements GameContext {
     if (this.state !== "paused") this.stateBeforePause = this.state === "boot" ? "ready" : this.state;
     this.setState("paused", "done");
     this.loop.stop();
+    this.sound.silence();
     this.render(1);
   }
 
@@ -242,6 +255,7 @@ export class Engine implements GameContext {
 
   /** Tab visibility: hidden → loop pauses entirely. */
   setTabHidden(hidden: boolean): void {
+    if (hidden) this.sound.silence();
     this.rafVisible = !hidden;
     this.applyRate();
   }
@@ -315,6 +329,7 @@ export class Engine implements GameContext {
           this.stateBeforePause = "playing";
           this.setState("paused", "user");
           this.loop.stop();
+          this.sound.silence();
           this.render(1);
         }
         break;
@@ -343,6 +358,7 @@ export class Engine implements GameContext {
 
   private restart(): void {
     if (!this.game) return;
+    this.runVersion++;
     this.rngState = new RNG(randomSeed());
     this.particles.clear();
     this.scorePops = [];
@@ -356,6 +372,7 @@ export class Engine implements GameContext {
   async reportGameOver(): Promise<void> {
     if (!this.game || this.state !== "playing") return;
     const endedGame = this.game;
+    const endedRun = this.runVersion;
     const gameId = endedGame.manifest.id;
     const score = endedGame.score;
     this.recordedBest = score > this.hiScore;
@@ -363,7 +380,7 @@ export class Engine implements GameContext {
     this.setState("gameover");
     this.sound.play("gameOver");
     const { best, isRecord } = await saveHighScore(gameId, score);
-    if (this.game === endedGame && this.getState() === "gameover") {
+    if (this.game === endedGame && this.runVersion === endedRun && this.getState() === "gameover") {
       this.hiScore = best;
       this.recordedBest = isRecord;
       this.options.onHighScore?.(best, isRecord);

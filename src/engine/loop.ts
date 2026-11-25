@@ -42,6 +42,7 @@ export class GameLoop {
   hitStop(ms: number): void {
     this.hitStopUntil = performance.now() + ms;
   }
+  clearHitStop(): void { this.hitStopUntil = 0; }
 
   start(): void {
     if (this.running) return;
@@ -79,6 +80,7 @@ export class GameLoop {
         this.onFixedUpdate(GameLoop.STEP);
         this.accumulator -= GameLoop.STEP;
         steps++;
+        if (!this.running) return;
       }
       if (steps === 5) this.accumulator = 0;
     }
