@@ -1,5 +1,6 @@
 /** The catalogue is the only source of setting defaults, validation and UI metadata. */
 import { ACTION_DEFAULTS, GAME_ACTIONS, GAME_IDS, type GameId } from "../games/catalog";
+import type { AIDifficulty } from "../ai/difficulty";
 export { ACTION_DEFAULTS, GAME_ACTIONS, GAME_IDS };
 export type { GameId };
 
@@ -312,7 +313,33 @@ const BASE = [
     category: "Games",
     tags: ["pong", "difficulty"],
     perSite: true,
-    options: opts(["rookie", "Rookie"], ["regular", "Regular"], ["veteran", "Veteran"]),
+    options: opts(
+      ["rookie", "Rookie"],
+      ["easy", "Easy"],
+      ["regular", "Regular"],
+      ["hard", "Hard"],
+      ["veteran", "Veteran"],
+    ),
+  }),
+  def({
+    id: "pongAdaptive",
+    type: "boolean",
+    default: false,
+    label: "Pong / adaptive CPU",
+    description: "Adjust the CPU level after three points in a row.",
+    category: "Games",
+    tags: ["pong", "ai", "adaptive"],
+    perSite: true,
+  }),
+  def({
+    id: "pongWatch",
+    type: "boolean",
+    default: false,
+    label: "Pong / watch CPU match",
+    description: "Watch two CPU paddles. Watch matches never save records.",
+    category: "Games",
+    tags: ["pong", "ai", "watch", "bot"],
+    perSite: true,
   }),
   def({
     id: "pongFirstTo",
@@ -758,8 +785,8 @@ const generated: SettingDefinition[] = GAME_IDS.flatMap((game) => [
     id: `game.${game}.speed`,
     type: "number",
     default: 100,
-    min: 50,
-    max: 150,
+    min: 25,
+    max: 400,
     step: 5,
     label: `${names[game]} / speed (%)`,
     description: "Scale simulation speed during play.",
@@ -808,7 +835,7 @@ type BaseValues = { [D in (typeof BASE)[number] as D["id"]]: ValueFor<D> };
 export type Placement = "inline" | "overlay" | "docked-composer" | "side-panel";
 export type InterludeSettings = Omit<BaseValues, "placement" | "pongDifficulty"> & {
   placement: Placement;
-  pongDifficulty: "rookie" | "regular" | "veteran";
+  pongDifficulty: AIDifficulty;
 } & Record<string, SettingValue>;
 
 export function defaults(): InterludeSettings {

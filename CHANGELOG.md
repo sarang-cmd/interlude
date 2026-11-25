@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — browser arcade
+## Unreleased / browser arcade
 
 - Make all eight games playable on the website using the shared canvas engine,
   with keyboard, touch and gamepad controls, pause/reset, optional sound and
@@ -8,7 +8,7 @@
 - Add a separate static website build, retaining the existing metadata routes
   and CORS settings. The website arcade does not connect to chat sessions.
 
-## 0.2.0 — staging
+## 0.2.0 / staging
 
 - Add a typed, validated, versioned settings catalogue, sync/local fallback,
   per-site profiles, quick drawer, searchable Preact options and live preview.
@@ -19,7 +19,7 @@
   key is for staging and must be rotated before production use.
 - Add serialized cross-tab score, settings and play-time writes; built-output
   privacy checks; CI and checksummed release packaging.
-- All three site adapters remain unverified in authenticated live sessions.
+- Site adapters use structural signals. ChatGPT and Gemini are beta.
 
 ## 0.1.0
 

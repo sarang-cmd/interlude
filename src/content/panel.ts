@@ -5,6 +5,8 @@ import { GAME_MANIFESTS } from "../games/manifest";
 import type { MountPointResult, Placement } from "../adapters/types";
 import type { InterludeSettings } from "../shared/storage";
 import { GAME_ACTIONS, type GameId } from "../settings/schema";
+import { SPEED_CHOICES } from "../games/catalog";
+import { AI_LEVELS } from "../ai/difficulty";
 
 const fontUrl = (name: string): string => chrome.runtime.getURL(`fonts/${name}.woff2`);
 const CSS = `
@@ -21,7 +23,8 @@ const CSS = `
 .mark{display:inline-block;flex:none;width:4px;height:14px;margin-right:10px;background:#FFB000;box-shadow:5px 0 0 #FFB000,10px 0 0 #FFB000;image-rendering:pixelated}
 .tag{font:400 9px 'IBM Plex Mono',monospace;color:#A88A4D;white-space:nowrap;letter-spacing:.06em}
 select{appearance:none;color:#FFD36B;background:#0E0B07;border:1px solid #7A5600;padding:6px 24px 6px 8px;max-width:175px;min-width:112px;font-size:10px;font-weight:600;letter-spacing:.03em;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23FFB000' d='M0 0h10L5 6z'/%3E%3C/svg%3E");background-position:right 8px center;background-size:10px 6px;background-repeat:no-repeat}
-select:focus-visible,button:focus-visible,canvas:focus-visible{outline:2px solid #FFD36B;outline-offset:-2px}
+select:focus-visible,button:focus-visible{outline:2px solid #FFD36B;outline-offset:-2px}
+.focus-indicator{background:#FFD36B;color:#0E0B07;font-size:9px;font-weight:700;padding:2px 4px;white-space:nowrap}
 button{border:1px solid #7A5600;background:#171209;color:#FFD36B;cursor:pointer;font-size:10px;letter-spacing:.04em}
 button:hover{background:#2A2114;border-color:#FFB000}button:active{transform:translate(1px,1px)}
 .close{width:27px;height:27px;font-size:16px;line-height:1;color:#DDC796;flex:none}
@@ -122,6 +125,7 @@ export class Panel {
   private readonly machine = node("section", "machine");
   private readonly top = node("header", "top");
   private readonly stateLabel = node("span", "state", "READY");
+  private readonly focusIndicator = node("span", "focus-indicator", "KEYS ACTIVE");
   private readonly cabinet = node("span", "", "CABINET 01");
   private readonly picker = node("select");
   private readonly canvas = node("canvas");
@@ -135,6 +139,11 @@ export class Panel {
   private readonly quickPlacement = node("select");
   private readonly quickVolume = node("input");
   private readonly quickWidth = node("input");
+  private readonly quickSpeed = node("select");
+  private readonly quickPong = node("div", "quick-pong");
+  private readonly quickPongAI = node("select");
+  private readonly quickPongWatch = node("select");
+  private readonly quickPongAdaptive = node("select");
   private readonly daily = node("span", "daily");
   private readonly notice = node("div", "notice");
   private readonly lockMessage = node("div", "lock-message", "OUT OF COINS. BACK TO WORK.");
@@ -169,7 +178,7 @@ export class Panel {
     brand.append(
       node("span", "mark"),
       node("span", "", "INTERLUDE"),
-      node("span", "tag", "— ARCADE / 01"),
+      node("span", "tag", "/ ARCADE / 01"),
     );
     this.picker.setAttribute("aria-label", "Choose game");
     for (const [value, name] of [
@@ -197,16 +206,67 @@ export class Panel {
     this.top.append(brand, this.picker, this.gear, close);
     this.drawer.hidden = true;
     this.drawer.setAttribute("aria-label", "Quick settings");
-    const row = (labelText: string, control: HTMLElement): void => {
+    const row = (labelText: string, control: HTMLElement, parent = this.drawer): void => {
       const label = node("label", "drawer-row");
       label.append(node("span", "", labelText), control);
-      this.drawer.append(label);
+      parent.append(label);
     };
     for (const option of Array.from(this.picker.options))
       this.quickGame.append(option.cloneNode(true));
     this.quickGame.setAttribute("aria-label", "Quick game");
     this.quickGame.addEventListener("change", () => this.events.onChoose(this.quickGame.value));
     row("GAME", this.quickGame);
+    for (const speed of SPEED_CHOICES) {
+      const option = node("option", "", `${speed}%`);
+      option.value = String(speed);
+      this.quickSpeed.append(option);
+    }
+    this.quickSpeed.setAttribute("aria-label", "Game speed");
+    this.quickSpeed.addEventListener("change", () => {
+      if (this.currentGameId)
+        this.events.onQuickChange({
+          [`game.${this.currentGameId}.speed`]: Number(this.quickSpeed.value),
+        });
+    });
+    row("GAME SPEED", this.quickSpeed);
+    for (const level of AI_LEVELS) {
+      const option = node("option", "", level.toUpperCase());
+      option.value = level;
+      this.quickPongAI.append(option);
+    }
+    this.quickPongAI.setAttribute("aria-label", "Pong CPU level");
+    this.quickPongAI.addEventListener("change", () =>
+      this.events.onQuickChange({ pongDifficulty: this.quickPongAI.value }),
+    );
+    row("PONG CPU LEVEL", this.quickPongAI, this.quickPong);
+    for (const [value, label] of [
+      ["false", "PLAY VS CPU"],
+      ["true", "WATCH CPU"],
+    ]) {
+      const option = node("option", "", label);
+      option.value = value!;
+      this.quickPongWatch.append(option);
+    }
+    this.quickPongWatch.setAttribute("aria-label", "Pong watch mode");
+    this.quickPongWatch.addEventListener("change", () =>
+      this.events.onQuickChange({ pongWatch: this.quickPongWatch.value === "true" }),
+    );
+    row("PONG MODE", this.quickPongWatch, this.quickPong);
+    for (const [value, label] of [
+      ["false", "OFF"],
+      ["true", "ON"],
+    ]) {
+      const option = node("option", "", label);
+      option.value = value!;
+      this.quickPongAdaptive.append(option);
+    }
+    this.quickPongAdaptive.setAttribute("aria-label", "Pong adaptive CPU");
+    this.quickPongAdaptive.addEventListener("change", () =>
+      this.events.onQuickChange({ pongAdaptive: this.quickPongAdaptive.value === "true" }),
+    );
+    row("ADAPTIVE CPU", this.quickPongAdaptive, this.quickPong);
+    this.quickPong.hidden = true;
+    this.drawer.append(this.quickPong);
     this.quickVolume.type = "range";
     this.quickVolume.min = "0";
     this.quickVolume.max = "100";
@@ -240,7 +300,9 @@ export class Panel {
     );
     row("PLACEMENT", this.quickPlacement);
     const meta = node("div", "meta");
-    meta.append(this.cabinet, this.daily, this.stateLabel);
+    this.focusIndicator.hidden = true;
+    this.focusIndicator.setAttribute("role", "status");
+    meta.append(this.cabinet, this.daily, this.focusIndicator, this.stateLabel);
     this.notice.hidden = true;
     this.notice.setAttribute("role", "status");
     this.lockMessage.hidden = true;
@@ -282,8 +344,14 @@ export class Panel {
     });
     // Register before Input: pointerdown puts focus on the canvas in the same event.
     this.canvas.addEventListener("pointerdown", () => this.focus());
-    this.canvas.addEventListener("focus", () => this.engine.setFocused(true));
-    this.canvas.addEventListener("blur", () => this.engine.setFocused(false));
+    this.canvas.addEventListener("focus", () => {
+      this.engine.setFocused(true);
+      this.focusIndicator.hidden = false;
+    });
+    this.canvas.addEventListener("blur", () => {
+      this.engine.setFocused(false);
+      this.focusIndicator.hidden = true;
+    });
     this.shadow.addEventListener(
       "keydown",
       (event) => {
@@ -347,6 +415,7 @@ export class Panel {
   }
   setGame(game: ArcadeGame, best: number, bindings: Record<string, string>): void {
     this.currentGameId = game.manifest.id;
+    this.syncQuickControls();
     const index = GAME_MANIFESTS.findIndex((entry) => entry.id === game.manifest.id);
     this.cabinet.textContent = `${String(index + 1).padStart(2, "0")} / ${game.manifest.name}`;
     this.controls.replaceChildren();
@@ -383,6 +452,7 @@ export class Panel {
       });
       this.controls.append(button);
     }
+    this.updateModeControls();
     this.engine.setGame(game, best);
     this.applyBindings(bindings);
     this.host.dataset.interludeGame = game.manifest.id;
@@ -395,8 +465,37 @@ export class Panel {
     }
     this.engine.input.setKeymapOverrides(map);
   }
+  private updateModeControls(): void {
+    const watching = this.currentGameId === "pong" && this.settings.pongWatch;
+    const caption = this.controls.querySelector<HTMLElement>(".caption");
+    if (caption) caption.textContent = watching ? "WATCH CPU / NO RECORDS" : "PLAYER CONTROLS";
+    for (const button of this.controls.querySelectorAll<HTMLButtonElement>("button")) {
+      button.disabled = watching;
+    }
+  }
+  private syncQuickControls(): void {
+    this.quickPong.hidden = this.currentGameId !== "pong";
+    this.quickSpeed.disabled = !this.currentGameId;
+    const value = this.settings[`game.${this.currentGameId}.speed`];
+    const speed = typeof value === "number" ? value : 100;
+    for (const option of Array.from(this.quickSpeed.options)) {
+      if (option.dataset.custom) option.remove();
+    }
+    if (!SPEED_CHOICES.some((choice) => choice === speed)) {
+      const option = node("option", "", `${speed}%`);
+      option.value = String(speed);
+      option.dataset.custom = "true";
+      this.quickSpeed.append(option);
+    }
+    this.quickSpeed.value = String(speed);
+    this.quickPongAI.value = this.settings.pongDifficulty;
+    this.quickPongWatch.value = String(this.settings.pongWatch);
+    this.quickPongAdaptive.value = String(this.settings.pongAdaptive);
+  }
   updateSettings(settings: InterludeSettings): void {
     this.settings = settings;
+    this.syncQuickControls();
+    this.updateModeControls();
     this.picker.value = settings.game;
     this.quickGame.value = settings.game;
     this.quickPlacement.value = settings.placement;

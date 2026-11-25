@@ -34,7 +34,7 @@ const KIND_TO_COLOR: Record<PieceKind, string> = {
 
 export class BlockfallGame implements ArcadeGame {
   readonly manifest = BLOCKFALL_MANIFEST;
-  readonly readyHint = "ARROWS MOVE — SPACE HARD DROPS — C HOLDS";
+  readonly readyHint = "ARROWS MOVE · SPACE HARD DROPS · C HOLDS";
   score = 0;
 
   private g!: GameContext;

@@ -33,7 +33,7 @@ describe("game metadata and surface modes", () => {
         expect(modes.length).toBeGreaterThan(0);
         for (const mode of modes) {
           expect(mode.description).toBeTruthy();
-          expect(mode.players).toBe(1);
+          expect(mode.players === 0 || mode.players === 1).toBe(true);
           expect(mode.surfaces).toContain(surface);
         }
       }
@@ -43,7 +43,7 @@ describe("game metadata and surface modes", () => {
   it("advertises only implemented modes and rejects a web-only request in the extension", async () => {
     expect(PLATFORM).toBe("extension");
     expect(await availableModes("pong")).toEqual(sharedModesFor("pong", "extension"));
-    expect((await availableModes("pong")).map((mode) => mode.id)).toEqual(["cpu"]);
+    expect((await availableModes("pong")).map((mode) => mode.id)).toEqual(["cpu", "watch"]);
     expect(localModesFor("pong")).toEqual([]);
     await expect(loadGame("pong", "local")).rejects.toThrow("Mode unavailable");
     await expect(loadGame("missing")).rejects.toThrow("Unknown game");

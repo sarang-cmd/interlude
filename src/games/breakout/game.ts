@@ -15,7 +15,7 @@ const POWERUP_GLYPH: Record<PowerUpKind, string> = {
 
 export class BreakoutGame implements ArcadeGame {
   readonly manifest = BREAKOUT_MANIFEST;
-  readonly readyHint = "MOUSE OR ARROWS — SPACE TO LAUNCH";
+  readonly readyHint = "MOUSE OR ARROWS · SPACE TO LAUNCH";
   score = 0;
 
   private g!: GameContext;

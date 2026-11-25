@@ -112,7 +112,7 @@ function paint(data: LiveDiagnostics): void {
     data.lastSignalToFrameMs === null ? "NO FRAME YET" : `${data.lastSignalToFrameMs} MS`;
   byId("overhead").textContent =
     data.panel.overheadMs === null
-      ? "—"
+      ? "N/A"
       : `${data.panel.overheadMs} MS / ${data.panel.overheadMs < 80 ? "PASS" : "OVER BUDGET"}`;
   byId("overhead").className =
     data.panel.overheadMs !== null && data.panel.overheadMs >= 80 ? "status-bad" : "";
@@ -148,7 +148,7 @@ function paint(data: LiveDiagnostics): void {
     if (signal.lastChange !== null)
       card.append(element("p", "", `LAST CHANGE / ${Math.round(signal.lastChange)} MS PAGE CLOCK`));
     if (key === "d" && data.streamHook.enabled) {
-      const stamp = (time: number | null) => (time === null ? "—" : `${Math.round(time)} MS`);
+      const stamp = (time: number | null) => (time === null ? "N/A" : `${Math.round(time)} MS`);
       card.append(
         element(
           "p",

@@ -8,7 +8,15 @@ import {
   loadGame,
 } from "../src/games/manifest";
 import type { GameManifest } from "../src/games/types";
-import { defaults } from "../src/settings/schema";
+import { defaults, type InterludeSettings, type SettingValue } from "../src/settings/schema";
+import { isAIDifficulty } from "../src/ai/difficulty";
+import {
+  AI_LEVELS,
+  PONG_TARGETS,
+  SPEED_CHOICES,
+  readWebPreferences,
+  saveWebPreferences,
+} from "../src/web/preferences";
 import { readWebScores, saveWebScore } from "../src/web/scores";
 
 function element<T extends Element>(selector: string): T {
@@ -30,6 +38,13 @@ const controls = element<HTMLElement>("#game-controls");
 const playButton = element<HTMLButtonElement>("#play-button");
 const resetButton = element<HTMLButtonElement>("#reset-button");
 const soundButton = element<HTMLButtonElement>("#sound-button");
+const focusIndicator = element<HTMLElement>("#game-focus");
+const speedSelect = element<HTMLSelectElement>("#game-speed");
+const pongSettings = element<HTMLElement>("#pong-settings");
+const pongMode = element<HTMLSelectElement>("#pong-mode");
+const pongAI = element<HTMLSelectElement>("#pong-ai");
+const pongTarget = element<HTMLSelectElement>("#pong-target");
+const pongAdaptive = element<HTMLInputElement>("#pong-adaptive");
 
 const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> = {
   snake: [
@@ -79,8 +94,21 @@ try {
   // Some browsers block storage entirely; the arcade remains playable.
 }
 const scores = readWebScores(storage);
+const preferences = readWebPreferences(storage);
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const settings = { ...defaults(), muted: true, skipBoot: true, reduceMotion };
+let settings: InterludeSettings = {
+  ...defaults(),
+  muted: true,
+  skipBoot: true,
+  reduceMotion,
+  pongDifficulty: preferences.pongDifficulty,
+  pongAdaptive: preferences.pongAdaptive,
+  pongWatch: preferences.pongWatch,
+  pongFirstTo: preferences.pongFirstTo,
+};
+for (const [game, speed] of Object.entries(preferences.speeds)) {
+  settings[`game.${game}.speed`] = speed;
+}
 let selectedGame = DEFAULT_GAME_ID;
 let requestNumber = 0;
 let canvasVisible = true;
@@ -129,8 +157,14 @@ function updateVisibility(): void {
   engine.setTabHidden(document.hidden || !canvasVisible);
 }
 
-canvas.addEventListener("focus", () => engine.setFocused(true));
-canvas.addEventListener("blur", () => engine.setFocused(false));
+canvas.addEventListener("focus", () => {
+  engine.setFocused(true);
+  focusIndicator.hidden = false;
+});
+canvas.addEventListener("blur", () => {
+  engine.setFocused(false);
+  focusIndicator.hidden = true;
+});
 // Registered before Input so the first tap can focus and start the game.
 canvas.addEventListener("pointerdown", () => focusGame());
 canvas.addEventListener("keydown", (event) => {
@@ -166,6 +200,7 @@ if ("IntersectionObserver" in window) {
 function makeControls(manifest: GameManifest): void {
   controls.replaceChildren();
   controls.setAttribute("aria-label", `${manifest.name} on-screen controls`);
+  if (manifest.id === "pong" && settings.pongWatch) return;
   for (const [label, action, description] of controlSets[manifest.id] ?? []) {
     const button = document.createElement("button");
     button.type = "button";
@@ -218,15 +253,22 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
   stateLabel.textContent = "LOADING";
   selectButtons(id);
   try {
-    const [game, modes] = await Promise.all([loadGame(id), availableModes(id)]);
+    const mode = id === "pong" ? (settings.pongWatch ? "watch" : "cpu") : undefined;
+    const [game, modes] = await Promise.all([loadGame(id, mode), availableModes(id)]);
     if (sequence !== requestNumber) return;
-    if (!modes.length) throw new Error("No mode available");
+    if (!modes.length || (mode && !modes.some((item) => item.id === mode)))
+      throw new Error("No mode available");
     selectedGame = id;
     const index = GAME_MANIFESTS.findIndex((entry) => entry.id === id);
-    numberLabel.textContent = `GAME ${String(index + 1).padStart(2, "0")} / 08`;
+    numberLabel.textContent = `GAME ${String(index + 1).padStart(2, "0")} / ${String(GAME_MANIFESTS.length).padStart(2, "0")}`;
     nameLabel.textContent = manifest.name;
     descriptionLabel.textContent = manifest.description;
-    hintLabel.textContent = `${manifest.controls} · P PAUSES`;
+    hintLabel.textContent =
+      id === "pong" && settings.pongWatch
+        ? "WATCH CPU · P PAUSES · ESC RELEASES FOCUS"
+        : `${manifest.controls} · P PAUSES`;
+    pongSettings.hidden = id !== "pong";
+    speedSelect.value = String(preferences.speeds[id] ?? 100);
     canvas.dataset.game = id;
     canvas.setAttribute("aria-label", `${manifest.name} game screen`);
     updateBest();
@@ -271,6 +313,59 @@ function buildGameList(): void {
   }
 }
 
+function addOption(select: HTMLSelectElement, value: string, label: string): void {
+  const option = document.createElement("option");
+  option.value = value;
+  option.textContent = label;
+  select.append(option);
+}
+function changeSettings(patch: Record<string, SettingValue>): void {
+  settings = { ...settings, ...patch };
+  engine.setSettings(settings);
+}
+for (const speed of SPEED_CHOICES) addOption(speedSelect, String(speed), `${speed}%`);
+for (const mode of getManifest("pong")!.modes) addOption(pongMode, mode.id, mode.label);
+for (const level of AI_LEVELS) addOption(pongAI, level, level.toUpperCase());
+for (const target of PONG_TARGETS) addOption(pongTarget, String(target), String(target));
+pongMode.value = preferences.pongWatch ? "watch" : "cpu";
+pongAI.value = preferences.pongDifficulty;
+pongTarget.value = String(preferences.pongFirstTo);
+pongAdaptive.checked = preferences.pongAdaptive;
+
+speedSelect.addEventListener("change", () => {
+  const speed = Number(speedSelect.value);
+  if (!SPEED_CHOICES.some((item) => item === speed)) return;
+  preferences.speeds[selectedGame] = speed;
+  changeSettings({ [`game.${selectedGame}.speed`]: speed });
+  saveWebPreferences(storage, preferences);
+});
+pongMode.addEventListener("change", () => {
+  if (pongMode.value !== "watch" && pongMode.value !== "cpu") return;
+  preferences.pongWatch = pongMode.value === "watch";
+  changeSettings({ pongWatch: preferences.pongWatch });
+  saveWebPreferences(storage, preferences);
+  void chooseGame("pong");
+});
+pongAI.addEventListener("change", () => {
+  if (!isAIDifficulty(pongAI.value)) return;
+  preferences.pongDifficulty = pongAI.value;
+  changeSettings({ pongDifficulty: preferences.pongDifficulty });
+  saveWebPreferences(storage, preferences);
+});
+pongAdaptive.addEventListener("change", () => {
+  preferences.pongAdaptive = pongAdaptive.checked;
+  changeSettings({ pongAdaptive: preferences.pongAdaptive });
+  saveWebPreferences(storage, preferences);
+});
+pongTarget.addEventListener("change", () => {
+  const target = Number(pongTarget.value);
+  if (!PONG_TARGETS.some((item) => item === target)) return;
+  preferences.pongFirstTo = target;
+  changeSettings({ pongFirstTo: target });
+  saveWebPreferences(storage, preferences);
+  void chooseGame("pong");
+});
+
 playButton.addEventListener("click", () => {
   if (!loaded) return;
   const state = engine.getState();
@@ -288,8 +383,7 @@ playButton.addEventListener("click", () => {
 });
 resetButton.addEventListener("click", () => void chooseGame(selectedGame));
 soundButton.addEventListener("click", () => {
-  settings.muted = !settings.muted;
-  engine.setSettings(settings);
+  changeSettings({ muted: !settings.muted });
   if (!settings.muted) engine.sound.unlock();
   soundButton.textContent = settings.muted ? "SOUND OFF" : "SOUND ON";
   soundButton.setAttribute("aria-pressed", String(!settings.muted));

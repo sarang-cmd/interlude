@@ -14,11 +14,12 @@ arcade freezes while it is out of view. Website high scores are stored in that
 browser, separately from extension scores; if storage is blocked they last only
 for the current page session. The web arcade does not connect to your chats.
 Install the extension below if you want the cabinet to appear inside a chat.
+Pong offers five CPU levels, optional adaptive difficulty and a watch mode.
+Watch runs do not change records. Speed controls cover 25% to 400%.
 
-> **Live verification:** Claude, ChatGPT and Gemini selectors were exercised on
-> synthetic fixtures, not authenticated live sessions. ChatGPT and Gemini are
-> explicitly **BETA**. Real sites change; use Diagnostics and the
-> [ten-minute checklist](docs/TEST_PLAN.md) before relying on any adapter.
+> Claude, ChatGPT and Gemini use structural signals. ChatGPT and Gemini are
+> **BETA**. Automated site checks use synthetic pages rather than signed-in
+> sessions. Site interfaces change over time.
 
 ## Install
 

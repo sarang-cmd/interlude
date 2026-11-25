@@ -19,6 +19,13 @@ const CPU: GameMode = {
   players: 1,
   surfaces: BOTH,
 };
+const WATCH: GameMode = {
+  id: "watch",
+  label: "WATCH CPU",
+  description: "Watch two CPU paddles play. Watch matches do not save records.",
+  players: 0,
+  surfaces: BOTH,
+};
 const common = { supports: INPUTS, inputs: INPUTS, surfaces: BOTH, stateSaving: false } as const;
 
 export const SNAKE_MANIFEST: GameManifest = {
@@ -86,8 +93,8 @@ export const PONG_MANIFEST: GameManifest = {
   defaultDifficulty: "regular",
   category: "arcade",
   runLength: "1 to 3 minutes",
-  modes: [CPU],
-  ai: { opponent: true, watchable: false },
+  modes: [CPU, WATCH],
+  ai: { opponent: true, watchable: true },
   playerOneBindings: playerOneBindings("pong"),
 };
 
@@ -167,12 +174,13 @@ export async function availableModes(id: string): Promise<readonly GameMode[]> {
   return shared;
 }
 
-const loaders: Record<string, () => Promise<ArcadeGame>> = {
+const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
   snake: async () => new (await import("./snake/game")).SnakeGame(),
   breakout: async () => new (await import("./breakout/game")).BreakoutGame(),
   flappy: async () => new (await import("./flappy/game")).FlappyGame(),
   twenty48: async () => new (await import("./2048/game")).Game2048Game(),
-  pong: async () => new (await import("./pong/game")).PongGame(),
+  pong: async (mode) =>
+    new (await import("./pong/game")).PongGame(mode ? mode === "watch" : undefined),
   blockfall: async () => new (await import("./blockfall/game")).BlockfallGame(),
   rockfall: async () => new (await import("./rockfall/game")).RockfallGame(),
   dashline: async () => new (await import("./dashline/game")).DashlineGame(),
@@ -190,7 +198,7 @@ export async function loadGame(id: string, modeId?: string): Promise<ArcadeGame>
     }
     throw new Error(`Mode unavailable: ${id}/${modeId}`);
   }
-  return loader();
+  return loader(modeId);
 }
 
 /** Resolve the configured choice to a concrete game id. */

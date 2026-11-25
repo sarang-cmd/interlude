@@ -27,7 +27,7 @@ const TILE_COLORS: Record<number, string> = {
 
 export class Game2048Game implements ArcadeGame {
   readonly manifest = TWENTY48_MANIFEST;
-  readyHint = "ARROWS SLIDE — U UNDOES";
+  readyHint = "ARROWS SLIDE · U UNDOES";
   score = 0;
   private g!: GameContext;
   private logic!: Game2048;
@@ -54,7 +54,7 @@ export class Game2048Game implements ArcadeGame {
     this.elapsedSeconds = 0;
     this.readyHint = this.timed
       ? `${limit} SEC · ARROWS SLIDE · U UNDO`
-      : "ARROWS SLIDE — U UNDOES";
+      : "ARROWS SLIDE · U UNDOES";
     this.logic = new Game2048({
       seed: Math.floor(ctx.rng.next() * 0xffffffff),
       undoLimit: ctx.settings.undo2048,
@@ -75,7 +75,7 @@ export class Game2048Game implements ArcadeGame {
       this.secondsRemaining = Math.max(0, limit - this.elapsedSeconds);
       this.readyHint = this.timed
         ? `${limit} SEC · ARROWS SLIDE · U UNDO`
-        : "ARROWS SLIDE — U UNDOES";
+        : "ARROWS SLIDE · U UNDOES";
     }
   }
   fixedUpdate(dt: number): void {

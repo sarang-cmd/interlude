@@ -83,6 +83,48 @@ test("keyboard and buttons pause, resume, reset and switch games without trappin
   );
 });
 
+test("Pong offers five CPU levels, watch mode, speed choices and a focus marker without a screen border", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1500 });
+  await page.addInitScript((key) => {
+    Math.random = () => 0.2;
+    localStorage.setItem(key, JSON.stringify({ pong: 123 }));
+  }, WEB_SCORES_KEY);
+  await page.goto(SITE);
+  await page.getByRole("button", { name: "Select PONG" }).click();
+  const canvas = page.locator("#game-canvas");
+  await expect(canvas).toHaveAttribute("data-game", "pong");
+  await expect(page.locator("#pong-ai option")).toHaveCount(5);
+  await expect(page.locator("#game-speed option")).toHaveCount(9);
+  await page.locator("#pong-ai").selectOption("hard");
+  await page.locator("#pong-adaptive").check();
+  await page.locator("#pong-target").selectOption("1");
+  await page.locator("#pong-mode").selectOption("watch");
+  await expect(page.locator("#game-controls button")).toHaveCount(0);
+  await expect(canvas).toHaveAttribute("data-scene", "ready");
+  await page.locator("#game-speed").selectOption("400");
+  await page.getByRole("button", { name: "START GAME" }).click();
+  await expect(canvas).toHaveAttribute("data-scene", "playing");
+  await expect(page.locator("#game-focus")).toBeVisible();
+  expect(await canvas.evaluate((element) => getComputedStyle(element).outlineStyle)).toBe("none");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#game-focus")).toBeHidden();
+  await expect(canvas).toHaveAttribute("data-scene", "gameover", { timeout: 20_000 });
+  expect(
+    await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "{}"), WEB_SCORES_KEY),
+  ).toEqual({ pong: 123 });
+  await page.reload();
+  await page.getByRole("button", { name: "Select PONG" }).click();
+  await expect(page.locator("#pong-ai")).toHaveValue("hard");
+  await expect(page.locator("#pong-mode")).toHaveValue("watch");
+  await expect(page.locator("#pong-adaptive")).toBeChecked();
+  await expect(page.locator("#pong-target")).toHaveValue("1");
+  await expect(page.locator("#game-speed")).toHaveValue("400");
+  await page.locator("#pong-mode").selectOption("cpu");
+  await expect(page.getByRole("button", { name: "Move up" })).toBeVisible();
+});
+
 test("a focused gamepad can start and control a game", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1500 });
   await page.addInitScript(() => {

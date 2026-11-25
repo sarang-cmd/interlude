@@ -10,6 +10,7 @@ export const GAME_IDS = [
   "dashline",
 ] as const;
 export type GameId = (typeof GAME_IDS)[number];
+export const SPEED_CHOICES = [25, 50, 75, 100, 125, 150, 200, 300, 400] as const;
 
 export const GAME_ACTIONS: Record<GameId, readonly string[]> = {
   snake: ["left", "right", "up", "down", "pause"],

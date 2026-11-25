@@ -8,7 +8,7 @@
       name="description"
       content="Play eight little arcade games in your browser, or bring them into your AI chats with the Interlude Chrome extension."
     />
-    <title>Interlude — Arcade for the wait</title>
+    <title>Interlude / Arcade for the wait</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="stylesheet" href="./site.css" />
     <script type="module" src="./arcade.ts"></script>
@@ -46,7 +46,7 @@
               >
             </div>
             <p class="hero-note">
-              NO ACCOUNT <span>/</span> NO INSTALL TO PLAY <span>/</span> JUST A LITTLE BREAK
+              NO ACCOUNT <span>/</span> NO INSTALL TO PLAY <span>/</span> LOCAL PLAY
             </p>
           </div>
           <div class="hero-ticket" aria-hidden="true">
@@ -72,6 +72,9 @@
             <div class="machine" aria-label="Playable arcade cabinet">
               <div class="machine-top">
                 <span class="machine-brand">INTERLUDE <span>/ FREE PLAY</span></span>
+                <span id="game-focus" class="focus-indicator" role="status" hidden
+                  >KEYS ACTIVE</span
+                >
                 <span class="machine-status"
                   ><span class="lamp" aria-hidden="true"></span
                   ><span id="game-state" role="status">LOADING</span></span
@@ -121,6 +124,32 @@
                   >
                     SOUND OFF
                   </button>
+                </div>
+              </div>
+              <div class="game-settings" aria-label="Game settings">
+                <label class="game-setting" for="game-speed">
+                  <span>GAME SPEED</span
+                  ><select id="game-speed"></select>
+                </label>
+                <div id="pong-settings" class="pong-settings" hidden>
+                  <label class="game-setting" for="pong-mode">
+                    <span>PONG MODE</span
+                    ><select id="pong-mode"></select>
+                  </label>
+                  <label class="game-setting" for="pong-ai">
+                    <span>CPU LEVEL</span
+                    ><select id="pong-ai"></select>
+                  </label>
+                  <label class="game-setting" for="pong-target">
+                    <span>FIRST TO</span
+                    ><select id="pong-target"></select>
+                  </label>
+                  <label class="game-setting check-setting" for="pong-adaptive">
+                    <span>ADAPTIVE CPU</span><input type="checkbox" id="pong-adaptive" />
+                  </label>
+                  <p class="settings-note">
+                    Changing mode or match length restarts Pong. Watch matches do not save scores.
+                  </p>
                 </div>
               </div>
               <div class="control-panel">
@@ -219,8 +248,8 @@
               >
             </div>
             <p class="fine">
-              Claude, ChatGPT and Gemini adapters use structural signals. ChatGPT and Gemini are
-              beta; all three still need verification in a real signed-in session.
+              Claude, ChatGPT and Gemini use structural signals. ChatGPT and Gemini are beta. Site
+              interfaces change over time.
             </p>
           </div>
         </section>

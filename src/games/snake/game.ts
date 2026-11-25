@@ -13,7 +13,7 @@ const ROWS = 18;
 
 export class SnakeGame implements ArcadeGame {
   readonly manifest = SNAKE_MANIFEST;
-  readonly readyHint = "ARROWS STEER — SWIPE ON TOUCH";
+  readonly readyHint = "ARROWS STEER · SWIPE ON TOUCH";
   score = 0;
 
   private g!: GameContext;

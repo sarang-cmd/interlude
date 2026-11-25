@@ -586,7 +586,7 @@ function App({ initial }: { initial: SettingsDocument }) {
       </div>
       <div class="workspace">
         <nav class="rail" aria-label="Settings categories">
-          <div class="rail-title">INDEX / 01—10</div>
+          <div class="rail-title">INDEX / 01-10</div>
           {([...CATEGORIES, "Diagnostics"] as Page[]).map((category, index) => (
             <button
               type="button"

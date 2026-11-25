@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Diagnostics — Interlude</title>
+    <title>Diagnostics / Interlude</title>
     <link rel="stylesheet" href="tokens.css" />
     <link rel="stylesheet" href="ui.css" />
     <style>
@@ -220,16 +220,20 @@
               <p id="connection" class="empty" role="status">LOOKING FOR A SUPPORTED TAB</p>
               <div id="live" hidden>
                 <div class="summary">
-                  <div class="metric"><small>DETECTOR STATE</small><b id="phase">—</b></div>
-                  <div class="metric"><small>ENGINE / CABINET</small><b id="scene">—</b></div>
-                  <div class="metric"><small>SIGNAL → FIRST FRAME</small><b id="latency">—</b></div>
-                  <div class="metric"><small>EXCLUDING SET DELAY</small><b id="overhead">—</b></div>
+                  <div class="metric"><small>DETECTOR STATE</small><b id="phase">N/A</b></div>
+                  <div class="metric"><small>ENGINE / CABINET</small><b id="scene">N/A</b></div>
                   <div class="metric">
-                    <small>ADAPTER OBSERVERS / TIMERS</small><b id="activity">—</b>
+                    <small>SIGNAL → FIRST FRAME</small><b id="latency">N/A</b>
                   </div>
-                  <div class="metric"><small>LOOP / MOUNT FRAMES</small><b id="loop">—</b></div>
-                  <div class="metric"><small>HOST THEME</small><b id="theme">—</b></div>
-                  <div class="metric"><small>SELECTOR SOURCE</small><b id="source">—</b></div>
+                  <div class="metric">
+                    <small>EXCLUDING SET DELAY</small><b id="overhead">N/A</b>
+                  </div>
+                  <div class="metric">
+                    <small>ADAPTER OBSERVERS / TIMERS</small><b id="activity">N/A</b>
+                  </div>
+                  <div class="metric"><small>LOOP / MOUNT FRAMES</small><b id="loop">N/A</b></div>
+                  <div class="metric"><small>HOST THEME</small><b id="theme">N/A</b></div>
+                  <div class="metric"><small>SELECTOR SOURCE</small><b id="source">N/A</b></div>
                 </div>
                 <p class="help">
                   Budget: under 80 ms excluding the configured delay. Recorded at the first painted
@@ -263,8 +267,8 @@
               <p class="notice">
                 Open a supported conversation. Send a prompt and watch A and B. If the panel does
                 not appear, inspect structure in DevTools and add a stable selector below. Inline
-                placement fails closed when no indicator is found. ChatGPT and Gemini are BETA;
-                their current live interfaces have not been verified.
+                placement fails closed when no indicator is found. ChatGPT and Gemini are BETA. Site
+                interfaces change over time.
               </p>
             </section>
           </div>

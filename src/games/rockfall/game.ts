@@ -9,7 +9,7 @@ import { drawText } from "../shared";
 
 export class RockfallGame implements ArcadeGame {
   readonly manifest = ROCKFALL_MANIFEST;
-  readonly readyHint = "ARROWS TURN + THRUST — SPACE FIRES";
+  readonly readyHint = "ARROWS TURN + THRUST · SPACE FIRES";
   score = 0;
 
   private g!: GameContext;

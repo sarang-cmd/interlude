@@ -1,9 +1,8 @@
 # Ten-minute human checklist
 
-Automated tests use synthetic pages, not authenticated Claude, ChatGPT or
-Gemini sessions. None of those live DOMs or human game feel was verified during
-this build. Use disposable prompts; never copy conversation text into an issue.
-Times are approximate and assume the accounts are already signed in.
+Automated site checks use synthetic pages rather than signed-in Claude, ChatGPT
+or Gemini sessions. Use disposable prompts. Never copy conversation text into an
+issue. Times are approximate and assume the accounts are already signed in.
 
 | Time       | Check                                                                                                                                                                                                                                                                                                           |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

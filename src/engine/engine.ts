@@ -398,7 +398,13 @@ export class Engine implements GameContext {
             : 100;
         const difficulty = id ? this.settings[`game.${id}.difficulty`] : "standard";
         const factor = difficulty === "relaxed" ? 0.8 : difficulty === "fast" ? 1.2 : 1;
-        this.game?.fixedUpdate(((dt * speed) / 100) * factor);
+        const scale = Math.max(0.25, Math.min(4, speed / 100)) * factor;
+        // Split fast simulation into fixed-size steps. A large dt lets balls,
+        // ships, and obstacles tunnel through collision boundaries.
+        const steps = Math.max(1, Math.ceil(scale));
+        for (let step = 0; step < steps && this.state === "playing"; step++) {
+          this.game?.fixedUpdate((dt * scale) / steps);
+        }
         if (this.settings.music) {
           this.musicTime += dt;
           if (this.musicTime >= 0.45) {
@@ -451,6 +457,12 @@ export class Engine implements GameContext {
     const endedRun = this.runVersion;
     const gameId = endedGame.manifest.id;
     const score = endedGame.score;
+    if (endedGame.recordsAllowed === false) {
+      this.recordedBest = false;
+      this.setState("gameover");
+      this.sound.play("gameOver");
+      return;
+    }
     this.recordedBest = score > this.hiScore;
     this.hiScore = Math.max(score, this.hiScore);
     this.setState("gameover");
@@ -596,7 +608,7 @@ export class Engine implements GameContext {
     ctx.font = "15px VT323, monospace";
     ctx.fillStyle = TOKENS.phosphorDim;
     ctx.fillText(
-      isDone ? "PRESS P OR RESUME — THE ANSWER IS IN" : "PRESS P TO RESUME",
+      isDone ? "PRESS P OR RESUME · THE ANSWER IS IN" : "PRESS P TO RESUME",
       w / 2,
       h / 2 + 22,
     );
@@ -648,7 +660,7 @@ export class Engine implements GameContext {
       ctx.fillText("★ NEW HI-SCORE ★", w / 2, 202);
     }
     ctx.fillStyle = TOKENS.phosphor;
-    ctx.fillText("ANY KEY — RETRY", w / 2, 246);
+    ctx.fillText("ANY KEY · RETRY", w / 2, 246);
   }
 
   /** Scanlines + vignette + faint bloom. Canvas only — never over DOM text. */

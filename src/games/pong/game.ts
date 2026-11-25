@@ -11,19 +11,32 @@ const PADDLE_H = 84;
 
 export class PongGame implements ArcadeGame {
   readonly manifest = PONG_MANIFEST;
-  readyHint = "MOUSE OR ARROWS — FIRST TO 5";
+  readyHint = "MOUSE OR ARROWS · FIRST TO 5";
   score = 0;
 
   private g!: GameContext;
   private logic!: PongLogic;
+  private watchedThisRun = false;
+
+  constructor(private readonly watchOverride?: boolean) {}
+
+  get recordsAllowed(): boolean {
+    return !this.watchedThisRun;
+  }
 
   init(ctx: GameContext): void {
     this.g = ctx;
     this.score = 0;
-    this.readyHint = `MOUSE OR ARROWS — FIRST TO ${ctx.settings.pongFirstTo}`;
+    const watch = this.watchOverride ?? ctx.settings.pongWatch;
+    this.watchedThisRun = watch;
+    this.readyHint = watch
+      ? `WATCH CPU · FIRST TO ${ctx.settings.pongFirstTo}`
+      : `MOUSE OR ARROWS · FIRST TO ${ctx.settings.pongFirstTo}`;
     this.logic = new PongLogic({
       seed: Math.floor(ctx.rng.next() * 0xffffffff),
       difficulty: ctx.settings.pongDifficulty,
+      adaptive: ctx.settings.pongAdaptive,
+      watch,
       firstTo: ctx.settings.pongFirstTo,
     });
   }
@@ -34,14 +47,18 @@ export class PongGame implements ArcadeGame {
 
   fixedUpdate(dt: number): void {
     this.logic.difficulty = this.g.settings.pongDifficulty;
+    this.logic.adaptive = this.g.settings.pongAdaptive;
+    this.logic.watch = this.watchOverride ?? this.g.settings.pongWatch;
     this.logic.firstTo = this.g.settings.pongFirstTo;
-    const input = this.g.input;
-    const pointer = input.pointerPosition();
-    if (input.isDown("up")) this.logic.nudgePlayer(-430 * dt);
-    else if (input.isDown("down")) this.logic.nudgePlayer(430 * dt);
-    else if (pointer.hasPosition) this.logic.movePlayer(pointer.y - PADDLE_H / 2);
-    // Touch drag: finger on the left half moves the paddle
-    if (pointer.isDown) this.logic.movePlayer(pointer.y - PADDLE_H / 2);
+    if (this.logic.watch) this.watchedThisRun = true;
+    else {
+      const input = this.g.input;
+      const pointer = input.pointerPosition();
+      if (input.isDown("up")) this.logic.nudgePlayer(-430 * dt);
+      else if (input.isDown("down")) this.logic.nudgePlayer(430 * dt);
+      else if (pointer.hasPosition) this.logic.movePlayer(pointer.y - PADDLE_H / 2);
+      if (pointer.isDown) this.logic.movePlayer(pointer.y - PADDLE_H / 2);
+    }
 
     const events = this.logic.update(dt);
     for (const event of events) {
@@ -100,12 +117,12 @@ export class PongGame implements ArcadeGame {
       color: TOKENS.phosphorDim,
       align: "center",
     });
-    drawText(ctx, "PLAYER 1", w / 2 - 70, 108, {
+    drawText(ctx, this.logic.watch ? "CPU A" : "PLAYER 1", w / 2 - 70, 108, {
       font: '11px "IBM Plex Mono", monospace',
       color: TOKENS.phosphorDim,
       align: "center",
     });
-    drawText(ctx, "MACHINE", w / 2 + 70, 108, {
+    drawText(ctx, this.logic.watch ? "CPU B" : "MACHINE", w / 2 + 70, 108, {
       font: '11px "IBM Plex Mono", monospace',
       color: TOKENS.phosphorDim,
       align: "center",
@@ -140,7 +157,7 @@ export class PongGame implements ArcadeGame {
     });
     drawText(
       ctx,
-      `FIRST TO ${this.logic.firstTo} · ${this.logic.difficulty.toUpperCase()}`,
+      `FIRST TO ${this.logic.firstTo} · ${this.logic.effectiveDifficulty.toUpperCase()}${this.logic.adaptive ? " / AUTO" : ""}`,
       w - 10,
       h - 10,
       {
