@@ -63,7 +63,9 @@ For a new site:
    and a long response. Verify other placements and keyboard focus.
 
 Claude selectors are best-effort candidates, not a claim of verified current
-DOM. In particular, a fallback matching `data-is-streaming="true"` on the
+DOM. The `inactiveTurnAncestor` selector group excludes hidden/inactive branch
+ancestors before selecting the latest assistant turn; adjust it if a live site
+uses different branch visibility markup. In particular, a fallback matching `data-is-streaming="true"` on the
 assistant message itself anchors after that entire element if no separate
 indicator is found; it remains in flow and cannot cover the answer, but it is
 not equivalent to a verified separate thinking-indicator anchor. Reports of

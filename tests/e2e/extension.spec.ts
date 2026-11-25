@@ -390,3 +390,45 @@ test("concurrent game records from different extension tabs retain every best", 
   expect(scores).toMatchObject({ snake: 50, pong: 200, "twenty48:tile": 64 });
   await first.close(); await second.close();
 });
+
+test("branch switches ignore hidden stale turns and re-anchor to the active turn", async () => {
+  await worker.evaluate(() => chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }));
+  await openFixture(); await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]'); await expect(host).toBeVisible();
+  await page.evaluate(() => {
+    const current = document.querySelector('[data-testid="assistant-turn"]')!;
+    const stale = document.createElement("div"); stale.dataset.testid = "assistant-turn"; stale.dataset.branch = "alternative"; stale.hidden = true;
+    const marker = document.createElement("div"); marker.dataset.testid = "thinking-indicator"; marker.textContent = "Thinking";
+    stale.append(marker); current.after(stale);
+  });
+  await page.waitForTimeout(250);
+  await expect(host).toBeVisible();
+  expect(await page.evaluate(() => document.querySelector('[data-testid="assistant-turn"] [data-testid="thinking-indicator"]')?.nextElementSibling?.getAttribute("data-interlude"))).toBe("panel");
+  await page.evaluate(() => {
+    const current = document.querySelector('[data-testid="assistant-turn"]') as HTMLElement;
+    const alternative = document.querySelector('[data-branch="alternative"]') as HTMLElement;
+    current.hidden = true; alternative.hidden = false;
+  });
+  await expect(host).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.querySelector('[data-branch="alternative"] [data-testid="thinking-indicator"]')?.nextElementSibling?.getAttribute("data-interlude"))).toBe("panel");
+});
+
+test("regeneration and edited composer submissions re-arm discovery, then disconnect on idle", async () => {
+  await worker.evaluate(() => chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }));
+  await openFixture();
+  const host = page.locator('[data-interlude="panel"]');
+  await page.locator('[data-testid="regenerate-button"]').click(); await expect(host).toBeVisible();
+  await page.evaluate(() => (window as unknown as { fixture: { finish(): void } }).fixture.finish());
+  await expect(host).toHaveAttribute("data-interlude-scene", "paused"); await shadowClick(".done button:not(.resume)"); await expect(host).toBeHidden();
+  await expect.poll(async () => (await diagnostic()).state).toBe("idle");
+  expect((await diagnostic()).activity).toEqual({ observers: 0, timers: 0, scheduledFrames: 0 });
+  // Model a site handling Enter on an edited composer without reading the text.
+  await page.evaluate(() => {
+    const field = document.querySelector('[data-testid="chat-input"]')!;
+    field.addEventListener("keydown", (event) => { if ((event as KeyboardEvent).key === "Enter") (window as unknown as { fixture: { start(): void } }).fixture.start(); });
+  });
+  await page.locator('[data-testid="chat-input"]').focus(); await page.keyboard.press("Enter");
+  await expect(host).toBeVisible();
+  await page.evaluate(() => (window as unknown as { fixture: { finish(): void } }).fixture.finish());
+  await expect(host).toHaveAttribute("data-interlude-scene", "paused");
+});

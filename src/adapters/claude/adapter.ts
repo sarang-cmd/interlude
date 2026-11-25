@@ -172,7 +172,7 @@ export class ClaudeAdapter implements SiteAdapter {
       this.scan();
       for (const listener of this.watchers) listener();
     });
-    this.rootObserver.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["aria-label", "aria-busy", "data-state", "data-is-streaming", "disabled"] });
+    this.rootObserver.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["aria-label", "aria-busy", "aria-hidden", "data-state", "data-is-streaming", "disabled", "hidden", "inert", "class", "style"] });
     this.observeTurn(this.turn);
   }
 
@@ -219,7 +219,12 @@ export class ClaudeAdapter implements SiteAdapter {
     return result;
   }
   private latestTurn(): Element | null {
-    const result = resolveAll(this.selectors.assistantTurn, (s) => Array.from(document.querySelectorAll(s)));
+    const isActive = (element: Element): boolean => !this.selectors.inactiveTurnAncestor.some((selector) => {
+      try { return !!element.closest(selector); } catch { return false; }
+    });
+    // Old branches may remain mounted after the active branch. They must not
+    // win merely by being later in DOM order, including during selector fallback.
+    const result = resolveAll(this.selectors.assistantTurn, (s) => Array.from(document.querySelectorAll(s)).filter(isActive));
     this.reports.set("assistantTurn", { element: "assistantTurn", candidates: result.candidates, matchedIndex: result.matchedIndex, matchedSelector: result.matchedSelector });
     return result.elements.at(-1) ?? null;
   }

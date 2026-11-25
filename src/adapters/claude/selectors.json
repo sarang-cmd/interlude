@@ -62,5 +62,16 @@
     "html.dark",
     "html[data-theme='dark']",
     "[data-theme='dark']"
+  ],
+  "inactiveTurnAncestor": [
+    "[hidden]",
+    "[aria-hidden='true']",
+    "[inert]",
+    "[data-state='inactive']",
+    "[class~='hidden']",
+    "[style*='display:none']",
+    "[style*='display: none']",
+    "[style*='visibility:hidden']",
+    "[style*='visibility: hidden']"
   ]
 }
