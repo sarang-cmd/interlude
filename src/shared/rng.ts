@@ -7,12 +7,16 @@ export class RNG {
 
   constructor(seed: number) {
     // Avoid a zero state producing a broken sequence.
-    this.state = (seed >>> 0) || 0x9e3779b9;
+    this.state = seed >>> 0 || 0x9e3779b9;
   }
 
   /** Snapshot for reversible simulations such as 2048 undo. */
-  getState(): number { return this.state; }
-  setState(state: number): void { this.state = state; }
+  getState(): number {
+    return this.state;
+  }
+  setState(state: number): void {
+    this.state = state;
+  }
 
   /** Uniform float in [0, 1). */
   next(): number {

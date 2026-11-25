@@ -190,7 +190,8 @@ export class BreakoutLogic {
         ball.x = this.width - ball.r;
         ball.vx = -Math.abs(ball.vx);
       }
-      if (ball.y - ball.r < 28) { // under the HUD strip
+      if (ball.y - ball.r < 28) {
+        // under the HUD strip
         ball.y = 28 + ball.r;
         ball.vy = Math.abs(ball.vy);
       }
@@ -228,7 +229,8 @@ export class BreakoutLogic {
         // Resolve along the axis of least penetration.
         const overlapX = Math.min(ball.x + ball.r - rect.x, rect.x + rect.w - (ball.x - ball.r));
         const overlapY = Math.min(ball.y + ball.r - rect.y, rect.y + rect.h - (ball.y - ball.r));
-        if (overlapX < overlapY) ball.vx = ball.x < rect.x + rect.w / 2 ? -Math.abs(ball.vx) : Math.abs(ball.vx);
+        if (overlapX < overlapY)
+          ball.vx = ball.x < rect.x + rect.w / 2 ? -Math.abs(ball.vx) : Math.abs(ball.vx);
         else ball.vy = ball.y < rect.y + rect.h / 2 ? -Math.abs(ball.vy) : Math.abs(ball.vy);
 
         brick.hp -= 1;
@@ -239,7 +241,13 @@ export class BreakoutLogic {
           // 18% drop chance
           if (this.rng.chance(0.18)) {
             const kind = this.rng.pick(["wide", "multi", "slow"] as const);
-            this.powerups.push({ kind, x: rect.x + rect.w / 2, y: rect.y + rect.h / 2, vy: 130, taken: false });
+            this.powerups.push({
+              kind,
+              x: rect.x + rect.w / 2,
+              y: rect.y + rect.h / 2,
+              vy: 130,
+              taken: false,
+            });
             events.push({ kind: "powerupDrop", powerup: kind, x: rect.x + rect.w / 2, y: rect.y });
           }
         }

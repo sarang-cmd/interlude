@@ -14,17 +14,22 @@ const BOARD_W = COLS * CELL;
 const BOARD_H = ROWS * CELL;
 
 const PIECE_COLORS: Record<number, string> = {
-  1: TOKENS.phosphorHot,   // I
-  2: TOKENS.phosphor,      // O
-  3: "#E08600",            // T
-  4: TOKENS.signalGreen,   // S
-  5: TOKENS.signalRed,     // Z
-  6: "#D9A85C",         // J
-  7: "#B8710A",            // L
+  1: TOKENS.phosphorHot, // I
+  2: TOKENS.phosphor, // O
+  3: "#E08600", // T
+  4: TOKENS.signalGreen, // S
+  5: TOKENS.signalRed, // Z
+  6: "#D9A85C", // J
+  7: "#B8710A", // L
 };
 const KIND_TO_COLOR: Record<PieceKind, string> = {
-  I: PIECE_COLORS[1]!, O: PIECE_COLORS[2]!, T: PIECE_COLORS[3]!, S: PIECE_COLORS[4]!,
-  Z: PIECE_COLORS[5]!, J: PIECE_COLORS[6]!, L: PIECE_COLORS[7]!,
+  I: PIECE_COLORS[1]!,
+  O: PIECE_COLORS[2]!,
+  T: PIECE_COLORS[3]!,
+  S: PIECE_COLORS[4]!,
+  Z: PIECE_COLORS[5]!,
+  J: PIECE_COLORS[6]!,
+  L: PIECE_COLORS[7]!,
 };
 
 export class BlockfallGame implements ArcadeGame {
@@ -64,7 +69,10 @@ export class BlockfallGame implements ArcadeGame {
     }
     if (this.horizontal && input.isDown(this.horizontal)) {
       this.horizontalTimer -= dt;
-      if (this.horizontalTimer <= 0) { this.logic.move(this.horizontal === "left" ? -1 : 1); this.horizontalTimer = 0.055; }
+      if (this.horizontalTimer <= 0) {
+        this.logic.move(this.horizontal === "left" ? -1 : 1);
+        this.horizontalTimer = 0.055;
+      }
     } else this.horizontal = null;
     if (input.wasPressedWithin("up", 120, true)) {
       this.logic.rotate(1);
@@ -74,7 +82,10 @@ export class BlockfallGame implements ArcadeGame {
     if (input.isDown("down")) {
       this.softDropHeld = true;
       this.softTimer -= dt;
-      if (this.softTimer <= 0) { this.logic.softDrop(); this.softTimer = 0.045; }
+      if (this.softTimer <= 0) {
+        this.logic.softDrop();
+        this.softTimer = 0.045;
+      }
     } else {
       this.softDropHeld = false;
       this.softTimer = 0;
@@ -128,7 +139,13 @@ export class BlockfallGame implements ArcadeGame {
               BOARD_X + Math.random() * BOARD_W,
               BOARD_Y + Math.random() * BOARD_H,
               2,
-              { color: ["#FFD36B", "#FFB000", "#D9A85C"], speed: 70, size: 1, gravity: 120, life: 0.6 },
+              {
+                color: ["#FFD36B", "#FFB000", "#D9A85C"],
+                speed: 70,
+                size: 1,
+                gravity: 120,
+                life: 0.6,
+              },
             );
           }
           if (lines === 4) {
@@ -160,7 +177,8 @@ export class BlockfallGame implements ArcadeGame {
     // ---- Hold box (left) ----
     drawLabel(ctx, "HOLD", 120, 46);
     this.drawBox(ctx, 78, 54, 84, 56);
-    if (this.g.settings.blockfallHold && this.logic.holdKind) this.drawPreviewPiece(ctx, this.logic.holdKind, 120, 82, this.logic.holdUsed ? 0.35 : 1);
+    if (this.g.settings.blockfallHold && this.logic.holdKind)
+      this.drawPreviewPiece(ctx, this.logic.holdKind, 120, 82, this.logic.holdUsed ? 0.35 : 1);
 
     // ---- Board ----
     ctx.fillStyle = "#100D08";
@@ -176,7 +194,14 @@ export class BlockfallGame implements ArcadeGame {
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         const v = this.logic.board[r]?.[c];
-        if (v) this.drawCell(ctx, BOARD_X + c * CELL, BOARD_Y + r * CELL, PIECE_COLORS[v] ?? TOKENS.phosphor, 1);
+        if (v)
+          this.drawCell(
+            ctx,
+            BOARD_X + c * CELL,
+            BOARD_Y + r * CELL,
+            PIECE_COLORS[v] ?? TOKENS.phosphor,
+            1,
+          );
       }
     }
 
@@ -189,14 +214,20 @@ export class BlockfallGame implements ArcadeGame {
           if (cell.y >= 0) {
             ctx.strokeStyle = "rgba(255,176,0,0.4)";
             ctx.lineWidth = 1;
-            ctx.strokeRect(BOARD_X + cell.x * CELL + 0.5, BOARD_Y + cell.y * CELL + 0.5, CELL - 1, CELL - 1);
+            ctx.strokeRect(
+              BOARD_X + cell.x * CELL + 0.5,
+              BOARD_Y + cell.y * CELL + 0.5,
+              CELL - 1,
+              CELL - 1,
+            );
           }
         }
       }
       // Active piece
       const color = KIND_TO_COLOR[active.kind];
       for (const cell of this.cellsAt(active.kind, active.rotation, active.x, active.y)) {
-        if (cell.y >= 0) this.drawCell(ctx, BOARD_X + cell.x * CELL, BOARD_Y + cell.y * CELL, color, 1);
+        if (cell.y >= 0)
+          this.drawCell(ctx, BOARD_X + cell.x * CELL, BOARD_Y + cell.y * CELL, color, 1);
       }
     }
 
@@ -218,22 +249,34 @@ export class BlockfallGame implements ArcadeGame {
     // ---- Stats (right, below next) ----
     drawLabel(ctx, "LINES", 502, 262);
     drawText(ctx, String(this.logic.lines), 502, 282, {
-      font: '18px Silkscreen, monospace',
+      font: "18px Silkscreen, monospace",
       color: TOKENS.phosphorHot,
       align: "center",
     });
     drawLabel(ctx, "LEVEL", 502, 306);
     drawText(ctx, String(this.logic.level), 502, 326, {
-      font: '18px Silkscreen, monospace',
+      font: "18px Silkscreen, monospace",
       color: TOKENS.phosphor,
       align: "center",
     });
 
     // Controls hint (left, below hold)
     if (!this.softDropHeld) {
-      drawText(ctx, "UP ROTATE", 120, 150, { font: '11px "IBM Plex Mono", monospace', color: TOKENS.phosphorDim, align: "center" });
-      drawText(ctx, "SPACE DROP", 120, 166, { font: '11px "IBM Plex Mono", monospace', color: TOKENS.phosphorDim, align: "center" });
-      drawText(ctx, "C HOLD", 120, 182, { font: '11px "IBM Plex Mono", monospace', color: TOKENS.phosphorDim, align: "center" });
+      drawText(ctx, "UP ROTATE", 120, 150, {
+        font: '11px "IBM Plex Mono", monospace',
+        color: TOKENS.phosphorDim,
+        align: "center",
+      });
+      drawText(ctx, "SPACE DROP", 120, 166, {
+        font: '11px "IBM Plex Mono", monospace',
+        color: TOKENS.phosphorDim,
+        align: "center",
+      });
+      drawText(ctx, "C HOLD", 120, 182, {
+        font: '11px "IBM Plex Mono", monospace',
+        color: TOKENS.phosphorDim,
+        align: "center",
+      });
     }
   }
 
@@ -249,12 +292,17 @@ export class BlockfallGame implements ArcadeGame {
     }
     const cells: Array<{ x: number; y: number }> = [];
     for (let y = 0; y < size; y++)
-      for (let x = 0; x < size; x++)
-        if (m[y]?.[x]) cells.push({ x: px + x, y: py + y });
+      for (let x = 0; x < size; x++) if (m[y]?.[x]) cells.push({ x: px + x, y: py + y });
     return cells;
   }
 
-  private drawCell(ctx: CanvasRenderingContext2D, x: number, y: number, color: string, alpha: number): void {
+  private drawCell(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    color: string,
+    alpha: number,
+  ): void {
     ctx.globalAlpha = alpha;
     ctx.fillStyle = color;
     ctx.fillRect(Math.round(x) + 1, Math.round(y) + 1, CELL - 2, CELL - 2);

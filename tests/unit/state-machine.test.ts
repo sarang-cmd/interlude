@@ -30,14 +30,21 @@ describe("generation vote", () => {
   it("stops speculative observation if a submit produces no generation", () => {
     vi.useFakeTimers();
     const machine = new GenerationMachine(() => {}, 650, 200);
-    machine.arm(); vi.advanceTimersByTime(200);
+    machine.arm();
+    vi.advanceTimersByTime(200);
     expect(machine.snapshot.phase).toBe("idle");
     expect(vi.getTimerCount()).toBe(0);
   });
   it("accepts every two-of-three combination", () => {
-    for (const votes of [{ a: true, b: true, c: false }, { a: true, b: false, c: true }, { a: false, b: true, c: true }]) {
+    for (const votes of [
+      { a: true, b: true, c: false },
+      { a: true, b: false, c: true },
+      { a: false, b: true, c: true },
+    ]) {
       const machine = new GenerationMachine(() => {});
-      machine.update(votes); expect(machine.snapshot.generating).toBe(true); machine.reset();
+      machine.update(votes);
+      expect(machine.snapshot.generating).toBe(true);
+      machine.reset();
     }
   });
 });

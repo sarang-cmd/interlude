@@ -44,7 +44,12 @@ export interface AdapterDiagnostics {
   mount: MountReport;
   /** ms from generating-signal to first game frame (rolling), or null. */
   lastSignalToFrameMs: number | null;
-  streamHook: { enabled: boolean; active: boolean; lastOpen: number | null; lastClose: number | null };
+  streamHook: {
+    enabled: boolean;
+    active: boolean;
+    lastOpen: number | null;
+    lastClose: number | null;
+  };
   timestamp: number;
 }
 

@@ -17,10 +17,7 @@ export interface Obstacle {
 }
 
 export type DashlineEvent =
-  | { kind: "jump" }
-  | { kind: "land" }
-  | { kind: "pass"; x: number }
-  | { kind: "hit" };
+  { kind: "jump" } | { kind: "land" } | { kind: "pass"; x: number } | { kind: "hit" };
 
 export interface DashlineOptions {
   width?: number;

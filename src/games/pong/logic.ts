@@ -22,7 +22,7 @@ const SERVE_SPEED = 300;
 /** AI model: max tracking speed + aim error in px per difficulty. */
 const AI_MODEL: Record<PongDifficulty, { maxSpeed: number; error: number; reactDelay: number }> = {
   rookie: { maxSpeed: 210, error: 46, reactDelay: 0.32 },
-  regular: { maxSpeed: 280, error: 28, reactDelay: 0.20 },
+  regular: { maxSpeed: 280, error: 28, reactDelay: 0.2 },
   veteran: { maxSpeed: 330, error: 18, reactDelay: 0.16 },
 };
 
@@ -47,13 +47,15 @@ export class PongLogic {
   private serveTimer = 0;
   private serveDir: 1 | -1 = 1;
 
-  constructor(options: {
-    width?: number;
-    height?: number;
-    seed?: number;
-    difficulty?: PongDifficulty;
-    firstTo?: number;
-  } = {}) {
+  constructor(
+    options: {
+      width?: number;
+      height?: number;
+      seed?: number;
+      difficulty?: PongDifficulty;
+      firstTo?: number;
+    } = {},
+  ) {
     this.width = options.width ?? 640;
     this.height = options.height ?? 360;
     this.rng = new RNG(options.seed ?? Date.now());
@@ -114,9 +116,10 @@ export class PongLogic {
       // Sample the ball only on a reaction tick, then commit to that target.
       // Updating a random error on a timer while tracking every frame makes
       // the hard opponent unrealistically perfect.
-      this.aiTargetY = this.ball.vx > 0
-        ? this.ball.y + this.aiErrorOffset
-        : FIELD_TOP + (this.height - FIELD_TOP) / 2;
+      this.aiTargetY =
+        this.ball.vx > 0
+          ? this.ball.y + this.aiErrorOffset
+          : FIELD_TOP + (this.height - FIELD_TOP) / 2;
     }
     const aiCenter = this.aiY + PADDLE_H / 2;
     const delta = this.aiTargetY - aiCenter;
@@ -183,15 +186,11 @@ export class PongLogic {
   private bounceOff(paddleCenter: number, direction: 1 | -1, events: PongEvent[]): void {
     const half = PADDLE_H / 2;
     const offset = Math.max(-1, Math.min(1, (this.ball.y - paddleCenter) / half));
-    const speed = Math.min(
-      MAX_BALL_SPEED,
-      Math.hypot(this.ball.vx, this.ball.vy) * RALLY_SPEEDUP,
-    );
+    const speed = Math.min(MAX_BALL_SPEED, Math.hypot(this.ball.vx, this.ball.vy) * RALLY_SPEEDUP);
     const angle = offset * (Math.PI / 3.2); // ±~56°
     this.ball.vx = Math.cos(angle) * speed * direction;
     this.ball.vy = Math.sin(angle) * speed;
-    this.ball.x =
-      direction === 1 ? PADDLE_W + 6 + BALL_R : this.width - PADDLE_W - 6 - BALL_R;
+    this.ball.x = direction === 1 ? PADDLE_W + 6 + BALL_R : this.width - PADDLE_W - 6 - BALL_R;
     this.rallyHits += 1;
     events.push({ kind: "paddleHit" });
   }

@@ -1,17 +1,17 @@
 /* Interlude — design tokens. Source of truth for the CRT arcade identity. */
 :root {
   /* Palette */
-  --ink: #0E0B07;
-  --ink-2: #171209;          /* raised panel surface on ink */
-  --ink-3: #221A10;          /* hover / pressed surface */
-  --phosphor: #FFB000;       /* primary amber */
-  --phosphor-dim: #7A5600;   /* hairlines, inactive text */
-  --phosphor-hot: #FFD36B;   /* highlights, scores, hot states */
+  --ink: #0e0b07;
+  --ink-2: #171209; /* raised panel surface on ink */
+  --ink-3: #221a10; /* hover / pressed surface */
+  --phosphor: #ffb000; /* primary amber */
+  --phosphor-dim: #7a5600; /* hairlines, inactive text */
+  --phosphor-hot: #ffd36b; /* highlights, scores, hot states */
   --phosphor-faint: rgba(255, 176, 0, 0.14); /* glow fills */
-  --paper: #E9DFC8;          /* light surfaces (options/popup on light hosts) */
-  --paper-ink: #2A2118;      /* text on paper */
-  --signal-red: #D6452B;
-  --signal-green: #5FBF6A;
+  --paper: #e9dfc8; /* light surfaces (options/popup on light hosts) */
+  --paper-ink: #2a2118; /* text on paper */
+  --signal-red: #d6452b;
+  --signal-green: #5fbf6a;
 
   /* Type */
   --font-display: "Silkscreen", "VT323", monospace;

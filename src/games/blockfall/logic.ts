@@ -15,7 +15,16 @@ export interface ActivePiece {
 }
 
 export interface BlockfallEvent {
-  kind: "move" | "rotate" | "softDrop" | "hardDrop" | "hold" | "lock" | "lineClear" | "levelUp" | "gameOver";
+  kind:
+    | "move"
+    | "rotate"
+    | "softDrop"
+    | "hardDrop"
+    | "hold"
+    | "lock"
+    | "lineClear"
+    | "levelUp"
+    | "gameOver";
   cells?: number;
   score?: number;
   lines?: number;
@@ -63,7 +72,13 @@ export const PIECES: Record<PieceKind, number[][]> = {
 };
 
 export const PIECE_IDS: Record<PieceKind, number> = {
-  I: 1, O: 2, T: 3, S: 4, Z: 5, J: 6, L: 7,
+  I: 1,
+  O: 2,
+  T: 3,
+  S: 4,
+  Z: 5,
+  J: 6,
+  L: 7,
 };
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
@@ -77,24 +92,120 @@ const MIN_GRAVITY = 0.05;
 export function kicksFor(kind: PieceKind, from: number, to: number): Array<[number, number]> {
   const key = `${from}>${to}`;
   const ordinary: Record<string, Array<[number, number]>> = {
-    "0>1": [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]],
-    "1>0": [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],
-    "1>2": [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],
-    "2>1": [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]],
-    "2>3": [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],
-    "3>2": [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]],
-    "3>0": [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]],
-    "0>3": [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],
+    "0>1": [
+      [0, 0],
+      [-1, 0],
+      [-1, -1],
+      [0, 2],
+      [-1, 2],
+    ],
+    "1>0": [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, -2],
+      [1, -2],
+    ],
+    "1>2": [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, -2],
+      [1, -2],
+    ],
+    "2>1": [
+      [0, 0],
+      [-1, 0],
+      [-1, -1],
+      [0, 2],
+      [-1, 2],
+    ],
+    "2>3": [
+      [0, 0],
+      [1, 0],
+      [1, -1],
+      [0, 2],
+      [1, 2],
+    ],
+    "3>2": [
+      [0, 0],
+      [-1, 0],
+      [-1, 1],
+      [0, -2],
+      [-1, -2],
+    ],
+    "3>0": [
+      [0, 0],
+      [-1, 0],
+      [-1, 1],
+      [0, -2],
+      [-1, -2],
+    ],
+    "0>3": [
+      [0, 0],
+      [1, 0],
+      [1, -1],
+      [0, 2],
+      [1, 2],
+    ],
   };
   const line: Record<string, Array<[number, number]>> = {
-    "0>1": [[0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2]],
-    "1>0": [[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 2]],
-    "1>2": [[0, 0], [-1, 0], [2, 0], [-1, -2], [2, 1]],
-    "2>1": [[0, 0], [1, 0], [-2, 0], [1, 2], [-2, -1]],
-    "2>3": [[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 2]],
-    "3>2": [[0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2]],
-    "3>0": [[0, 0], [1, 0], [-2, 0], [1, 2], [-2, -1]],
-    "0>3": [[0, 0], [-1, 0], [2, 0], [-1, -2], [2, 1]],
+    "0>1": [
+      [0, 0],
+      [-2, 0],
+      [1, 0],
+      [-2, 1],
+      [1, -2],
+    ],
+    "1>0": [
+      [0, 0],
+      [2, 0],
+      [-1, 0],
+      [2, -1],
+      [-1, 2],
+    ],
+    "1>2": [
+      [0, 0],
+      [-1, 0],
+      [2, 0],
+      [-1, -2],
+      [2, 1],
+    ],
+    "2>1": [
+      [0, 0],
+      [1, 0],
+      [-2, 0],
+      [1, 2],
+      [-2, -1],
+    ],
+    "2>3": [
+      [0, 0],
+      [2, 0],
+      [-1, 0],
+      [2, -1],
+      [-1, 2],
+    ],
+    "3>2": [
+      [0, 0],
+      [-2, 0],
+      [1, 0],
+      [-2, 1],
+      [1, -2],
+    ],
+    "3>0": [
+      [0, 0],
+      [1, 0],
+      [-2, 0],
+      [1, 2],
+      [-2, -1],
+    ],
+    "0>3": [
+      [0, 0],
+      [-1, 0],
+      [2, 0],
+      [-1, -2],
+      [2, 1],
+    ],
   };
   return kind === "O" ? [[0, 0]] : ((kind === "I" ? line : ordinary)[key] ?? [[0, 0]]);
 }
@@ -201,8 +312,7 @@ export class BlockfallLogic {
       const size = m.length;
       const next: number[][] = Array.from({ length: size }, () => Array(size).fill(0));
       for (let y = 0; y < size; y++)
-        for (let x = 0; x < size; x++)
-          next[x]![size - 1 - y] = m[y]?.[x] ?? 0;
+        for (let x = 0; x < size; x++) next[x]![size - 1 - y] = m[y]?.[x] ?? 0;
       m = next;
     }
     return m;
@@ -337,7 +447,10 @@ export class BlockfallLogic {
       }
     }
     this.active = null;
-    if (toppedOut) { this.alive = false; return [{ kind: "lock" }, { kind: "gameOver" }]; }
+    if (toppedOut) {
+      this.alive = false;
+      return [{ kind: "lock" }, { kind: "gameOver" }];
+    }
 
     // Clear full lines
     const cleared: number[] = [];
@@ -357,9 +470,7 @@ export class BlockfallLogic {
       const leveled = newLevel !== this.level;
       this.level = newLevel;
       this.spawnNext();
-      const events: BlockfallEvent[] = [
-        { kind: "lineClear", lines: n, score: gained },
-      ];
+      const events: BlockfallEvent[] = [{ kind: "lineClear", lines: n, score: gained }];
       if (leveled) events.push({ kind: "levelUp" });
       events.push({ kind: "lock" });
       if (!this.alive) events.push({ kind: "gameOver" });

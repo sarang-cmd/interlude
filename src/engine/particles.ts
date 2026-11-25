@@ -37,9 +37,7 @@ export class ParticleSystem {
       life?: number;
     } = {},
   ): void {
-    const colors = Array.isArray(options.color)
-      ? options.color
-      : [options.color ?? "#FFB000"];
+    const colors = Array.isArray(options.color) ? options.color : [options.color ?? "#FFB000"];
     const speed = options.speed ?? 90;
     const size = options.size ?? 2;
     const gravity = options.gravity ?? 160;

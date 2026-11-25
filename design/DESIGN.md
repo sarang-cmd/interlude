@@ -7,19 +7,19 @@
 
 Defined as CSS variables in `design/tokens.css` and mirrored in `design/tokens.ts`.
 
-| Token | Value | Use |
-|---|---|---|
-| `--ink` | `#0E0B07` | panel background, near black |
-| `--ink-2` | `#171209` | raised surface (header strip, buttons) |
-| `--ink-3` | `#221A10` | hover / pressed surface |
-| `--phosphor` | `#FFB000` | primary amber: borders, titles, active text |
-| `--phosphor-dim` | `#7A5600` | hairlines, secondary text, disabled |
-| `--phosphor-hot` | `#FFD36B` | scores, hot highlights |
-| `--phosphor-faint` | `rgba(255,176,0,.14)` | glow fill behind ready/done states |
-| `--paper` | `#E9DFC8` | light surfaces only (never on dark panel) |
-| `--paper-ink` | `#2A2118` | text on paper |
-| `--signal-red` | `#D6452B` | death, destructive. Never decorative. |
-| `--signal-green` | `#5FBF6A` | confirmed / high score. Never decorative. |
+| Token              | Value                 | Use                                         |
+| ------------------ | --------------------- | ------------------------------------------- |
+| `--ink`            | `#0E0B07`             | panel background, near black                |
+| `--ink-2`          | `#171209`             | raised surface (header strip, buttons)      |
+| `--ink-3`          | `#221A10`             | hover / pressed surface                     |
+| `--phosphor`       | `#FFB000`             | primary amber: borders, titles, active text |
+| `--phosphor-dim`   | `#7A5600`             | hairlines, secondary text, disabled         |
+| `--phosphor-hot`   | `#FFD36B`             | scores, hot highlights                      |
+| `--phosphor-faint` | `rgba(255,176,0,.14)` | glow fill behind ready/done states          |
+| `--paper`          | `#E9DFC8`             | light surfaces only (never on dark panel)   |
+| `--paper-ink`      | `#2A2118`             | text on paper                               |
+| `--signal-red`     | `#D6452B`             | death, destructive. Never decorative.       |
+| `--signal-green`   | `#5FBF6A`             | confirmed / high score. Never decorative.   |
 
 Hard bans: no purple. No blue→purple gradients. No glassmorphism. No rounded
 cards with soft shadows. If a surface needs depth, use a stepped pixel shadow

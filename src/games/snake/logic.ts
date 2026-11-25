@@ -158,8 +158,7 @@ export class SnakeLogic {
     }
 
     const eating = nx === this.food.x && ny === this.food.y;
-    const eatingBonus =
-      this.bonus !== null && nx === this.bonus.cell.x && ny === this.bonus.cell.y;
+    const eatingBonus = this.bonus !== null && nx === this.bonus.cell.x && ny === this.bonus.cell.y;
 
     // Self collision: the tail cell will move away unless we're growing.
     const body = eating || eatingBonus ? this.snake : this.snake.slice(0, -1);

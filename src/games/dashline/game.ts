@@ -82,13 +82,13 @@ export class DashlineGame implements ArcadeGame {
     const t = this.logic.distance;
     ctx.fillStyle = "#14100A";
     for (let i = 0; i < 8; i++) {
-      const bx = ((i * 211 - (t * 0.22) % 211) + w) % (w + 211) - 105;
+      const bx = ((i * 211 - ((t * 0.22) % 211) + w) % (w + 211)) - 105;
       const bh = 26 + ((i * 73) % 42);
       ctx.fillRect(Math.round(bx), GROUND_Y - 60 - bh, 46, bh + 60);
     }
     ctx.fillStyle = "#1B150D";
     for (let i = 0; i < 10; i++) {
-      const bx = ((i * 173 - (t * 0.45) % 173) + w) % (w + 173) - 86;
+      const bx = ((i * 173 - ((t * 0.45) % 173) + w) % (w + 173)) - 86;
       const bh = 18 + ((i * 41) % 26);
       ctx.fillRect(Math.round(bx), GROUND_Y - bh, 30, bh);
     }
@@ -111,11 +111,12 @@ export class DashlineGame implements ArcadeGame {
         // flyer: hovering drone with blinking lamp
         const bob = Math.sin(this.elapsed * 6.25 + o.id) * 3;
         ctx.fillStyle = "#2E2412";
-        ctx.fillRect(Math.round(o.x) - 2, Math.round(GROUND_Y - 84 + bob) , o.width + 4, 18);
+        ctx.fillRect(Math.round(o.x) - 2, Math.round(GROUND_Y - 84 + bob), o.width + 4, 18);
         ctx.strokeStyle = TOKENS.signalRed;
         ctx.lineWidth = 1;
         ctx.strokeRect(Math.round(o.x) - 1.5, Math.round(GROUND_Y - 83 + bob), o.width + 3, 17);
-        ctx.fillStyle = Math.floor(this.elapsed * (1000 / 240)) % 2 === 0 ? TOKENS.signalRed : "#5A2015";
+        ctx.fillStyle =
+          Math.floor(this.elapsed * (1000 / 240)) % 2 === 0 ? TOKENS.signalRed : "#5A2015";
         ctx.fillRect(Math.round(o.x) + o.width / 2 - 2, Math.round(GROUND_Y - 77 + bob), 4, 4);
       } else {
         ctx.fillStyle = "#241B0E";

@@ -40,9 +40,8 @@ export class Sound {
     }
     const AC =
       typeof window !== "undefined"
-        ? window.AudioContext ??
-          (window as unknown as { webkitAudioContext?: typeof AudioContext })
-            .webkitAudioContext
+        ? (window.AudioContext ??
+          (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
         : undefined;
     if (!AC) return;
     this.ctx = new AC();
@@ -72,10 +71,7 @@ export class Sound {
     osc.type = type;
     osc.frequency.setValueAtTime(freq, t0);
     if (options.slideTo !== undefined) {
-      osc.frequency.exponentialRampToValueAtTime(
-        Math.max(1, options.slideTo),
-        t0 + duration,
-      );
+      osc.frequency.exponentialRampToValueAtTime(Math.max(1, options.slideTo), t0 + duration);
     }
     const vol = options.volume ?? 0.5;
     gain.gain.setValueAtTime(0, t0);

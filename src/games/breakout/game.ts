@@ -3,12 +3,7 @@
  */
 import type { ArcadeGame, GameContext } from "../types";
 import { BREAKOUT_MANIFEST } from "../manifest";
-import {
-  BreakoutLogic,
-  PADDLE_H,
-  PADDLE_Y,
-  type PowerUpKind,
-} from "./logic";
+import { BreakoutLogic, PADDLE_H, PADDLE_Y, type PowerUpKind } from "./logic";
 import { TOKENS } from "../../../design/tokens";
 import { drawText } from "../shared";
 
@@ -160,7 +155,7 @@ export class BreakoutGame implements ArcadeGame {
     // Launch hint when ball is stuck
     if (this.logic.balls.some((b) => b.stuck)) {
       drawText(ctx, "SPACE / TAP TO LAUNCH", w / 2, h - 60, {
-        font: '15px VT323, monospace',
+        font: "15px VT323, monospace",
         color: TOKENS.phosphorHot,
         align: "center",
       });

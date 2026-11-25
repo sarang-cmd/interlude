@@ -43,7 +43,10 @@ export function resolveFirst(candidates: string[], query: QueryFn): ResolveResul
 }
 
 /** Query-all variant for multi-match fallbacks (e.g. candidate turn lists). */
-export function resolveAll(candidates: string[], queryAll: (selector: string) => Element[]): {
+export function resolveAll(
+  candidates: string[],
+  queryAll: (selector: string) => Element[],
+): {
   elements: Element[];
   matchedIndex: number;
   matchedSelector: string | null;
@@ -54,7 +57,12 @@ export function resolveAll(candidates: string[], queryAll: (selector: string) =>
     try {
       const elements = queryAll(selector);
       if (elements.length > 0) {
-        return { elements, matchedIndex: i, matchedSelector: selector, candidates: [...candidates] };
+        return {
+          elements,
+          matchedIndex: i,
+          matchedSelector: selector,
+          candidates: [...candidates],
+        };
       }
     } catch {
       continue;

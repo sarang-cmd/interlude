@@ -58,11 +58,7 @@
     "button[aria-label*='Regenerate']",
     "button[type='submit']"
   ],
-  "darkTheme": [
-    "html.dark",
-    "html[data-theme='dark']",
-    "[data-theme='dark']"
-  ],
+  "darkTheme": ["html.dark", "html[data-theme='dark']", "[data-theme='dark']"],
   "inactiveTurnAncestor": [
     "[hidden]",
     "[aria-hidden='true']",

@@ -11,10 +11,7 @@ export interface Pipe {
   passed: boolean;
 }
 
-export type FlappyEvent =
-  | { kind: "flap" }
-  | { kind: "score"; x: number }
-  | { kind: "hit" };
+export type FlappyEvent = { kind: "flap" } | { kind: "score"; x: number } | { kind: "hit" };
 
 export interface FlappyOptions {
   width?: number;

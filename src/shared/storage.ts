@@ -68,8 +68,7 @@ const LAST_PLAYED_KEY = "interlude.lastPlayed";
 const KEYBINDS_KEY = "interlude.keybindings";
 const OVERLAY_POS_KEY = "interlude.overlayPositions";
 
-const hasChromeStorage = (): boolean =>
-  typeof chrome !== "undefined" && !!chrome.storage?.local;
+const hasChromeStorage = (): boolean => typeof chrome !== "undefined" && !!chrome.storage?.local;
 
 /** In-memory fallback so engine/tests run outside an extension context. */
 const memoryStore = new Map<string, unknown>();
@@ -95,9 +94,7 @@ export async function loadSettings(): Promise<InterludeSettings> {
   return { ...DEFAULT_SETTINGS, ...(stored ?? {}) };
 }
 
-export async function saveSettings(
-  patch: Partial<InterludeSettings>,
-): Promise<InterludeSettings> {
+export async function saveSettings(patch: Partial<InterludeSettings>): Promise<InterludeSettings> {
   const current = await loadSettings();
   const next = { ...current, ...patch };
   await storageSet(SETTINGS_KEY, next);
@@ -108,13 +105,17 @@ export async function loadHighScores(): Promise<Record<string, number>> {
   return (await storageGet<Record<string, number>>(HIGHSCORES_KEY)) ?? {};
 }
 
-export interface HighScoreResult { best: number; isRecord: boolean; }
+export interface HighScoreResult {
+  best: number;
+  isRecord: boolean;
+}
 // The service worker owns this queue in the extension. It serializes concurrent
 // score writes from different tabs so a game or the 2048 tile record is not lost.
 let scoreQueue: Promise<void> = Promise.resolve();
 export function saveHighScoreLocally(gameId: string, score: number): Promise<HighScoreResult> {
   const operation = scoreQueue.then(async () => {
-    if (!/^[a-z0-9:-]{1,64}$/.test(gameId) || !Number.isFinite(score) || score < 0) throw new Error("Invalid high score");
+    if (!/^[a-z0-9:-]{1,64}$/.test(gameId) || !Number.isFinite(score) || score < 0)
+      throw new Error("Invalid high score");
     const scores = await loadHighScores();
     const prev = scores[gameId] ?? 0;
     if (score > prev) {
@@ -125,16 +126,31 @@ export function saveHighScoreLocally(gameId: string, score: number): Promise<Hig
     return { best: prev, isRecord: false };
   });
   // A rejected write must not poison the next queued operation.
-  scoreQueue = operation.then(() => undefined, () => undefined);
+  scoreQueue = operation.then(
+    () => undefined,
+    () => undefined,
+  );
   return operation;
 }
 
 export async function saveHighScore(gameId: string, score: number): Promise<HighScoreResult> {
   if (typeof chrome !== "undefined" && chrome.runtime?.id && chrome.runtime.sendMessage) {
     try {
-      const result: unknown = await chrome.runtime.sendMessage({ type: "INTERLUDE_SAVE_SCORE", gameId, score });
-      if (result && typeof result === "object" && typeof (result as HighScoreResult).best === "number" && typeof (result as HighScoreResult).isRecord === "boolean") return result as HighScoreResult;
-    } catch { /* extension is shutting down; use local storage if possible */ }
+      const result: unknown = await chrome.runtime.sendMessage({
+        type: "INTERLUDE_SAVE_SCORE",
+        gameId,
+        score,
+      });
+      if (
+        result &&
+        typeof result === "object" &&
+        typeof (result as HighScoreResult).best === "number" &&
+        typeof (result as HighScoreResult).isRecord === "boolean"
+      )
+        return result as HighScoreResult;
+    } catch {
+      /* extension is shutting down; use local storage if possible */
+    }
   }
   return saveHighScoreLocally(gameId, score);
 }
@@ -154,9 +170,7 @@ export async function loadKeybindings(): Promise<Keybindings> {
   return (await storageGet<Keybindings>(KEYBINDS_KEY)) ?? {};
 }
 
-export async function saveKeybindings(
-  keybindings: Keybindings,
-): Promise<void> {
+export async function saveKeybindings(keybindings: Keybindings): Promise<void> {
   await storageSet(KEYBINDS_KEY, keybindings);
 }
 

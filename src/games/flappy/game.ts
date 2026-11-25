@@ -82,7 +82,16 @@ export class FlappyGame implements ArcadeGame {
 
     // Distant cabinet-skyline silhouettes
     ctx.fillStyle = "#1A140C";
-    for (const [x, bh] of [[30, 40], [95, 66], [170, 30], [250, 54], [330, 38], [420, 70], [505, 44], [580, 58]] as const) {
+    for (const [x, bh] of [
+      [30, 40],
+      [95, 66],
+      [170, 30],
+      [250, 54],
+      [330, 38],
+      [420, 70],
+      [505, 44],
+      [580, 58],
+    ] as const) {
       ctx.fillRect(x, h - 64 - bh, 34, bh);
     }
 
@@ -91,7 +100,7 @@ export class FlappyGame implements ArcadeGame {
     ctx.fillRect(0, h - 14, w, 1);
     ctx.fillStyle = "#171209";
     ctx.fillRect(0, h - 13, w, 13);
-    drawText(ctx, "////////////", 0, h - 3, { font: '12px VT323, monospace', color: "#2A2114" });
+    drawText(ctx, "////////////", 0, h - 3, { font: "12px VT323, monospace", color: "#2A2114" });
 
     // Pipes — phosphor frames with dim fill, hard edges
     for (const pipe of this.logic.pipes) {
@@ -122,7 +131,7 @@ export class FlappyGame implements ArcadeGame {
 
     // Score, big and centered
     drawText(ctx, String(this.logic.score), w / 2, 64, {
-      font: '34px Silkscreen, monospace',
+      font: "34px Silkscreen, monospace",
       color: TOKENS.phosphorHot,
       align: "center",
     });

@@ -89,12 +89,12 @@ export class PongGame implements ArcadeGame {
 
     // Scores, big
     drawText(ctx, String(this.logic.playerScore), w / 2 - 70, 86, {
-      font: '46px Silkscreen, monospace',
+      font: "46px Silkscreen, monospace",
       color: TOKENS.phosphorHot,
       align: "center",
     });
     drawText(ctx, String(this.logic.aiScore), w / 2 + 70, 86, {
-      font: '46px Silkscreen, monospace',
+      font: "46px Silkscreen, monospace",
       color: TOKENS.phosphorDim,
       align: "center",
     });
@@ -127,19 +127,25 @@ export class PongGame implements ArcadeGame {
     // Serve countdown
     if (this.logic.isServing) {
       drawText(ctx, "SERVE…", w / 2, h - 40, {
-        font: '16px VT323, monospace',
+        font: "16px VT323, monospace",
         color: TOKENS.phosphor,
         align: "center",
       });
     }
     drawText(ctx, `RALLY ${this.logic.rallyHits}`, 10, h - 10, {
-      font: '12px VT323, monospace',
+      font: "12px VT323, monospace",
       color: TOKENS.phosphorDim,
     });
-    drawText(ctx, `FIRST TO ${this.logic.firstTo} · ${this.logic.difficulty.toUpperCase()}`, w - 10, h - 10, {
-      font: '12px VT323, monospace',
-      color: TOKENS.phosphorDim,
-      align: "right",
-    });
+    drawText(
+      ctx,
+      `FIRST TO ${this.logic.firstTo} · ${this.logic.difficulty.toUpperCase()}`,
+      w - 10,
+      h - 10,
+      {
+        font: "12px VT323, monospace",
+        color: TOKENS.phosphorDim,
+        align: "right",
+      },
+    );
   }
 }

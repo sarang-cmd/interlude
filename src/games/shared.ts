@@ -18,7 +18,7 @@ export function drawText(
 ): void {
   ctx.save();
   ctx.globalAlpha = options.alpha ?? 1;
-  ctx.font = options.font ?? '16px VT323, monospace';
+  ctx.font = options.font ?? "16px VT323, monospace";
   ctx.fillStyle = options.color ?? TOKENS.phosphor;
   ctx.textAlign = options.align ?? "left";
   ctx.textBaseline = options.baseline ?? "alphabetic";
@@ -39,12 +39,7 @@ export function drawPanelFrame(
   ctx.strokeRect(Math.round(x) + 0.5, Math.round(y) + 0.5, Math.round(w), Math.round(h));
 }
 
-export function drawLabel(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-): void {
+export function drawLabel(ctx: CanvasRenderingContext2D, text: string, x: number, y: number): void {
   drawText(ctx, text, x, y, {
     font: '11px "IBM Plex Mono", monospace',
     color: TOKENS.phosphorDim,

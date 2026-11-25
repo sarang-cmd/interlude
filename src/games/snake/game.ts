@@ -42,10 +42,13 @@ export class SnakeGame implements ArcadeGame {
     if (input.wasPressedWithin("down", 140, true)) this.logic.setDirection({ x: 0, y: 1 });
     for (const swipe of input.drainSwipes()) {
       const dir =
-        swipe === "left" ? { x: -1, y: 0 }
-        : swipe === "right" ? { x: 1, y: 0 }
-        : swipe === "up" ? { x: 0, y: -1 }
-        : { x: 0, y: 1 };
+        swipe === "left"
+          ? { x: -1, y: 0 }
+          : swipe === "right"
+            ? { x: 1, y: 0 }
+            : swipe === "up"
+              ? { x: 0, y: -1 }
+              : { x: 0, y: 1 };
       this.logic.setDirection(dir);
     }
 
@@ -119,12 +122,7 @@ export class SnakeGame implements ArcadeGame {
       ctx.fillStyle =
         i === 0 ? TOKENS.phosphorHot : blendAmber(TOKENS.phosphor, TOKENS.phosphorDim, 1 - t);
       const inset = i === 0 ? 1 : 2;
-      ctx.fillRect(
-        x + inset,
-        y + inset,
-        CELL - inset * 2,
-        CELL - inset * 2,
-      );
+      ctx.fillRect(x + inset, y + inset, CELL - inset * 2, CELL - inset * 2);
       if (i === 0) {
         ctx.fillStyle = TOKENS.ink;
         const d = this.logic.direction;
@@ -136,7 +134,7 @@ export class SnakeGame implements ArcadeGame {
     });
 
     drawText(ctx, "SNAKE", (COLS * CELL) / 2, ROWS * CELL - 4, {
-      font: '10px Silkscreen, monospace',
+      font: "10px Silkscreen, monospace",
       color: "rgba(255,176,0,0.25)",
       align: "center",
     });

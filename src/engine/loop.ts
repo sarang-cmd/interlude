@@ -37,12 +37,16 @@ export class GameLoop {
     this.lowRate = low;
     this.frameCounter = 0;
   }
-  get isLowRate(): boolean { return this.lowRate; }
+  get isLowRate(): boolean {
+    return this.lowRate;
+  }
 
   hitStop(ms: number): void {
     this.hitStopUntil = performance.now() + ms;
   }
-  clearHitStop(): void { this.hitStopUntil = 0; }
+  clearHitStop(): void {
+    this.hitStopUntil = 0;
+  }
 
   start(): void {
     if (this.running) return;

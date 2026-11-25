@@ -116,10 +116,13 @@ export class RockfallLogic {
     for (let attempt = 0; attempt < 12; attempt++) {
       const side = this.rng.int(0, 3);
       const p =
-        side === 0 ? { x: this.rng.range(0, this.width), y: 0 }
-        : side === 1 ? { x: this.rng.range(0, this.width), y: this.height }
-        : side === 2 ? { x: 0, y: this.rng.range(0, this.height) }
-        : { x: this.width, y: this.rng.range(0, this.height) };
+        side === 0
+          ? { x: this.rng.range(0, this.width), y: 0 }
+          : side === 1
+            ? { x: this.rng.range(0, this.width), y: this.height }
+            : side === 2
+              ? { x: 0, y: this.rng.range(0, this.height) }
+              : { x: this.width, y: this.rng.range(0, this.height) };
       if (Math.hypot(p.x - this.ship.x, p.y - this.ship.y) > 180) return p;
     }
     return { x: 0, y: 0 };

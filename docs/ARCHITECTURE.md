@@ -112,7 +112,7 @@ structures; there is intentionally no remapping UI yet.
   transition, input/gamepad, storage, core rules for all eight games, a
   fake-clock zero-idle-activity test, and the adapter privacy guard.
 - `tests/e2e/`: real Chromium loads `dist/`; local fixture pages are fulfilled
-  under the real Claude origin. CDP pierces the *closed* root only in tests.
+  under the real Claude origin. CDP pierces the _closed_ root only in tests.
   Tests cover the idle state, first-frame budget, short replies, exact
   placement, focus, pause/resume, remount, placements, drag persistence,
   auto-close, selector editor, timing hook, all game chunks, game-over restart,

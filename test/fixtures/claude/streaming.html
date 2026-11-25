@@ -1,20 +1,130 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Claude structural fixture</title><style>
-body{margin:0;background:#faf9f5;color:#312b23;font-family:serif}header{height:62px;border-bottom:1px solid #ddd5c8;padding:20px 32px;box-sizing:border-box;font:15px sans-serif}main{max-width:680px;margin:35px auto;padding:0 16px}.turn{padding:18px 0;border-bottom:1px solid #ebe5da;min-height:100px}.thinking{padding:12px 14px;background:#f0ece3;color:#5b5142;font:13px sans-serif}form{margin-top:26px;border:1px solid #cfc5b6;padding:12px;display:flex;gap:8px}textarea{flex:1;min-height:40px}button{padding:8px 14px}.prompt{color:#6b645a;font:12px sans-serif}
-</style></head><body><header>CLAUDE / STRUCTURAL FIXTURE</header><main data-testid="conversation-column"><p class="prompt">EXAMPLE CONVERSATION</p><div data-testid="assistant-turn" class="turn"><div id="answer">Fixture answer.</div><div data-testid="thinking-indicator" class="thinking">Thinking</div></div><button type="button" data-testid="regenerate-button" id="regenerate">Regenerate</button><form data-testid="chat-composer"><textarea data-testid="chat-input" aria-label="Message"></textarea><button data-testid="send-button" type="submit">Send</button><button type="button" data-testid="stop-button" aria-label="Stop response">Stop</button></form></main>
-<script>
-(() => {
- const column = document.querySelector('[data-testid="conversation-column"]');
- const form = document.querySelector('[data-testid="chat-composer"]');
- const makeIndicator = () => {const el=document.createElement('div');el.dataset.testid='thinking-indicator';el.className='thinking';el.textContent='Thinking';return el};
- const makeStop = () => {const el=document.createElement('button');el.type='button';el.dataset.testid='stop-button';el.setAttribute('aria-label','Stop response');el.textContent='Stop';el.addEventListener('click',finish);return el};
- function latest() {return Array.from(column.querySelectorAll('[data-testid="assistant-turn"]')).at(-1)}
- function start() {const turn=latest();if(!turn.querySelector('[data-testid="thinking-indicator"]')) turn.prepend(makeIndicator());if(!form.querySelector('[data-testid="stop-button"]'))form.append(makeStop())}
- function finish() {form.querySelector('[data-testid="stop-button"]')?.remove();latest()?.querySelector('[data-testid="thinking-indicator"]')?.remove()}
- function replace() {const old=latest(), turn=document.createElement('div');turn.className='turn';turn.dataset.testid='assistant-turn';turn.append(makeIndicator());const answer=document.createElement('div');answer.id='answer';answer.textContent='Replacement fixture answer.';turn.append(answer);old.replaceWith(turn)}
- function pulse() {const answer=latest()?.querySelector('#answer');if(answer)answer.append(document.createElement('i'))}
- form.addEventListener('submit', (event) => {event.preventDefault();start()});
- document.querySelector('#regenerate').addEventListener('click', start);
- form.querySelector('[data-testid="stop-button"]')?.addEventListener('click', finish);
- window.fixture={start,finish,replace,pulse};
-})();
-</script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Claude structural fixture</title>
+    <style>
+      body {
+        margin: 0;
+        background: #faf9f5;
+        color: #312b23;
+        font-family: serif;
+      }
+      header {
+        height: 62px;
+        border-bottom: 1px solid #ddd5c8;
+        padding: 20px 32px;
+        box-sizing: border-box;
+        font: 15px sans-serif;
+      }
+      main {
+        max-width: 680px;
+        margin: 35px auto;
+        padding: 0 16px;
+      }
+      .turn {
+        padding: 18px 0;
+        border-bottom: 1px solid #ebe5da;
+        min-height: 100px;
+      }
+      .thinking {
+        padding: 12px 14px;
+        background: #f0ece3;
+        color: #5b5142;
+        font: 13px sans-serif;
+      }
+      form {
+        margin-top: 26px;
+        border: 1px solid #cfc5b6;
+        padding: 12px;
+        display: flex;
+        gap: 8px;
+      }
+      textarea {
+        flex: 1;
+        min-height: 40px;
+      }
+      button {
+        padding: 8px 14px;
+      }
+      .prompt {
+        color: #6b645a;
+        font: 12px sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <header>CLAUDE / STRUCTURAL FIXTURE</header>
+    <main data-testid="conversation-column">
+      <p class="prompt">EXAMPLE CONVERSATION</p>
+      <div data-testid="assistant-turn" class="turn">
+        <div id="answer">Fixture answer.</div>
+        <div data-testid="thinking-indicator" class="thinking">Thinking</div>
+      </div>
+      <button type="button" data-testid="regenerate-button" id="regenerate">Regenerate</button>
+      <form data-testid="chat-composer">
+        <textarea data-testid="chat-input" aria-label="Message"></textarea
+        ><button data-testid="send-button" type="submit">Send</button
+        ><button type="button" data-testid="stop-button" aria-label="Stop response">Stop</button>
+      </form>
+    </main>
+    <script>
+      (() => {
+        const column = document.querySelector('[data-testid="conversation-column"]');
+        const form = document.querySelector('[data-testid="chat-composer"]');
+        const makeIndicator = () => {
+          const el = document.createElement("div");
+          el.dataset.testid = "thinking-indicator";
+          el.className = "thinking";
+          el.textContent = "Thinking";
+          return el;
+        };
+        const makeStop = () => {
+          const el = document.createElement("button");
+          el.type = "button";
+          el.dataset.testid = "stop-button";
+          el.setAttribute("aria-label", "Stop response");
+          el.textContent = "Stop";
+          el.addEventListener("click", finish);
+          return el;
+        };
+        function latest() {
+          return Array.from(column.querySelectorAll('[data-testid="assistant-turn"]')).at(-1);
+        }
+        function start() {
+          const turn = latest();
+          if (!turn.querySelector('[data-testid="thinking-indicator"]'))
+            turn.prepend(makeIndicator());
+          if (!form.querySelector('[data-testid="stop-button"]')) form.append(makeStop());
+        }
+        function finish() {
+          form.querySelector('[data-testid="stop-button"]')?.remove();
+          latest()?.querySelector('[data-testid="thinking-indicator"]')?.remove();
+        }
+        function replace() {
+          const old = latest(),
+            turn = document.createElement("div");
+          turn.className = "turn";
+          turn.dataset.testid = "assistant-turn";
+          turn.append(makeIndicator());
+          const answer = document.createElement("div");
+          answer.id = "answer";
+          answer.textContent = "Replacement fixture answer.";
+          turn.append(answer);
+          old.replaceWith(turn);
+        }
+        function pulse() {
+          const answer = latest()?.querySelector("#answer");
+          if (answer) answer.append(document.createElement("i"));
+        }
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          start();
+        });
+        document.querySelector("#regenerate").addEventListener("click", start);
+        form.querySelector('[data-testid="stop-button"]')?.addEventListener("click", finish);
+        window.fixture = { start, finish, replace, pulse };
+      })();
+    </script>
+  </body>
+</html>

@@ -4,7 +4,11 @@ const plugin: SitePlugin = {
   id: "claude",
   implemented: true,
   selectorOverrideKey: SELECTOR_OVERRIDE_KEY,
-  matches(url) { return new ClaudeAdapter().matches(url); },
-  create(configuration) { return new ClaudeAdapter((configuration ?? {}) as Partial<ClaudeSelectors>); },
+  matches(url) {
+    return new ClaudeAdapter().matches(url);
+  },
+  create(configuration) {
+    return new ClaudeAdapter((configuration ?? {}) as Partial<ClaudeSelectors>);
+  },
 };
 export default plugin;
