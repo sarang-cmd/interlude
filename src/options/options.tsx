@@ -547,7 +547,7 @@ function App({ initial }: { initial: SettingsDocument }) {
           available; play records stay local.
         </p>
       </div>
-      {update?.available && update.url && (
+      {settings.updateChecks && update?.available && update.url && (
         <div class="update">
           UPDATE {update.version} AVAILABLE. Download the zip, replace the unpacked folder and
           reload in Chrome.

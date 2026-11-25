@@ -108,16 +108,32 @@ export class StructuralAdapter implements SiteAdapter {
   ) {
     this.id = profile.id;
     this.displayName = profile.displayName;
-    // Ignore malformed stored overrides instead of breaking a conversation page.
     this.selectors = { ...profile.selectors };
-    for (const key of Object.keys(profile.selectors) as (keyof StructuralSelectors)[]) {
+    this.setSelectors(overrides);
+  }
+
+  setSelectors(configuration: unknown): void {
+    // Start from the bundled safe fallback each time; malformed groups do not
+    // survive from a previous local or remote override.
+    const overrides =
+      configuration && typeof configuration === "object" && !Array.isArray(configuration)
+        ? (configuration as Partial<StructuralSelectors>)
+        : {};
+    this.selectors = { ...this.profile.selectors };
+    for (const key of Object.keys(this.profile.selectors) as (keyof StructuralSelectors)[]) {
       const candidate = overrides[key];
       if (
         Array.isArray(candidate) &&
-        candidate.length &&
-        candidate.every((v) => typeof v === "string" && v.length <= 500)
+        candidate.length > 0 &&
+        candidate.length <= 30 &&
+        candidate.every((v) => typeof v === "string" && v.length > 0 && v.length <= 500)
       )
         this.selectors[key] = [...candidate];
+    }
+    this.reports.clear();
+    if (this.running) {
+      this.scan();
+      for (const watcher of this.watchers) watcher();
     }
   }
 

@@ -48,6 +48,7 @@ export class InactiveAdapter implements SiteAdapter {
     return "idle";
   }
   configure(): void {}
+  setSelectors(): void {}
   setStreamHook(_enabled: boolean): void {
     /* inactive */
   }

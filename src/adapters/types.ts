@@ -92,6 +92,8 @@ export interface SiteAdapter {
   getComposerInput(): HTMLElement | null;
   getPhase(): string;
   configure(config: { signals: string[]; showOnRegenerate: boolean; debugLogging: boolean }): void;
+  /** Apply trusted selector candidates live; invalid groups fall back to bundled data. */
+  setSelectors(configuration: unknown): void;
   setStreamHook(enabled: boolean): void;
   navigation(): void;
   activity(): { observers: number; timers: number };
