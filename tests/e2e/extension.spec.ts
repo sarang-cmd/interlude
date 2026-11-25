@@ -996,3 +996,65 @@ test("completion survives replacement of the entire assistant turn", async () =>
     ),
   ).toBe("panel");
 });
+
+test("latest active turn wins across mixed selector markup, including nested matches", async () => {
+  await worker.evaluate(() =>
+    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
+  );
+  await openFixture();
+  await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]');
+  await expect(host).toBeVisible();
+  await page.evaluate(() => {
+    const old = document.querySelector('[data-testid="assistant-turn"]')!;
+    old.querySelector('[data-testid="thinking-indicator"]')?.remove();
+    const newer = document.createElement("div");
+    newer.dataset.testid = "assistant-message";
+    newer.dataset.branch = "newer";
+    newer.className = "turn";
+    const indicator = document.createElement("div");
+    indicator.dataset.testid = "thinking-indicator";
+    indicator.className = "thinking";
+    indicator.textContent = "Thinking";
+    const nested = document.createElement("div");
+    nested.dataset.cds = "AssistantMessage";
+    nested.dataset.isStreaming = "true";
+    nested.textContent = "Synthetic response.";
+    newer.append(indicator, nested);
+    old.after(newer);
+    const hidden = document.createElement("div");
+    hidden.dataset.testid = "assistant-turn";
+    hidden.dataset.branch = "hidden";
+    hidden.hidden = true;
+    const hiddenIndicator = indicator.cloneNode(true);
+    hidden.append(hiddenIndicator);
+    newer.after(hidden);
+  });
+  const nextTo = (branch: string) =>
+    page.evaluate(
+      (name) =>
+        document
+          .querySelector(`[data-branch="${name}"] [data-testid="thinking-indicator"]`)
+          ?.nextElementSibling?.getAttribute("data-interlude"),
+      branch,
+    );
+  await expect.poll(() => nextTo("newer")).toBe("panel");
+  const first = (await diagnostic()) as Debug & {
+    selectors: { element: string; matchedIndex: number; matchedSelector: string | null }[];
+  };
+  expect(first.selectors.find((r) => r.element === "assistantTurn")).toMatchObject({
+    matchedIndex: 2,
+    matchedSelector: "[data-testid='assistant-message']",
+  });
+  await page.evaluate(() => {
+    (document.querySelector('[data-branch="newer"]') as HTMLElement).hidden = true;
+    (document.querySelector('[data-branch="hidden"]') as HTMLElement).hidden = false;
+  });
+  await expect.poll(() => nextTo("hidden")).toBe("panel");
+  await page.evaluate(() => {
+    (document.querySelector('[data-branch="hidden"]') as HTMLElement).hidden = true;
+    (document.querySelector('[data-branch="newer"]') as HTMLElement).hidden = false;
+  });
+  await expect.poll(() => nextTo("newer")).toBe("panel");
+  await expect(host).toHaveCount(1);
+});

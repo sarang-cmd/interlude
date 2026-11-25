@@ -70,3 +70,45 @@ export function resolveAll(
   }
   return { elements: [], matchedIndex: -1, matchedSelector: null, candidates: [...candidates] };
 }
+
+/**
+ * Select the last distinct outer element across all candidates in document
+ * order. Unlike a single fallback query, this handles a conversation containing
+ * older and newer markup simultaneously. Nested matches represent the same
+ * turn; keep their outer matched ancestor. The caller can filter inactive
+ * branches in `queryAll`. Diagnostics identify the selected element's earliest
+ * matching candidate.
+ */
+export function resolveLatest(
+  candidates: string[],
+  queryAll: (selector: string) => Element[],
+): ResolveResult {
+  const matches = new Map<Element, number>();
+  for (let i = 0; i < candidates.length; i++) {
+    try {
+      for (const element of queryAll(candidates[i]!)) {
+        if (!matches.has(element)) matches.set(element, i);
+      }
+    } catch {
+      // Invalid candidates do not prevent other markup from being discovered.
+    }
+  }
+  let latest: Element | null = null;
+  for (const element of matches.keys()) {
+    let ancestor = element.parentElement;
+    while (ancestor && !matches.has(ancestor)) ancestor = ancestor.parentElement;
+    if (ancestor) continue;
+    if (
+      !latest ||
+      (latest.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
+    )
+      latest = element;
+  }
+  const matchedIndex = latest ? (matches.get(latest) ?? -1) : -1;
+  return {
+    element: latest,
+    matchedIndex,
+    matchedSelector: matchedIndex < 0 ? null : candidates[matchedIndex]!,
+    candidates: [...candidates],
+  };
+}

@@ -1,6 +1,6 @@
 import defaults from "./selectors.json";
 import { Signal } from "../../shared/signal";
-import { resolveAll, resolveFirst, type ResolveResult } from "../selectorResolver";
+import { resolveFirst, resolveLatest, type ResolveResult } from "../selectorResolver";
 import type {
   AdapterDiagnostics,
   GeneratingObservable,
@@ -380,9 +380,9 @@ export class ClaudeAdapter implements SiteAdapter {
           return false;
         }
       });
-    // Old branches may remain mounted after the active branch. They must not
-    // win merely by being later in DOM order, including during selector fallback.
-    const result = resolveAll(this.selectors.assistantTurn, (s) =>
+    // Old branches may remain mounted after the active branch. Different
+    // turns can also use different markup; consider all active candidates.
+    const result = resolveLatest(this.selectors.assistantTurn, (s) =>
       Array.from(document.querySelectorAll(s)).filter(isActive),
     );
     this.reports.set("assistantTurn", {
@@ -391,7 +391,7 @@ export class ClaudeAdapter implements SiteAdapter {
       matchedIndex: result.matchedIndex,
       matchedSelector: result.matchedSelector,
     });
-    return result.elements.at(-1) ?? null;
+    return result.element;
   }
   private updateReport(id: SignalId, active: boolean, selector: string | null): void {
     const r = this.signalReports[id];

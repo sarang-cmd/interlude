@@ -65,8 +65,12 @@ For a new site:
 Claude selectors are best-effort candidates, not a claim of verified current
 DOM. The `inactiveTurnAncestor` selector group excludes hidden/inactive branch
 ancestors before selecting the latest assistant turn; adjust it if a live site
-uses different branch visibility markup. In particular, a fallback matching `data-is-streaming="true"` on the
-assistant message itself anchors after that entire element if no separate
+uses different branch visibility markup. To handle mixed markup, all turn
+candidates are combined, nested matches are collapsed to their outer matched
+ancestor, and the latest active turn in document order wins. Diagnostics report
+the first candidate matching that selected turn; other selector groups use the
+first matching candidate. A fallback matching `data-is-streaming="true"` on
+an assistant message itself anchors after that entire element if no separate
 indicator is found; it remains in flow and cannot cover the answer, but it is
 not equivalent to a verified separate thinking-indicator anchor. Reports of
 `chat-input-send`, `chat-input-stop`, and assistant message markers in public
