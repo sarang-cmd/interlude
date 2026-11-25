@@ -28,6 +28,8 @@ export interface InterludeSettings {
   streamHookEnabled: boolean;
   /** Undo allowance in 2048. */
   undo2048: number;
+  /** 2048 time-attack duration in seconds; zero disables the clock. */
+  twenty48Seconds: number;
   /** Snake: pass through walls instead of dying. */
   snakeWrap: boolean;
   /** Pong AI difficulty. */
@@ -52,6 +54,7 @@ export const DEFAULT_SETTINGS: InterludeSettings = {
   focusHotkey: "Alt+G",
   streamHookEnabled: false,
   undo2048: 3,
+  twenty48Seconds: 90,
   snakeWrap: false,
   pongDifficulty: "regular",
   pongFirstTo: 5,

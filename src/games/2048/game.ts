@@ -11,20 +11,31 @@ const TILE_COLORS: Record<number, string> = { 2: "#1E1810", 4: "#26200F", 8: "#3
 
 export class Game2048Game implements ArcadeGame {
   readonly manifest = TWENTY48_MANIFEST;
-  readonly readyHint = "ARROWS SLIDE — U UNDOES";
+  readyHint = "ARROWS SLIDE — U UNDOES";
   score = 0;
   private g!: GameContext;
   private logic!: Game2048;
   private animation: { tiles: TileTransition[]; elapsed: number } | null = null;
   private pending: Direction | null = null;
   private personalTile = 0;
+  private secondsRemaining = 0;
+  private timed = false;
+  private ended = false;
   init(ctx: GameContext): void {
-    this.g = ctx; this.score = 0; this.animation = null; this.pending = null;
+    this.g = ctx; this.score = 0; this.animation = null; this.pending = null; this.ended = false;
+    const limit = Number.isFinite(ctx.settings.twenty48Seconds) ? Math.max(0, Math.min(180, Math.round(ctx.settings.twenty48Seconds))) : 90;
+    this.timed = limit > 0; this.secondsRemaining = limit;
+    this.readyHint = this.timed ? `${limit} SEC · ARROWS SLIDE · U UNDO` : "ARROWS SLIDE — U UNDOES";
     this.logic = new Game2048({ seed: Math.floor(ctx.rng.next() * 0xffffffff), undoLimit: ctx.settings.undo2048 });
     void loadHighScores().then((scores) => { this.personalTile = Math.max(this.personalTile, scores["twenty48:tile"] ?? 0); });
   }
   destroy(): void { /* no retained listeners */ }
   fixedUpdate(dt: number): void {
+    if (this.ended) return;
+    if (this.timed) {
+      this.secondsRemaining = Math.max(0, this.secondsRemaining - dt);
+      if (this.secondsRemaining === 0) { this.end(); return; }
+    }
     if (this.animation) {
       this.animation.elapsed += dt;
       if (this.animation.elapsed >= DURATION) {
@@ -42,6 +53,8 @@ export class Game2048Game implements ArcadeGame {
     this.score = this.logic.score;
   }
   private end(): void {
+    if (this.ended) return;
+    this.ended = true;
     this.score = this.logic.score;
     this.recordBestTile();
     void this.g.reportGameOver();
@@ -88,6 +101,9 @@ export class Game2048Game implements ArcadeGame {
     drawText(ctx, `UNDO ${this.logic.undoRemaining}`, X + BOARD, Y + BOARD + 15, { font: '11px "IBM Plex Mono", monospace', color: TOKENS.phosphor, align: "right" });
     drawText(ctx, "BEST", 90, 165, { font: '11px "IBM Plex Mono", monospace', color: TOKENS.phosphorDim, align: "center" });
     drawText(ctx, String(Math.max(this.personalTile, this.logic.bestTile)), 90, 190, { font: '18px Silkscreen, monospace', color: TOKENS.phosphorHot, align: "center" });
+    drawText(ctx, "CLOCK", 550, 165, { font: '11px "IBM Plex Mono", monospace', color: TOKENS.phosphorDim, align: "center" });
+    const clock = this.timed ? String(Math.ceil(this.secondsRemaining)).padStart(2, "0") : "OFF";
+    drawText(ctx, clock, 550, 190, { font: '18px Silkscreen, monospace', color: this.timed && this.secondsRemaining <= 10 ? TOKENS.signalRed : TOKENS.phosphorHot, align: "center" });
   }
   private tile(value: number, r: number, c: number): void {
     const ctx = this.g.ctx, x = Math.round(X + GAP + c * (CELL + GAP)), y = Math.round(Y + GAP + r * (CELL + GAP));

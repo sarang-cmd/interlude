@@ -21,3 +21,15 @@ it("records the best tile as soon as it is earned, including before game-over", 
   expect(internal.logic.alive).toBe(true);
   await vi.waitFor(async () => expect((await loadHighScores())["twenty48:tile"]).toBe(4));
 });
+
+it("2048 time attack ends once at its limit and can be disabled", async () => {
+  const { Input } = await import("../../src/engine/input");
+  const report = vi.fn(async () => {});
+  const context = { rng: new RNG(8), settings: { ...DEFAULT_SETTINGS, twenty48Seconds: 2 }, input: new Input(), sound: { play() {} }, scorePop() {}, particles: { burst() {} }, shake() {}, hitStop() {}, reportGameOver: report } as unknown as GameContext;
+  const timed = new Game2048Game(); timed.init(context);
+  timed.fixedUpdate(1); expect(report).not.toHaveBeenCalled();
+  timed.fixedUpdate(1); timed.fixedUpdate(1); expect(report).toHaveBeenCalledTimes(1);
+  const unlimited = new Game2048Game();
+  unlimited.init({ ...context, settings: { ...DEFAULT_SETTINGS, twenty48Seconds: 0 } });
+  unlimited.fixedUpdate(200); expect(report).toHaveBeenCalledTimes(1);
+});

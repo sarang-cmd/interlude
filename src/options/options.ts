@@ -19,6 +19,7 @@ function render(): void {
   input("focusHotkey").value = settings.focusHotkey;
   input("graceSeconds").value = String(settings.autoCloseGraceMs / 1000);
   input("undo2048").value = String(settings.undo2048);
+  input("twenty48Seconds").value = String(settings.twenty48Seconds);
   input("pongFirstTo").value = String(settings.pongFirstTo);
   input("graceSeconds").disabled = !settings.autoClose;
 }
@@ -31,7 +32,7 @@ for (const key of booleans) input(key).addEventListener("change", () => { void u
 for (const key of selectFields) select(key).addEventListener("change", () => { void update({ [key]: select(key).value } as Partial<InterludeSettings>); });
 input("delayMs").addEventListener("input", () => { output.value = `${input("delayMs").value} MS`; });
 input("delayMs").addEventListener("change", () => { void update({ delayMs: Math.max(0, Math.min(5000, Number(input("delayMs").value))) }); });
-for (const [id, min, max, key, multiplier] of [["graceSeconds", 0, 120, "autoCloseGraceMs", 1000], ["undo2048", 0, 20, "undo2048", 1], ["pongFirstTo", 1, 11, "pongFirstTo", 1]] as const) {
+for (const [id, min, max, key, multiplier] of [["graceSeconds", 0, 120, "autoCloseGraceMs", 1000], ["undo2048", 0, 20, "undo2048", 1], ["twenty48Seconds", 0, 180, "twenty48Seconds", 1], ["pongFirstTo", 1, 11, "pongFirstTo", 1]] as const) {
   input(id).addEventListener("change", () => {
     const value = Number(input(id).value);
     if (!Number.isFinite(value)) { render(); return; }

@@ -48,7 +48,7 @@ Inline mode fails closed rather than placing an unknown overlay over an answer.
 | Snake | Queued turns, walls or wrap, bonus food and increasing speed. |
 | Breakout | Angle shots, multi-hit bricks, power-ups and levels. |
 | Flapper | One-button flight through constrained gaps. |
-| 2048 | Swipe or slide, stepped tile motion, limited undo and best tile. |
+| 2048 | Swipe or slide, stepped tile motion, limited undo and best tile; 90-second clock by default (configurable or off). |
 | Pong | Beatable AI, escalating rallies and configurable match length. |
 | Blockfall | Seven-bag pieces, SRS kicks, lock delay, hold and ghost. |
 | Rockfall Belt | Inertial flight, wrapping, splitting rocks and shields. |
