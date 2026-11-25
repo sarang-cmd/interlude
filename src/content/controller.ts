@@ -11,6 +11,8 @@ import {
   type InterludeSettings,
 } from "../shared/storage";
 import { Panel } from "./panel";
+import { FocusGuard, cleanStats, type GuardSnapshot } from "../focus/guard";
+import { loadStats, saveDeltas } from "../focus/stats";
 
 function isTextField(event: KeyboardEvent): boolean {
   return event
@@ -59,10 +61,22 @@ export class InterludeController {
   private destroyed = false;
   private unsubSignal: () => void;
   private unsubStructure: () => void;
+  private readonly guard: FocusGuard;
+  private readonly guardReady: Promise<void>;
+  private guardTimer: ReturnType<typeof setInterval> | undefined;
+  private lockTimer: ReturnType<typeof setTimeout> | undefined;
+  private flushing = false;
 
   constructor(settings: InterludeSettings, adapter: SiteAdapter) {
     this.settings = settings;
     this.adapter = adapter;
+    this.guard = new FocusGuard(settings);
+    this.guardReady = loadStats()
+      .then((stats) => {
+        this.guard.replaceBase(stats);
+        this.updateGuard(this.guard.snapshot());
+      })
+      .catch(() => {});
     this.panel = new Panel(settings, adapter.displayName, {
       onChoose: (choice) => this.choose(choice),
       onQuickChange: (patch) => {
@@ -84,6 +98,8 @@ export class InterludeController {
     });
     this.panel.setSceneListener((state) => {
       if (state === "paused" && this.panel.isVisible) this.panel.setDone(true, !this.generating);
+      if (state === "playing" && !document.hidden && this.panel.isVisible) this.startTracking();
+      else if (state !== "playing") this.stopTracking(false);
     });
     this.adapter.setExcludedHost(this.panel.host);
     this.unsubSignal = this.adapter.getGeneratingSignal().subscribe((next, previous) => {
@@ -141,9 +157,11 @@ export class InterludeController {
   applySettings(next: InterludeSettings): void {
     const old = this.settings;
     this.settings = next;
+    this.guard.setSettings(next);
     this.panel.updateSettings(next);
     this.panel.setTheme(this.adapter.getTheme());
     this.adapter.configure(next);
+    this.updateGuard(this.guard.snapshot());
     if (old.enabled !== next.enabled) {
       if (next.enabled) {
         this.adapter.start();
@@ -175,6 +193,10 @@ export class InterludeController {
     } else {
       this.cancelReveal();
       if (!this.panel.isVisible) return;
+      if (this.panel.isLocked) {
+        this.close(false);
+        return;
+      }
       // Freeze synchronously before presenting any action or starting grace.
       this.panel.engine.freezeForDone();
       const host = this.panel.host;
@@ -230,7 +252,7 @@ export class InterludeController {
       this.revealFrame !== undefined
     )
       return;
-    void this.gameReady.then(() => {
+    void Promise.all([this.gameReady, this.guardReady]).then(() => {
       if (
         !this.generating ||
         this.adapter.getPhase() !== "generating" ||
@@ -250,7 +272,9 @@ export class InterludeController {
         )
           return;
         const point = this.adapter.findMountPoint(this.settings.placement);
-        if (point)
+        const block = this.guard.snapshot().block;
+        if (point && block === "lock") this.showLock(point);
+        else if (point && !block)
           this.panel.show(
             point,
             this.settings.placement,
@@ -283,6 +307,11 @@ export class InterludeController {
     this.panel.focus();
   }
   private close(fromUser: boolean): void {
+    const hadPanel = this.panel.isVisible;
+    const duration = this.stopTracking(true);
+    if (hadPanel && duration > 0 && this.settings.sessionSummary) this.panel.showSummary(duration);
+    if (this.lockTimer !== undefined) clearTimeout(this.lockTimer);
+    this.lockTimer = undefined;
     if (fromUser && this.generating) this.dismissed = true;
     this.cancelReveal();
     this.cancelClose();
@@ -304,7 +333,82 @@ export class InterludeController {
   }
   private onVisibility = (): void => {
     if (this.panel.isVisible) this.panel.engine.setTabHidden(document.hidden);
+    if (document.hidden) this.stopTracking(false);
+    else if (this.panel.isVisible && this.panel.engine.getState() === "playing")
+      this.startTracking();
   };
+  private startTracking(): void {
+    if (!this.gameId || this.guardTimer !== undefined || this.guard.snapshot().block) return;
+    this.guard.begin(this.gameId);
+    this.updateGuard(this.guard.tick());
+    if (this.guard.snapshot().block) return;
+    this.guardTimer = setInterval(() => this.updateGuard(this.guard.tick()), 1000);
+  }
+  private stopTracking(end: boolean): number {
+    if (this.guardTimer !== undefined) clearInterval(this.guardTimer);
+    this.guardTimer = undefined;
+    const duration = end ? this.guard.end() : (this.guard.pause(), 0);
+    void this.flushStats();
+    return duration;
+  }
+  private async flushStats(): Promise<void> {
+    if (this.flushing) return;
+    this.flushing = true;
+    try {
+      while (this.guard.pendingDeltas().length) {
+        const deltas = this.guard.pendingDeltas();
+        const remote = await saveDeltas(deltas);
+        this.guard.acknowledge(deltas.length, remote);
+      }
+    } catch {
+      /* pending deltas remain for the next active tick */
+    } finally {
+      this.flushing = false;
+    }
+  }
+  private updateGuard(snapshot: GuardSnapshot): void {
+    if (!this.panel) return;
+    this.panel.setDaily(snapshot.todayMs, this.settings.budgetEnabled);
+    for (const notice of this.guard.takeNotices())
+      this.panel.setNotice(
+        notice.type === "budget"
+          ? "DAILY BUDGET REACHED"
+          : `${notice.minutes} MINUTES PLAYED TODAY`,
+      );
+    if (snapshot.block === "lock" && this.panel.isVisible && !this.panel.isLocked) {
+      this.stopTracking(true);
+      const point = this.adapter.findMountPoint(this.settings.placement, !this.generating);
+      if (point) this.showLock(point);
+      else this.close(false);
+    } else if ((snapshot.block === "quiet" || snapshot.block === "study") && this.panel.isVisible)
+      this.close(false);
+    else if (!snapshot.block && this.panel.isLocked) {
+      this.panel.close(false);
+      if (this.lockTimer !== undefined) clearTimeout(this.lockTimer);
+      this.lockTimer = undefined;
+      if (this.generating && !this.dismissed) this.scheduleReveal();
+    }
+    void this.flushStats();
+  }
+  private showLock(point: import("../adapters/types").MountPointResult): void {
+    this.panel.showLock(point, this.settings.placement);
+    if (this.lockTimer !== undefined) clearTimeout(this.lockTimer);
+    const now = new Date();
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime();
+    this.lockTimer = setTimeout(
+      () => {
+        this.lockTimer = undefined;
+        this.updateGuard(this.guard.snapshot());
+      },
+      Math.max(100, midnight - now.getTime() + 100),
+    );
+  }
+  refreshStats(raw: unknown): void {
+    if (!this.flushing && !this.guard.pendingDeltas().length) {
+      this.guard.replaceBase(cleanStats(raw));
+      this.updateGuard(this.guard.snapshot());
+    }
+  }
   private onNavigation = (): void => this.navigation();
   private onPageShow = (event: PageTransitionEvent): void => {
     if (event.persisted) this.navigation();
@@ -357,6 +461,9 @@ export class InterludeController {
     this.destroyed = true;
     this.cancelReveal();
     this.cancelClose();
+    this.stopTracking(true);
+    if (this.lockTimer !== undefined) clearTimeout(this.lockTimer);
+    this.lockTimer = undefined;
     if (this.remountFrame !== undefined) cancelAnimationFrame(this.remountFrame);
     this.unsubSignal();
     this.unsubStructure();

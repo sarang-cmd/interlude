@@ -1105,3 +1105,60 @@ test("in-panel gear drawer updates the site profile live and Escape closes it", 
   expect(attributes).toContain("hidden");
   await cdp.detach();
 });
+
+test("Focus Guard counts active play, locks at the budget, and unlocks live", async () => {
+  await worker.evaluate(async () => {
+    const date = new Date();
+    const day = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    await chrome.storage.local.set({
+      "interlude.playStats": {
+        version: 1,
+        days: { [day]: { games: { snake: 59500 }, sessions: 1 } },
+      },
+    });
+    await chrome.storage.sync.set({
+      "interlude.settings.v2": {
+        version: 2,
+        global: {
+          delayMs: 0,
+          skipBoot: true,
+          muted: true,
+          autoClose: false,
+          budgetEnabled: true,
+          budgetMinutes: 1,
+          budgetLockout: true,
+        },
+        sites: {},
+      },
+    });
+  });
+  await openFixture();
+  await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]');
+  await expect(host).toBeVisible();
+  await shadowClick("canvas");
+  await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+  await expect(host).toHaveAttribute("data-interlude-scene", "locked", { timeout: 6000 });
+  const cdp = await context.newCDPSession(page);
+  const lockNode = await shadowNode(cdp, ".lock-message");
+  const { object } = await cdp.send("DOM.resolveNode", { nodeId: lockNode });
+  const { result } = await cdp.send("Runtime.callFunctionOn", {
+    objectId: object.objectId!,
+    functionDeclaration: "function(){ return this.textContent; }",
+    returnByValue: true,
+  });
+  expect(result.value).toBe("OUT OF COINS. BACK TO WORK.");
+  const stats = await worker.evaluate(
+    async () => (await chrome.storage.local.get("interlude.playStats"))["interlude.playStats"],
+  );
+  expect(
+    Object.values(stats.days as Record<string, { games: Record<string, number> }>)[0]!.games.snake,
+  ).toBeGreaterThan(59500);
+  await worker.evaluate(async () => {
+    const doc = (await chrome.storage.sync.get("interlude.settings.v2"))["interlude.settings.v2"];
+    doc.global.budgetLockout = false;
+    await chrome.storage.sync.set({ "interlude.settings.v2": doc });
+  });
+  await expect(host).toHaveAttribute("data-interlude-scene", "ready");
+  await cdp.detach();
+});

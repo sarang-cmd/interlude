@@ -148,6 +148,8 @@ export class Panel {
   private onScene: ((state: EngineState) => void) | null = null;
   private resizeObserver: ResizeObserver | null = null;
   private lastScreenWidth = 0;
+  private toast: HTMLElement | null = null;
+  private toastTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(
     settings: InterludeSettings,
@@ -431,6 +433,26 @@ export class Panel {
   get isLocked(): boolean {
     return this.locked;
   }
+  showSummary(milliseconds: number): void {
+    if (this.toastTimer !== undefined) clearTimeout(this.toastTimer);
+    this.toast?.remove();
+    const host = document.createElement("div");
+    host.style.cssText = "all:initial;position:fixed;right:16px;bottom:16px;z-index:2147483000";
+    const shadow = host.attachShadow({ mode: "closed" });
+    const style = node("style");
+    style.textContent = `@font-face{font-family:'IBM Plex Mono';src:url('${fontUrl("ibm-plex-mono-400")}') format('woff2')}div{background:#0E0B07;color:#FFD36B;border:1px solid #7A5600;padding:12px 16px;font:12px 'IBM Plex Mono',monospace;box-shadow:3px 3px 0 #000}`;
+    shadow.append(
+      style,
+      node("div", "", `SESSION / ${Math.max(1, Math.ceil(milliseconds / 60000))} MIN PLAYED`),
+    );
+    document.body.append(host);
+    this.toast = host;
+    this.toastTimer = setTimeout(() => {
+      host.remove();
+      this.toast = null;
+      this.toastTimer = undefined;
+    }, 4000);
+  }
   showLock(point: MountPointResult, placement: Placement): void {
     this.engine.stop();
     this.engine.unwatchVisibility();
@@ -626,6 +648,8 @@ export class Panel {
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
     this.engine.destroy();
+    if (this.toastTimer !== undefined) clearTimeout(this.toastTimer);
+    this.toast?.remove();
     this.host.remove();
   }
   /** Use whole source-pixel groups when reducing the 640px logical buffer. */

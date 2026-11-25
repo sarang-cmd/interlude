@@ -3,6 +3,7 @@ import type { SitePlugin } from "../adapters/types";
 import { loadSettings } from "../shared/storage";
 import { SETTINGS_KEY } from "../settings/store";
 import type { SiteId } from "../settings/schema";
+import { STATS_KEY } from "../focus/stats";
 
 // One default-exported plugin per site folder; unimplemented sites stay inert.
 const plugins = Object.values(
@@ -42,6 +43,8 @@ if (plugin) {
       .catch(() => {});
   }
   chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes[STATS_KEY])
+      controller?.refreshStats(changes[STATS_KEY].newValue);
     if (area === "local" && plugin.selectorOverrideKey && changes[plugin.selectorOverrideKey]) {
       void boot();
       return;
