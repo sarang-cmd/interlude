@@ -89,7 +89,9 @@ a full-sized canvas is displayed 1:1. Narrow screens reduce it in whole groups
 of source pixels with `image-rendering: pixelated`, centered inside the
 full-width panel. The Snake renderer interpolates grid positions; 2048 uses a
 stepped slide timeline. `SceneStack` holds the underlying scene when paused.
-Particles, shake, score pops and synthesized WebAudio are shared. The game loop
+Particles, shake, score pops and synthesized WebAudio are shared. High-score
+writes are serialized in the service worker, including across tabs; 2048 records
+the best tile as it is earned rather than waiting for game-over. The game loop
 stops when the tab is hidden, and processes every other rAF when the host is
 outside the viewport: both update and render run at approximately 30 Hz, with a
 fixed-size step (the simulation deliberately slows while out of view). Closing

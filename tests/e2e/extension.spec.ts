@@ -373,3 +373,18 @@ test("a popstate event closes synchronously without mistaking navigation for com
   expect(visible).toBe("false");
   expect((await diagnostic()).state).toBe("idle");
 });
+
+test("concurrent game records from different extension tabs retain every best", async () => {
+  const id = new URL(worker.url()).hostname;
+  const first = await context.newPage(), second = await context.newPage();
+  await first.goto(`chrome-extension://${id}/options.html`); await second.goto(`chrome-extension://${id}/options.html`);
+  await Promise.all([
+    first.evaluate(() => chrome.runtime.sendMessage({ type: "INTERLUDE_SAVE_SCORE", gameId: "snake", score: 50 })),
+    second.evaluate(() => chrome.runtime.sendMessage({ type: "INTERLUDE_SAVE_SCORE", gameId: "pong", score: 200 })),
+    first.evaluate(() => chrome.runtime.sendMessage({ type: "INTERLUDE_SAVE_SCORE", gameId: "snake", score: 25 })),
+    second.evaluate(() => chrome.runtime.sendMessage({ type: "INTERLUDE_SAVE_SCORE", gameId: "twenty48:tile", score: 64 })),
+  ]);
+  const scores = await worker.evaluate(async () => (await chrome.storage.local.get("interlude.highscores"))["interlude.highscores"]);
+  expect(scores).toMatchObject({ snake: 50, pong: 200, "twenty48:tile": 64 });
+  await first.close(); await second.close();
+});

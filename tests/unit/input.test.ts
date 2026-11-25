@@ -29,3 +29,13 @@ it("the high-score store never replaces a personal best with a lower score", asy
   expect((await loadHighScores())["test-score"]).toBe(20);
   expect(await saveHighScore("test-score", 30)).toEqual({ best: 30, isRecord: true });
 });
+
+it("serializes concurrent score writes without discarding another cabinet", async () => {
+  const store: Record<string, unknown> = {};
+  vi.stubGlobal("chrome", { storage: { local: {
+    get: async (key: string) => ({ [key]: structuredClone(store[key]) }),
+    set: async (values: Record<string, unknown>) => { Object.assign(store, structuredClone(values)); },
+  } } });
+  await Promise.all([saveHighScore("snake", 30), saveHighScore("pong", 50), saveHighScore("snake", 20)]);
+  expect(await loadHighScores()).toEqual({ snake: 30, pong: 50 });
+});

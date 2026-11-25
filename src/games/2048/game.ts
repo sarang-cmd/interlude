@@ -21,7 +21,7 @@ export class Game2048Game implements ArcadeGame {
   init(ctx: GameContext): void {
     this.g = ctx; this.score = 0; this.animation = null; this.pending = null;
     this.logic = new Game2048({ seed: Math.floor(ctx.rng.next() * 0xffffffff), undoLimit: ctx.settings.undo2048 });
-    void loadHighScores().then((scores) => { this.personalTile = scores["twenty48:tile"] ?? 0; });
+    void loadHighScores().then((scores) => { this.personalTile = Math.max(this.personalTile, scores["twenty48:tile"] ?? 0); });
   }
   destroy(): void { /* no retained listeners */ }
   fixedUpdate(dt: number): void {
@@ -43,8 +43,7 @@ export class Game2048Game implements ArcadeGame {
   }
   private end(): void {
     this.score = this.logic.score;
-    this.personalTile = Math.max(this.personalTile, this.logic.bestTile);
-    void saveHighScore("twenty48:tile", this.logic.bestTile);
+    this.recordBestTile();
     void this.g.reportGameOver();
   }
   private move(direction: Direction): void {
@@ -53,6 +52,7 @@ export class Game2048Game implements ArcadeGame {
     if (!result.moved) { if (!this.logic.alive) this.end(); return; }
     this.animation = { tiles: result.tiles, elapsed: 0 };
     this.score = this.logic.score;
+    this.recordBestTile();
     this.g.sound.play(result.gained ? "coin" : "blip");
     if (result.gained) {
       this.g.scorePop(490, 175, `+${result.gained}`);
@@ -60,6 +60,15 @@ export class Game2048Game implements ArcadeGame {
       if (result.mergedMax >= 64) this.g.shake(2, 0.1);
       if (result.mergedMax >= 256) this.g.hitStop(35);
     }
+  }
+  private recordBestTile(): void {
+    if (this.logic.bestTile <= this.personalTile) return;
+    this.personalTile = this.logic.bestTile;
+    // Persist at the merge, not only at game-over: a waiting session can close
+    // at any time. This stores the maximum even if a later undo is used.
+    void saveHighScore("twenty48:tile", this.personalTile).then(({ best }) => {
+      this.personalTile = Math.max(this.personalTile, best);
+    });
   }
   render(_alpha: number): void {
     const ctx = this.g.ctx;
