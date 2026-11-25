@@ -178,6 +178,16 @@ export class Engine implements GameContext {
   setSettings(settings: InterludeSettings): void {
     const old = this.options.settings;
     this.options.settings = settings;
+    if (settings.reduceMotion) this.shakeMag = 0;
+    if (this.active && this.state === "boot" && (settings.reduceMotion || settings.skipBoot))
+      this.setState("ready");
+    if (
+      settings.muteHidden &&
+      !old.muteHidden &&
+      typeof document !== "undefined" &&
+      document.hidden
+    )
+      this.sound.silence();
     this.sound.configure(settings.volume, settings.soundPack);
     this.sound.setMuted(
       settings.muted || !!(this.game && settings[`game.${this.game.manifest.id}.muted`]),

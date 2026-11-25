@@ -48,6 +48,7 @@ export class InterludeController {
   private settings: InterludeSettings;
   private generating = false;
   private dismissed = false;
+  private userDismissed = false;
   private signalAt = 0;
   private delayUsed = 0;
   private lastDelay = 0;
@@ -195,14 +196,29 @@ export class InterludeController {
       old.streamHookEnabled !== next.streamHookEnabled
     )
       this.adapter.setStreamHook(next.streamHookEnabled);
-    if (
+    const gameChoiceChanged =
       old.game !== next.game ||
       GAME_MANIFESTS.some(
         (entry) => old[`game.${entry.id}.enabled`] !== next[`game.${entry.id}.enabled`],
-      )
-    ) {
+      );
+    if (gameChoiceChanged) {
+      if (next.preload === "none" && !this.generating && !this.panel.isVisible) {
+        // Invalidate an old choice without importing a game while idle.
+        this.gameVersion++;
+        this.gameId = "";
+        this.gameError = null;
+        this.gameReady = Promise.resolve();
+      } else this.gameReady = this.prepareGame(next.game);
+    } else if (old.preload === "none" && next.preload !== "none" && !this.gameId) {
       this.gameReady = this.prepareGame(next.game);
     }
+    if (this.generating && old.delayMs !== next.delayMs && !this.panel.isVisible)
+      this.delayUsed = Math.max(0, Math.min(5000, next.delayMs));
+    if (this.generating && old.firstMessageOnly !== next.firstMessageOnly && !this.userDismissed) {
+      this.dismissed = next.firstMessageOnly && this.responseCount > 1;
+      if (this.dismissed && this.panel.isVisible) this.close(false);
+    }
+    if (this.panel.isVisible && !this.isDisplayAllowed()) this.close(false);
     if (
       !this.generating &&
       this.panel.isVisible &&
@@ -237,6 +253,7 @@ export class InterludeController {
   private onSignal(active: boolean): void {
     this.generating = active;
     if (active) {
+      this.userDismissed = false;
       this.dismissed = this.settings.firstMessageOnly && this.responseCount > 0;
       this.responseCount++;
       this.signalAt = performance.now();
@@ -332,6 +349,7 @@ export class InterludeController {
           return;
         const point = this.adapter.findMountPoint(this.settings.placement, true);
         if (!point) return;
+        this.panel.setTheme(this.adapter.getTheme());
         this.panel.show(point, this.settings.placement, true);
         this.panel.engine.freezeForDone();
         this.panel.setDone(true);
@@ -385,18 +403,21 @@ export class InterludeController {
         const point = this.adapter.findMountPoint(this.settings.placement);
         const block = this.guard.snapshot().block;
         if (point && block === "lock") this.showLock(point);
-        else if (point && !block)
+        else if (point && !block) {
+          this.panel.setTheme(this.adapter.getTheme());
           this.panel.show(
             point,
             this.settings.placement,
             this.settings.skipBoot || this.settings.reduceMotion,
           );
+        }
         this.scheduleGuardBoundary();
         // No anchor: fail closed. A subsequent DOM mutation retries immediately.
       });
     });
   }
   private onStructure(): void {
+    if (this.panel.isVisible) this.panel.setTheme(this.adapter.getTheme());
     if (!this.generating || this.dismissed) return;
     if (!this.panel.isVisible) {
       if (performance.now() - this.signalAt >= this.delayUsed) this.requestReveal();
@@ -426,14 +447,19 @@ export class InterludeController {
     this.lockTimer = undefined;
     if (this.boundaryTimer !== undefined) clearTimeout(this.boundaryTimer);
     this.boundaryTimer = undefined;
-    if (fromUser && this.generating) this.dismissed = true;
+    if (fromUser && this.generating) {
+      this.userDismissed = true;
+      this.dismissed = true;
+    }
     this.cancelReveal();
     this.cancelClose();
     if (this.remountFrame !== undefined) cancelAnimationFrame(this.remountFrame);
     this.remountFrame = undefined;
     this.panel.close(!this.settings.skipBoot && !this.settings.reduceMotion);
-    if (!this.generating && this.settings.game === "random")
-      this.gameReady = this.prepareGame("random");
+    if ((!this.generating || fromUser) && this.settings.game === "random") {
+      if (this.settings.preload === "none") this.gameId = "";
+      else this.gameReady = this.prepareGame("random");
+    }
   }
   private cancelReveal(): void {
     if (this.revealTimer !== undefined) clearTimeout(this.revealTimer);
