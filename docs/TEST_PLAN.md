@@ -23,9 +23,10 @@ into diagnostics or issue reports.
    and the delay-adjusted signal-to-frame number (target **under 80 ms**).
 4. Send a response that finishes in under 500 ms. Verify there is no flash or
    stub. If Claude changed its markup, repair the ordered candidates in the
-   Selector bench using **attributes and structure only**, then repeat. If a
-   separate indicator cannot be found, inline mode deliberately stays hidden
-   rather than covering the answer.
+   Selector bench using **attributes and structure only**, then repeat. If no
+   recognized indicator exists, inline mode stays hidden rather than covering
+   the answer. The streaming-attribute fallback can anchor after the entire
+   assistant message when there is no separate indicator.
 5. Test a regenerate, edit and resubmit, a branch switch, back/forward, and
    switching to another chat. Check for a single cabinet, no orphaned controls,
    no false completion on navigation, and no lingering observer/timer activity
