@@ -1182,3 +1182,137 @@ test("toolbar pause stops all site activity and can be resumed without reload", 
   await popup.getByRole("button", { name: "RESUME NOW" }).click();
   await expect(host).toBeVisible();
 });
+
+test("short replies can optionally show the frozen cabinet after completion", async () => {
+  await worker.evaluate(() =>
+    chrome.storage.sync.set({
+      "interlude.settings.v2": {
+        version: 2,
+        global: {
+          delayMs: 500,
+          skipBoot: true,
+          muted: true,
+          autoClose: false,
+          ignoreShortReplies: false,
+        },
+        sites: {},
+      },
+    }),
+  );
+  await openFixture();
+  await page.locator('[data-testid="send-button"]').click();
+  await page.waitForTimeout(80);
+  await page.evaluate(() =>
+    (window as unknown as { fixture: { finish(): void } }).fixture.finish(),
+  );
+  const host = page.locator('[data-interlude="panel"]');
+  await expect(host).toBeVisible({ timeout: 3000 });
+  await expect(host).toHaveAttribute("data-interlude-scene", "paused");
+  expect((await diagnostic()).generating).toBe(false);
+});
+
+test("first-message-only closes a previous cabinet and suppresses later responses", async () => {
+  await worker.evaluate(() =>
+    chrome.storage.sync.set({
+      "interlude.settings.v2": {
+        version: 2,
+        global: {
+          delayMs: 0,
+          skipBoot: true,
+          muted: true,
+          autoClose: false,
+          firstMessageOnly: true,
+        },
+        sites: {},
+      },
+    }),
+  );
+  await openFixture();
+  const host = page.locator('[data-interlude="panel"]');
+  await page.locator('[data-testid="send-button"]').click();
+  await expect(host).toBeVisible();
+  await page.evaluate(() =>
+    (window as unknown as { fixture: { finish(): void } }).fixture.finish(),
+  );
+  await expect.poll(async () => (await diagnostic()).state).toBe("idle");
+  await page.locator('[data-testid="send-button"]').click();
+  await expect(host).toBeHidden();
+  await page.waitForTimeout(500);
+  await expect(host).toBeHidden();
+});
+
+test("preload none and enabled-game filtering only load a permitted cabinet", async () => {
+  await worker.evaluate(() =>
+    chrome.storage.sync.set({
+      "interlude.settings.v2": {
+        version: 2,
+        global: {
+          delayMs: 0,
+          skipBoot: true,
+          muted: true,
+          preload: "none",
+          game: "random",
+          "game.snake.enabled": false,
+          "game.breakout.enabled": false,
+          "game.flappy.enabled": false,
+          "game.twenty48.enabled": false,
+          "game.blockfall.enabled": false,
+          "game.rockfall.enabled": false,
+          "game.dashline.enabled": false,
+        },
+        sites: {},
+      },
+    }),
+  );
+  const loaded: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/chunks/game-")) loaded.push(request.url());
+  });
+  await openFixture();
+  await page.waitForTimeout(250);
+  expect(loaded).toHaveLength(0);
+  await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]');
+  await expect(host).toBeVisible();
+  await expect(host).toHaveAttribute("data-interlude-game", "pong");
+  expect(loaded).toHaveLength(1);
+});
+
+test("expected-wait and study gates can be disabled live", async () => {
+  await worker.evaluate(async () => {
+    await chrome.storage.local.set({
+      "interlude.responseTimes": { claude: { averageMs: 1000, count: 3 } },
+    });
+    await chrome.storage.sync.set({
+      "interlude.settings.v2": {
+        version: 2,
+        global: { delayMs: 0, skipBoot: true, muted: true, minimumExpectedWait: 10 },
+        sites: {},
+      },
+    });
+  });
+  await openFixture();
+  await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]');
+  await page.waitForTimeout(250);
+  await expect(host).toBeHidden();
+  await worker.evaluate(async () => {
+    const doc = (await chrome.storage.sync.get("interlude.settings.v2"))["interlude.settings.v2"];
+    Object.assign(doc.global, {
+      minimumExpectedWait: 0,
+      studyMode: true,
+      studyDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+      studyStart: "00:00",
+      studyEnd: "00:00",
+    });
+    await chrome.storage.sync.set({ "interlude.settings.v2": doc });
+  });
+  await page.waitForTimeout(250);
+  await expect(host).toBeHidden();
+  await worker.evaluate(async () => {
+    const doc = (await chrome.storage.sync.get("interlude.settings.v2"))["interlude.settings.v2"];
+    doc.global.studyMode = false;
+    await chrome.storage.sync.set({ "interlude.settings.v2": doc });
+  });
+  await expect(host).toBeVisible();
+});

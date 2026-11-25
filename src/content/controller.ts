@@ -1,5 +1,5 @@
 import type { SiteAdapter } from "../adapters/types";
-import { loadGame, resolveGameId } from "../games/manifest";
+import { GAME_MANIFESTS, loadGame, resolveGameId } from "../games/manifest";
 import {
   loadHighScores,
   loadKeybindings,
@@ -13,6 +13,7 @@ import {
 import { Panel } from "./panel";
 import { FocusGuard, cleanStats, type GuardSnapshot } from "../focus/guard";
 import { loadStats, saveDeltas } from "../focus/stats";
+import { loadResponseAverage, recordResponseDuration } from "../shared/responseTime";
 
 function isTextField(event: KeyboardEvent): boolean {
   return event
@@ -67,6 +68,10 @@ export class InterludeController {
   private lockTimer: ReturnType<typeof setTimeout> | undefined;
   private flushing = false;
   private pauseUntil = 0;
+  private responseCount = 0;
+  private expectedMs: number | null = null;
+  private navigating = false;
+  private boundaryTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(settings: InterludeSettings, adapter: SiteAdapter, pauseUntil = 0) {
     this.settings = settings;
@@ -115,7 +120,10 @@ export class InterludeController {
     this.unsubStructure = this.adapter.onStructureChange(() => this.onStructure());
     this.panel.updateSettings(settings);
     this.panel.setTheme(this.adapter.getTheme());
-    this.gameReady = this.prepareGame(settings.game);
+    if (settings.preload !== "none") this.gameReady = this.prepareGame(settings.game);
+    void loadResponseAverage(adapter.id).then((average) => {
+      this.expectedMs = average?.averageMs ?? null;
+    });
     void loadOverlayPositions().then((positions) =>
       this.panel.setPosition(positions[this.adapter.id] ?? null),
     );
@@ -125,6 +133,8 @@ export class InterludeController {
     // webNavigation additionally covers pushState/replaceState changes.
     window.addEventListener("popstate", this.onNavigation);
     window.addEventListener("pageshow", this.onPageShow);
+    window.addEventListener("focus", this.onWindowFocus);
+    window.addEventListener("blur", this.onWindowBlur);
     this.adapter.configure(settings);
     if (settings.enabled && !this.isGloballyPaused()) {
       this.adapter.start();
@@ -139,7 +149,10 @@ export class InterludeController {
         loadHighScores(),
         loadKeybindings(),
       ]);
-      const id = resolveGameId(choice, last);
+      const enabled = GAME_MANIFESTS.filter(
+        (entry) => this.settings[`game.${entry.id}.enabled`] !== false,
+      ).map((entry) => entry.id);
+      const id = resolveGameId(choice, last, Math.random, enabled);
       const game = await loadGame(id);
       if (version !== this.gameVersion || this.destroyed) return;
       this.gameId = id;
@@ -148,6 +161,7 @@ export class InterludeController {
       await saveLastPlayed(id);
     } catch (error) {
       this.gameError = error instanceof Error ? error.message : "Game could not be loaded";
+      if (this.panel.isVisible) this.close(false);
     }
   }
   private choose(choice: string): void {
@@ -179,7 +193,25 @@ export class InterludeController {
       old.streamHookEnabled !== next.streamHookEnabled
     )
       this.adapter.setStreamHook(next.streamHookEnabled);
-    if (old.game !== next.game) this.gameReady = this.prepareGame(next.game);
+    if (
+      old.game !== next.game ||
+      GAME_MANIFESTS.some(
+        (entry) => old[`game.${entry.id}.enabled`] !== next[`game.${entry.id}.enabled`],
+      )
+    ) {
+      this.gameReady = this.prepareGame(next.game);
+    }
+    if (
+      !this.generating &&
+      this.panel.isVisible &&
+      !this.panel.isLocked &&
+      (old.autoClose !== next.autoClose || old.autoCloseGraceMs !== next.autoCloseGraceMs)
+    ) {
+      this.cancelClose();
+      if (next.autoClose) this.scheduleAutoClose();
+    }
+    if (this.generating && !this.panel.isVisible && !this.dismissed) this.scheduleReveal();
+    this.scheduleGuardBoundary();
     if (old.placement !== next.placement && this.panel.isVisible) {
       const point = this.adapter.findMountPoint(next.placement, !this.generating);
       if (point) this.panel.remount(point, next.placement);
@@ -203,17 +235,32 @@ export class InterludeController {
   private onSignal(active: boolean): void {
     this.generating = active;
     if (active) {
-      this.dismissed = false;
+      this.dismissed = this.settings.firstMessageOnly && this.responseCount > 0;
+      this.responseCount++;
       this.signalAt = performance.now();
+      if (!this.gameId && this.settings.preload === "none")
+        this.gameReady = this.prepareGame(this.settings.game);
       this.delayUsed = Math.max(0, Math.min(5000, this.settings.delayMs));
       this.cancelClose();
-      if (this.panel.isVisible) {
+      if (this.dismissed && this.panel.isVisible) this.close(false);
+      else if (this.panel.isVisible) {
         this.panel.setDone(false);
         if (this.panel.engine.getState() === "paused") this.panel.engine.resumeFromDone();
-      } else this.scheduleReveal();
+      } else if (!this.dismissed) this.scheduleReveal();
+      this.scheduleGuardBoundary();
     } else {
+      if (!this.navigating && this.signalAt > 0)
+        void recordResponseDuration(this.adapter.id, performance.now() - this.signalAt).then(
+          (average) => {
+            if (average) this.expectedMs = average.averageMs;
+          },
+        );
       this.cancelReveal();
-      if (!this.panel.isVisible) return;
+      if (!this.panel.isVisible) {
+        if (!this.settings.ignoreShortReplies && !this.dismissed && !this.navigating)
+          this.scheduleCompletedReveal();
+        return;
+      }
       if (this.panel.isLocked) {
         this.close(false);
         return;
@@ -236,24 +283,62 @@ export class InterludeController {
         this.panel.remount(point, this.settings.placement);
       }
       this.panel.setDone(true);
-      if (this.settings.autoClose) {
-        const grace = Math.max(0, Math.min(120000, this.settings.autoCloseGraceMs));
-        this.closeTimer = setTimeout(() => {
-          this.closeTimer = undefined;
-          if (!this.panel.isVisible || this.generating) return;
-          if (this.panel.engine.getState() !== "paused") {
-            // A resumed run gets a final freeze before it is closed.
-            this.panel.engine.freezeForDone();
-            this.panel.setDone(true);
-            this.closeTimer = setTimeout(() => {
-              this.closeTimer = undefined;
-              this.close(false);
-            }, 500);
-          } else this.close(false);
-        }, grace);
-      }
+      if (this.settings.autoClose) this.scheduleAutoClose();
     }
   }
+  private scheduleAutoClose(): void {
+    const grace = this.settings.autoCloseGraceMs;
+    this.closeTimer = setTimeout(() => {
+      this.closeTimer = undefined;
+      if (!this.panel.isVisible || this.generating) return;
+      if (this.panel.engine.getState() !== "paused") {
+        this.panel.engine.freezeForDone();
+        this.panel.setDone(true);
+        this.closeTimer = setTimeout(() => {
+          this.closeTimer = undefined;
+          this.close(false);
+        }, 500);
+      } else this.close(false);
+    }, grace);
+  }
+  private isDisplayAllowed(): boolean {
+    return (
+      !this.isGloballyPaused() &&
+      this.settings.enabled &&
+      (!this.settings.focusedTabOnly || (!document.hidden && document.hasFocus())) &&
+      !(
+        this.settings.minimumExpectedWait > 0 &&
+        this.expectedMs !== null &&
+        this.expectedMs < this.settings.minimumExpectedWait * 1000
+      )
+    );
+  }
+  private scheduleCompletedReveal(): void {
+    const remaining = Math.max(0, this.delayUsed - (performance.now() - this.signalAt));
+    this.revealTimer = setTimeout(() => {
+      this.revealTimer = undefined;
+      void Promise.all([this.gameReady, this.guardReady]).then(() => {
+        if (
+          this.generating ||
+          this.dismissed ||
+          this.destroyed ||
+          this.panel.isVisible ||
+          !this.isDisplayAllowed() ||
+          this.gameError ||
+          this.guard.snapshot().block
+        )
+          return;
+        const point = this.adapter.findMountPoint(this.settings.placement, true);
+        if (!point) return;
+        this.panel.show(point, this.settings.placement, true);
+        this.panel.engine.freezeForDone();
+        this.panel.setDone(true);
+        if (this.settings.autoClose) this.scheduleAutoClose();
+        this.scheduleGuardBoundary();
+      });
+    }, remaining);
+  }
+
   private scheduleReveal(): void {
     this.cancelReveal();
     const remaining = Math.max(0, this.delayUsed - (performance.now() - this.signalAt));
@@ -270,7 +355,8 @@ export class InterludeController {
       this.adapter.getPhase() !== "generating" ||
       this.dismissed ||
       this.destroyed ||
-      this.revealFrame !== undefined
+      this.revealFrame !== undefined ||
+      !this.isDisplayAllowed()
     )
       return;
     void Promise.all([this.gameReady, this.guardReady]).then(() => {
@@ -280,7 +366,8 @@ export class InterludeController {
         this.dismissed ||
         this.destroyed ||
         this.revealFrame !== undefined ||
-        this.gameError
+        this.gameError ||
+        !this.isDisplayAllowed()
       )
         return;
       this.revealFrame = requestAnimationFrame(() => {
@@ -289,7 +376,8 @@ export class InterludeController {
           !this.generating ||
           this.adapter.getPhase() !== "generating" ||
           this.dismissed ||
-          this.panel.isVisible
+          this.panel.isVisible ||
+          !this.isDisplayAllowed()
         )
           return;
         const point = this.adapter.findMountPoint(this.settings.placement);
@@ -301,6 +389,7 @@ export class InterludeController {
             this.settings.placement,
             this.settings.skipBoot || this.settings.reduceMotion,
           );
+        this.scheduleGuardBoundary();
         // No anchor: fail closed. A subsequent DOM mutation retries immediately.
       });
     });
@@ -333,6 +422,8 @@ export class InterludeController {
     if (hadPanel && duration > 0 && this.settings.sessionSummary) this.panel.showSummary(duration);
     if (this.lockTimer !== undefined) clearTimeout(this.lockTimer);
     this.lockTimer = undefined;
+    if (this.boundaryTimer !== undefined) clearTimeout(this.boundaryTimer);
+    this.boundaryTimer = undefined;
     if (fromUser && this.generating) this.dismissed = true;
     this.cancelReveal();
     this.cancelClose();
@@ -430,6 +521,54 @@ export class InterludeController {
       this.updateGuard(this.guard.snapshot());
     }
   }
+  private scheduleGuardBoundary(): void {
+    if (this.boundaryTimer !== undefined) clearTimeout(this.boundaryTimer);
+    this.boundaryTimer = undefined;
+    if (
+      (!this.panel.isVisible && !this.generating) ||
+      (!this.settings.quietHours && !this.settings.studyMode)
+    )
+      return;
+    const now = new Date();
+    const candidates: number[] = [];
+    for (let offset = 0; offset <= 2; offset++) {
+      const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+      const times = [
+        "00:00",
+        ...(this.settings.quietHours ? [this.settings.quietStart, this.settings.quietEnd] : []),
+        ...(this.settings.studyMode ? [this.settings.studyStart, this.settings.studyEnd] : []),
+      ];
+      for (const time of times) {
+        const [hours, minutes] = time.split(":").map(Number);
+        const point = new Date(
+          day.getFullYear(),
+          day.getMonth(),
+          day.getDate(),
+          hours,
+          minutes,
+        ).getTime();
+        if (point > now.getTime() + 50) candidates.push(point);
+      }
+    }
+    const next = Math.min(...candidates);
+    if (Number.isFinite(next))
+      this.boundaryTimer = setTimeout(
+        () => {
+          this.boundaryTimer = undefined;
+          this.updateGuard(this.guard.snapshot());
+          if (this.generating && !this.panel.isVisible && !this.dismissed) this.scheduleReveal();
+          this.scheduleGuardBoundary();
+        },
+        Math.max(100, next - now.getTime() + 100),
+      );
+  }
+  private onWindowBlur = (): void => {
+    if (this.settings.focusedTabOnly && this.panel.isVisible) this.close(false);
+  };
+  private onWindowFocus = (): void => {
+    if (this.settings.focusedTabOnly && this.generating && !this.dismissed && !this.panel.isVisible)
+      this.scheduleReveal();
+  };
   private onNavigation = (): void => this.navigation();
   private onPageShow = (event: PageTransitionEvent): void => {
     if (event.persisted) this.navigation();
@@ -446,8 +585,11 @@ export class InterludeController {
     this.adapter.getComposerInput()?.focus({ preventScroll: true });
   }
   navigation(): void {
+    this.navigating = true;
     this.close(false);
     this.adapter.navigation();
+    this.responseCount = 0;
+    this.navigating = false;
   }
   diagnostics() {
     const adapter = this.adapter.diagnostics();
@@ -485,6 +627,8 @@ export class InterludeController {
     this.stopTracking(true);
     if (this.lockTimer !== undefined) clearTimeout(this.lockTimer);
     this.lockTimer = undefined;
+    if (this.boundaryTimer !== undefined) clearTimeout(this.boundaryTimer);
+    this.boundaryTimer = undefined;
     if (this.remountFrame !== undefined) cancelAnimationFrame(this.remountFrame);
     this.unsubSignal();
     this.unsubStructure();
@@ -494,5 +638,7 @@ export class InterludeController {
     document.removeEventListener("visibilitychange", this.onVisibility);
     window.removeEventListener("popstate", this.onNavigation);
     window.removeEventListener("pageshow", this.onPageShow);
+    window.removeEventListener("focus", this.onWindowFocus);
+    window.removeEventListener("blur", this.onWindowBlur);
   }
 }

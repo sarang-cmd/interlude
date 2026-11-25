@@ -118,13 +118,16 @@ export function resolveGameId(
   choice: string,
   lastPlayed: string | undefined,
   random: () => number = Math.random,
+  enabled: readonly string[] = GAME_MANIFESTS.map((entry) => entry.id),
 ): string {
+  const allowed = enabled.filter((id) => !!getManifest(id));
+  if (!allowed.length) throw new Error("No games enabled");
   if (choice === "last") {
-    return lastPlayed && getManifest(lastPlayed) ? lastPlayed : DEFAULT_GAME_ID;
+    return lastPlayed && allowed.includes(lastPlayed) ? lastPlayed : allowed[0]!;
   }
   if (choice === "random") {
-    const index = Math.floor(random() * GAME_MANIFESTS.length);
-    return GAME_MANIFESTS[index]?.id ?? DEFAULT_GAME_ID;
+    const index = Math.max(0, Math.min(allowed.length - 1, Math.floor(random() * allowed.length)));
+    return allowed[index]!;
   }
-  return getManifest(choice) ? choice : DEFAULT_GAME_ID;
+  return allowed.includes(choice) ? choice : allowed[0]!;
 }
