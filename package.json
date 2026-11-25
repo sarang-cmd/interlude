@@ -6,7 +6,7 @@
   "description": "Interlude \u2014 small arcade games that appear only while an AI chat is generating.",
   "scripts": {
     "dev": "vite",
-    "build": "npm run check:privacy && tsc --noEmit && vite build",
+    "build": "npm run check:privacy && tsc --noEmit && vite build && npm run check:privacy:built",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "check:privacy": "node scripts/check-adapter-privacy.mjs",
     "format:check": "prettier --check .",
-    "sign:selectors": "tsx scripts/sign-selectors.ts"
+    "sign:selectors": "tsx scripts/sign-selectors.ts",
+    "check:privacy:built": "node scripts/audit-built-privacy.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
