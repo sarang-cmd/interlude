@@ -946,3 +946,50 @@ test("closing a running cabinet returns focus and dismisses it for that generati
   await page.locator('[data-testid="regenerate-button"]').click();
   await expect(host).toBeVisible();
 });
+
+test("completion survives replacement of the entire assistant turn", async () => {
+  await worker.evaluate(() =>
+    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
+  );
+  await openFixture();
+  await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]');
+  await expect(host).toBeVisible();
+  await shadowClick("canvas");
+  await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+  await page.evaluate(() => {
+    const old = document.querySelector('[data-testid="assistant-turn"]')!;
+    const completed = document.createElement("div");
+    completed.dataset.testid = "assistant-turn";
+    completed.dataset.finishedTurn = "true";
+    completed.textContent = "Finished fixture.";
+    old.replaceWith(completed);
+    document.querySelector('[data-testid="stop-button"]')?.remove();
+  });
+  await expect(host).toBeVisible({ timeout: 3000 });
+  await expect(host).toHaveAttribute("data-interlude-scene", "paused");
+  expect(
+    await page.evaluate(() =>
+      document
+        .querySelector("[data-finished-turn]")
+        ?.nextElementSibling?.getAttribute("data-interlude"),
+    ),
+  ).toBe("panel");
+  expect((await diagnostic()).panel.loopRunning).toBe(false);
+  for (const placement of ["overlay", "inline"]) {
+    await worker.evaluate(async (value) => {
+      const current = (await chrome.storage.local.get("interlude.settings"))["interlude.settings"];
+      await chrome.storage.local.set({ "interlude.settings": { ...current, placement: value } });
+    }, placement);
+    await expect
+      .poll(() => host.evaluate((element) => getComputedStyle(element).position))
+      .toBe(placement === "overlay" ? "fixed" : "relative");
+  }
+  expect(
+    await page.evaluate(() =>
+      document
+        .querySelector("[data-finished-turn]")
+        ?.nextElementSibling?.getAttribute("data-interlude"),
+    ),
+  ).toBe("panel");
+});

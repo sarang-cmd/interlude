@@ -72,9 +72,10 @@ export interface SiteAdapter {
   getGeneratingSignal(): GeneratingObservable;
   /**
    * Locate the mount point for a placement. Returns null when the page
-   * structure is not recognised — the panel remains hidden.
+   * structure is not recognised — the panel remains hidden. A completed-only
+   * fallback may anchor below the final turn if the old host was removed.
    */
-  findMountPoint(placement: Placement): MountPointResult | null;
+  findMountPoint(placement: Placement, completedFallback?: boolean): MountPointResult | null;
   /** Best-effort theme guess of the host page. */
   getTheme(): ThemeGuess;
   /** Freeze the current signal/selector/mount state for the diagnostics page. */

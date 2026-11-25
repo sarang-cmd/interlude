@@ -430,7 +430,7 @@ export class ClaudeAdapter implements SiteAdapter {
     }
   }
 
-  findMountPoint(placement: Placement): MountPointResult | null {
+  findMountPoint(placement: Placement, completedFallback = false): MountPointResult | null {
     let result: MountPointResult | null = null;
     if (placement === "inline") {
       const indicator = this.turn ? this.first("indicator", this.turn).element : null;
@@ -439,6 +439,12 @@ export class ClaudeAdapter implements SiteAdapter {
           anchor: indicator,
           position: "after",
           detail: "Immediately after the latest indicator",
+        };
+      else if (completedFallback && this.turn?.isConnected && this.turn.parentElement)
+        result = {
+          anchor: this.turn,
+          position: "after",
+          detail: "Below the final turn after its indicator was replaced",
         };
     } else if (placement === "docked-composer") {
       const composer = this.first("composerArea", document).element;

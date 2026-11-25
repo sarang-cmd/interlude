@@ -150,7 +150,7 @@ export class InterludeController {
       this.adapter.setStreamHook(next.streamHookEnabled);
     if (old.game !== next.game) this.gameReady = this.prepareGame(next.game);
     if (old.placement !== next.placement && this.panel.isVisible) {
-      const point = this.adapter.findMountPoint(next.placement);
+      const point = this.adapter.findMountPoint(next.placement, !this.generating);
       if (point) this.panel.remount(point, next.placement);
     }
   }
@@ -170,6 +170,21 @@ export class InterludeController {
       if (!this.panel.isVisible) return;
       // Freeze synchronously before presenting any action or starting grace.
       this.panel.engine.freezeForDone();
+      const host = this.panel.host;
+      if (
+        !host.isConnected ||
+        host.getClientRects().length === 0 ||
+        getComputedStyle(host).visibility === "hidden"
+      ) {
+        // A site can replace the whole turn as it finishes. Preserve the frozen
+        // run in flow below the final turn rather than losing its controls.
+        const point = this.adapter.findMountPoint(this.settings.placement, true);
+        if (!point) {
+          this.close(false);
+          return;
+        }
+        this.panel.remount(point, this.settings.placement);
+      }
       this.panel.setDone(true);
       if (this.settings.autoClose) {
         const grace = Math.max(0, Math.min(120000, this.settings.autoCloseGraceMs));

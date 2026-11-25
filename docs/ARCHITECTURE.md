@@ -43,7 +43,9 @@ disabled module preloads prevent page-origin preload requests for game chunks.
   records total signal-to-frame time and delay-adjusted overhead. Missing inline
   anchors fail closed; an active structural observer retries when an anchor
   appears. When an anchor is replaced, the original host is moved on the next
-  frame.
+  frame. If the entire host is removed as the response finishes, the frozen
+  completion controls are reattached below the final turn; if no safe anchor
+  remains, the cabinet closes.
 - Normal inline reveal reserves an initial 80 px and expands the remainder in
   160 ms using stepped height changes; close hides the cabinet immediately and
   collapses the reserved space. Skip power-on also skips these transitions. This
