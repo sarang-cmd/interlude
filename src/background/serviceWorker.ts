@@ -127,3 +127,63 @@ chrome.runtime.onMessage.addListener((message: unknown, _sender, respond) => {
 void ensureAlarms()
   .then(() => runChecks())
   .catch(() => {});
+
+import {
+  loadSettingsDocument,
+  replaceSettingsLocally,
+  resetSettingsLocally,
+  saveSettingsLocally,
+} from "../settings/store";
+import { SITES, type SiteId } from "../settings/schema";
+chrome.runtime.onMessage.addListener((message: unknown, _sender, respond) => {
+  if (!message || typeof message !== "object" || Array.isArray(message)) return false;
+  const request = message as {
+    type?: unknown;
+    patch?: unknown;
+    ids?: unknown;
+    site?: unknown;
+    document?: unknown;
+  };
+  const types = [
+    "INTERLUDE_SAVE_SETTINGS",
+    "INTERLUDE_RESET_SETTINGS",
+    "INTERLUDE_REPLACE_SETTINGS",
+    "INTERLUDE_REPAIR_SETTINGS",
+  ];
+  if (typeof request.type !== "string" || !types.includes(request.type)) return false;
+  if (
+    request.site !== undefined &&
+    (typeof request.site !== "string" || !SITES.includes(request.site as SiteId))
+  ) {
+    respond({ ok: false });
+    return false;
+  }
+  const site = request.site as SiteId | undefined;
+  let operation: Promise<unknown>;
+  if (
+    request.type === "INTERLUDE_SAVE_SETTINGS" &&
+    request.patch &&
+    typeof request.patch === "object" &&
+    !Array.isArray(request.patch)
+  )
+    operation = saveSettingsLocally(request.patch as Record<string, unknown>, site);
+  else if (
+    request.type === "INTERLUDE_RESET_SETTINGS" &&
+    Array.isArray(request.ids) &&
+    request.ids.length <= 500 &&
+    request.ids.every((id) => typeof id === "string" && id.length <= 100)
+  )
+    operation = resetSettingsLocally(request.ids as string[], site);
+  else if (request.type === "INTERLUDE_REPLACE_SETTINGS")
+    operation = replaceSettingsLocally(request.document);
+  else if (request.type === "INTERLUDE_REPAIR_SETTINGS") operation = loadSettingsDocument();
+  else {
+    respond({ ok: false });
+    return false;
+  }
+  void operation.then(
+    (value) => respond({ ok: true, value }),
+    () => respond({ ok: false }),
+  );
+  return true;
+});

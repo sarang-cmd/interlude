@@ -109,13 +109,11 @@ test("data screen exports, imports validated records, and confirms wipe", async 
     },
   };
   page.once("dialog", (dialog) => dialog.accept());
-  await page
-    .locator('input[type="file"]')
-    .setInputFiles({
-      name: "backup.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(backup)),
-    });
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "backup.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(backup)),
+  });
   await expect(page.getByRole("status")).toContainText("BACKUP IMPORTED");
   await expect(page.getByText("2 MIN TODAY", { exact: false })).toBeVisible();
   expect(
@@ -137,4 +135,57 @@ test("data screen exports, imports validated records, and confirms wipe", async 
       "interlude.highscores"
     ],
   ).toBeUndefined();
+});
+
+test("concurrent settings windows serialize writes across profiles", async () => {
+  const second = await context.newPage();
+  await second.goto(`chrome-extension://${new URL(worker.url()).hostname}/options.html`);
+  await expect(second.getByRole("heading", { name: /OPERATOR/ })).toBeVisible();
+  const replies = await Promise.all([
+    page.evaluate(() =>
+      chrome.runtime.sendMessage({
+        type: "INTERLUDE_SAVE_SETTINGS",
+        patch: { volume: 54, delayMs: 800 },
+      }),
+    ),
+    second.evaluate(() =>
+      chrome.runtime.sendMessage({
+        type: "INTERLUDE_SAVE_SETTINGS",
+        patch: { delayMs: 1500, placement: "overlay" },
+        site: "gemini",
+      }),
+    ),
+    page.evaluate(() =>
+      chrome.runtime.sendMessage({
+        type: "INTERLUDE_SAVE_SETTINGS",
+        patch: { delayMs: 2100 },
+        site: "claude",
+      }),
+    ),
+    second.evaluate(() =>
+      chrome.runtime.sendMessage({
+        type: "INTERLUDE_SAVE_SETTINGS",
+        patch: { muted: true },
+        site: "chatgpt",
+      }),
+    ),
+  ]);
+  expect(replies.every((reply) => reply.ok === true)).toBe(true);
+  const doc = await worker.evaluate(
+    async () => (await chrome.storage.sync.get("interlude.settings.v2"))["interlude.settings.v2"],
+  );
+  expect(doc.global).toMatchObject({ volume: 54, delayMs: 800 });
+  expect(doc.sites).toMatchObject({
+    gemini: { delayMs: 1500, placement: "overlay" },
+    claude: { delayMs: 2100 },
+    chatgpt: { muted: true },
+  });
+  const denied = await page.evaluate(() =>
+    chrome.runtime.sendMessage({
+      type: "INTERLUDE_SAVE_SETTINGS",
+      patch: { volume: 0 },
+      site: "not-a-site",
+    }),
+  );
+  expect(denied).toEqual({ ok: false });
 });

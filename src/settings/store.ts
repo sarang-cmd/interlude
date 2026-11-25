@@ -85,6 +85,24 @@ export function resolveSettings(document: SettingsDocument, site?: SiteId): Inte
 }
 
 const chromeStorage = (): boolean => typeof chrome !== "undefined" && !!chrome.storage?.local;
+/** All window contexts send mutations to the one service-worker queue. */
+async function askWorker(message: Record<string, unknown>): Promise<unknown | undefined> {
+  if (
+    typeof window === "undefined" ||
+    typeof chrome === "undefined" ||
+    !chrome.runtime?.id ||
+    !chrome.runtime.sendMessage
+  )
+    return undefined;
+  try {
+    const reply: unknown = await chrome.runtime.sendMessage(message);
+    if (reply && typeof reply === "object" && (reply as { ok?: unknown }).ok === true)
+      return (reply as { value?: unknown }).value;
+  } catch {
+    /* the extension may be shutting down; retain the local fallback */
+  }
+  return undefined;
+}
 async function persist(document: SettingsDocument): Promise<void> {
   if (!chromeStorage()) {
     memory = structuredClone(document);
@@ -118,7 +136,11 @@ export async function loadSettingsDocument(): Promise<SettingsDocument> {
   raw ??= local[SETTINGS_KEY] ?? local[LEGACY_SETTINGS_KEY];
   if (!raw) return empty();
   const result = migrateSettings(raw);
-  if (!equivalent(raw, result)) await persist(result);
+  if (!equivalent(raw, result)) {
+    const repaired = await askWorker({ type: "INTERLUDE_REPAIR_SETTINGS" });
+    if (repaired !== undefined) return migrateSettings(repaired);
+    await persist(result);
+  }
   return result;
 }
 
@@ -137,7 +159,7 @@ function change(mutator: (document: SettingsDocument) => void): Promise<Settings
 export async function loadSettings(site?: SiteId): Promise<InterludeSettings> {
   return resolveSettings(await loadSettingsDocument(), site);
 }
-export function saveSettings(
+export function saveSettingsLocally(
   patch: Record<string, unknown>,
   site?: SiteId,
 ): Promise<InterludeSettings> {
@@ -150,7 +172,19 @@ export function saveSettings(
     }
   }).then((document) => resolveSettings(document, site));
 }
-export function resetSettings(ids: readonly string[], site?: SiteId): Promise<InterludeSettings> {
+export async function saveSettings(
+  patch: Record<string, unknown>,
+  site?: SiteId,
+): Promise<InterludeSettings> {
+  const value = await askWorker({ type: "INTERLUDE_SAVE_SETTINGS", patch, site });
+  return value && typeof value === "object"
+    ? (value as InterludeSettings)
+    : saveSettingsLocally(patch, site);
+}
+export function resetSettingsLocally(
+  ids: readonly string[],
+  site?: SiteId,
+): Promise<InterludeSettings> {
   return change((document) => {
     const target = site ? document.sites[site] : document.global;
     if (!target) return;
@@ -158,6 +192,19 @@ export function resetSettings(ids: readonly string[], site?: SiteId): Promise<In
     if (site && !Object.keys(target).length) delete document.sites[site];
   }).then((document) => resolveSettings(document, site));
 }
-export function replaceSettings(raw: unknown): Promise<SettingsDocument> {
+export async function resetSettings(
+  ids: readonly string[],
+  site?: SiteId,
+): Promise<InterludeSettings> {
+  const value = await askWorker({ type: "INTERLUDE_RESET_SETTINGS", ids, site });
+  return value && typeof value === "object"
+    ? (value as InterludeSettings)
+    : resetSettingsLocally(ids, site);
+}
+export function replaceSettingsLocally(raw: unknown): Promise<SettingsDocument> {
   return change((document) => Object.assign(document, migrateSettings(raw)));
+}
+export async function replaceSettings(raw: unknown): Promise<SettingsDocument> {
+  const value = await askWorker({ type: "INTERLUDE_REPLACE_SETTINGS", document: raw });
+  return value && typeof value === "object" ? migrateSettings(value) : replaceSettingsLocally(raw);
 }
