@@ -1,6 +1,8 @@
 import { InterludeController } from "./controller";
 import type { SitePlugin } from "../adapters/types";
-import { DEFAULT_SETTINGS, loadSettings, type InterludeSettings } from "../shared/storage";
+import { loadSettings } from "../shared/storage";
+import { SETTINGS_KEY } from "../settings/store";
+import type { SiteId } from "../settings/schema";
 
 // One default-exported plugin per site folder; unimplemented sites stay inert.
 const plugins = Object.values(
@@ -16,7 +18,7 @@ if (plugin) {
     const version = ++generation;
     const key = plugin!.selectorOverrideKey;
     const [settings, values] = await Promise.all([
-      loadSettings(),
+      loadSettings(plugin!.id as SiteId),
       key ? chrome.storage.local.get(key) : Promise.resolve({}),
     ]);
     if (version !== generation) return;
@@ -40,13 +42,15 @@ if (plugin) {
       .catch(() => {});
   }
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== "local") return;
-    if (plugin.selectorOverrideKey && changes[plugin.selectorOverrideKey]) {
+    if (area === "local" && plugin.selectorOverrideKey && changes[plugin.selectorOverrideKey]) {
       void boot();
       return;
     }
-    const next = changes["interlude.settings"]?.newValue as Partial<InterludeSettings> | undefined;
-    if (next) controller?.applySettings({ ...DEFAULT_SETTINGS, ...next });
+    if ((area === "sync" || area === "local") && changes[SETTINGS_KEY]) {
+      void loadSettings(plugin.id as SiteId).then((settings) =>
+        controller?.applySettings(settings),
+      );
+    }
   });
   chrome.runtime.onMessage.addListener((message: unknown, _sender, respond) => {
     if (!message || typeof message !== "object") return false;

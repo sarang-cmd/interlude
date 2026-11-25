@@ -41,7 +41,7 @@ function render(): void {
   input("graceSeconds").disabled = !settings.autoClose;
 }
 async function update(patch: Partial<InterludeSettings>): Promise<void> {
-  settings = { ...settings, ...patch };
+  settings = { ...settings, ...patch } as InterludeSettings;
   render();
   try {
     await saveSettings(patch);

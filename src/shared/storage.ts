@@ -1,68 +1,10 @@
-/**
- * Settings schema, defaults, and chrome.storage.local persistence.
- * Everything the panel, options page, popup, and diagnostics read lives here.
- */
-
-export type Placement = "inline" | "overlay" | "docked-composer" | "side-panel";
+/** Local data persistence. Settings live in the schema-driven sync store. */
+import { defaults, type InterludeSettings } from "../settings/schema";
+export type { InterludeSettings, Placement } from "../settings/schema";
+export { loadSettings, saveSettings } from "../settings/store";
 export type GameChoice = "last" | "random" | string;
+export const DEFAULT_SETTINGS: InterludeSettings = defaults();
 
-export interface InterludeSettings {
-  /** Master switch. When false the extension does nothing at all. */
-  enabled: boolean;
-  /** Delay after the generating signal before the panel reveals (ms). */
-  delayMs: number;
-  /** Where the panel mounts. */
-  placement: Placement;
-  /** Which game to launch: "last", "random", or a game id. */
-  game: GameChoice;
-  /** Auto-close the panel after the grace period once generation finishes. */
-  autoClose: boolean;
-  autoCloseGraceMs: number;
-  /** Skip the POWER-ON flicker. */
-  skipBoot: boolean;
-  /** Mute all synthesized audio. */
-  muted: boolean;
-  /** Keyboard hotkey that moves focus into the game (default Alt+G). */
-  focusHotkey: string;
-  /** Signal D: main-world stream timing hook (never reads content). */
-  streamHookEnabled: boolean;
-  /** Undo allowance in 2048. */
-  undo2048: number;
-  /** 2048 time-attack duration in seconds; zero disables the clock. */
-  twenty48Seconds: number;
-  /** Snake: pass through walls instead of dying. */
-  snakeWrap: boolean;
-  /** Pong AI difficulty. */
-  pongDifficulty: "rookie" | "regular" | "veteran";
-  /** Pong: points to win. */
-  pongFirstTo: number;
-  /** BLOCKFALL: show the landing ghost. */
-  blockfallGhost: boolean;
-  /** BLOCKFALL: allow a held piece. */
-  blockfallHold: boolean;
-}
-
-export const DEFAULT_SETTINGS: InterludeSettings = {
-  enabled: true,
-  delayMs: 500,
-  placement: "inline",
-  game: "last",
-  autoClose: false,
-  autoCloseGraceMs: 10_000,
-  skipBoot: false,
-  muted: false,
-  focusHotkey: "Alt+G",
-  streamHookEnabled: false,
-  undo2048: 3,
-  twenty48Seconds: 90,
-  snakeWrap: false,
-  pongDifficulty: "regular",
-  pongFirstTo: 5,
-  blockfallGhost: true,
-  blockfallHold: true,
-};
-
-const SETTINGS_KEY = "interlude.settings";
 const HIGHSCORES_KEY = "interlude.highscores";
 const LAST_PLAYED_KEY = "interlude.lastPlayed";
 const KEYBINDS_KEY = "interlude.keybindings";
@@ -87,18 +29,6 @@ async function storageSet(key: string, value: unknown): Promise<void> {
     return;
   }
   memoryStore.set(key, value);
-}
-
-export async function loadSettings(): Promise<InterludeSettings> {
-  const stored = await storageGet<Partial<InterludeSettings>>(SETTINGS_KEY);
-  return { ...DEFAULT_SETTINGS, ...(stored ?? {}) };
-}
-
-export async function saveSettings(patch: Partial<InterludeSettings>): Promise<InterludeSettings> {
-  const current = await loadSettings();
-  const next = { ...current, ...patch };
-  await storageSet(SETTINGS_KEY, next);
-  return next;
 }
 
 export async function loadHighScores(): Promise<Record<string, number>> {
