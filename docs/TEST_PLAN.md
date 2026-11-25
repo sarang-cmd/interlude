@@ -23,6 +23,10 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
 
 ## Extended checks (beyond ten minutes)
 
+- Visit the browser arcade, choose each game and play with keyboard and touch.
+  Check pause/resume, sound, mobile layout, offscreen freezing and that a completed
+  run's website-local score survives a reload. Verify the website does not claim
+  to attach itself to chats without the extension.
 - Play all eight games on keyboard, pointer/touch and a standard focused
   gamepad; check game-specific rules, remaps/conflicts, sounds, preview and
   records. Assess human difficulty and run length; simulation tests do not prove

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — browser arcade
+
+- Make all eight games playable on the website using the shared canvas engine,
+  with keyboard, touch and gamepad controls, pause/reset, optional sound and
+  website-local high scores. Gameplay freezes when out of view.
+- Add a separate static website build, retaining the existing metadata routes
+  and CORS settings. The website arcade does not connect to chat sessions.
+
 ## 0.2.0 — staging
 
 - Add a typed, validated, versioned settings catalogue, sync/local fallback,

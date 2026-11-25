@@ -301,6 +301,16 @@ export class Engine implements GameContext {
     this.render(1);
   }
 
+  /** Pause a running cabinet without a site-completion message. */
+  pauseByUser(): void {
+    if (!this.active || this.state !== "playing") return;
+    this.stateBeforePause = "playing";
+    this.setState("paused", "user");
+    this.loop.stop();
+    this.sound.silence();
+    this.render(1);
+  }
+
   resumeFromDone(): void {
     if (!this.active || this.state !== "paused") return;
     this.setState(this.stateBeforePause);
@@ -396,13 +406,7 @@ export class Engine implements GameContext {
             this.sound.musicNote(this.musicIndex++);
           }
         }
-        if (this.input.wasPressedWithin("pause", 120, true)) {
-          this.stateBeforePause = "playing";
-          this.setState("paused", "user");
-          this.loop.stop();
-          this.sound.silence();
-          this.render(1);
-        }
+        if (this.input.wasPressedWithin("pause", 120, true)) this.pauseByUser();
         break;
       }
       case "paused":

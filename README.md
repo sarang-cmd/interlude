@@ -4,6 +4,17 @@
 small game in the margins while an AI response is generating. Its restrained
 amber CRT cabinet stays hidden while the site is idle.
 
+## Play in your browser
+
+Visit [interlude-sepia.vercel.app](https://interlude-sepia.vercel.app/#arcade) to
+play all eight games without installing anything. Choose a game and press
+**Start**, then use the keyboard, the on-screen touch controls, a mouse, or a
+standard gamepad. Press **P** to pause or resume; sound starts muted. The
+arcade freezes while it is out of view. Website high scores are stored in that
+browser, separately from extension scores; if storage is blocked they last only
+for the current page session. The web arcade does not connect to your chats.
+Install the extension below if you want the cabinet to appear inside a chat.
+
 > **Live verification:** Claude, ChatGPT and Gemini selectors were exercised on
 > synthetic fixtures, not authenticated live sessions. ChatGPT and Gemini are
 > explicitly **BETA**. Real sites change; use Diagnostics and the
@@ -95,10 +106,19 @@ npm ci
 npm run format:check && npm run lint && npm run typecheck
 npm test                         # Vitest, including fake-clock and privacy tests
 npm run build                    # source and built-extension privacy audits
+npm run build:website            # playable static site and metadata in deployment/web-dist/
+npm run dev:website              # development server for the browser arcade
 npx playwright install --with-deps chromium
-npm run test:e2e                 # real extension, synthetic site fixtures
+npm run test:e2e                 # builds the site; tests it and the real extension
 npm run package:release -- v0.2.0 # versioned zip, latest zip, SHA-256 file
 ```
+
+The website remains a static Vite build: no game server or account is needed.
+The Vercel project uses `deployment/` as its root, with source files outside the
+root directory enabled, so `deployment/vercel.json` can install dependencies
+and run the website build from the repository root. The output preserves the
+selector and update JSON routes. Other static hosts need equivalent CORS headers
+for those routes.
 
 The CI workflow runs these checks and publishes the **validated** build to a
 GitHub Release on a matching `vX.Y.Z` tag. A tag must match `package.json` and

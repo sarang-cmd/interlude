@@ -39,6 +39,17 @@ being written. If sync cannot be cleared, the wipe reports that the remote copy
 may remain; an empty local fallback prevents old synced settings from silently
 reappearing on this device. Retry the wipe when sync is available.
 
+## Browser arcade
+
+The website arcade runs the games in the visitor's browser and does not connect
+or read AI chats. It loads its HTML, fonts, JavaScript and selected game modules
+from the website; no application analytics or account is used. Best scores are
+stored in the website origin's `localStorage`, separate from the extension's
+scores and settings. If storage is unavailable, scores are kept only in memory
+until the page closes. Clearing the site's browser storage removes those website
+records. Visiting the website still exposes ordinary IP and HTTP/TLS metadata to
+the host, as with any website.
+
 ## Extension-initiated network requests
 
 There are exactly two automatic JSON check purposes; both are GETs, at most once

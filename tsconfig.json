@@ -16,6 +16,13 @@
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
   },
-  "include": ["src", "tests", "vite.config.ts", "playwright.config.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src",
+    "tests",
+    "deployment/*.ts",
+    "vite.config.ts",
+    "vite.website.config.ts",
+    "playwright.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", "deployment/web-dist"]
 }

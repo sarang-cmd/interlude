@@ -11,6 +11,21 @@ extension service worker → validated, serialized settings writes / alarms
 options (Preact) → schema / profiles / playable preview / embedded diagnostics
 ```
 
+The standalone website reuses the same canvas engine and lazy game registry,
+but not the extension's site adapters or Chrome storage. Its website-only score
+adapter uses localStorage when available; the engine runs in preview mode so it
+never writes extension scores or 2048 tile records. Hidden or offscreen website
+games stop their loop until visible again. Website scores and extension scores
+are separate.
+
+`vite.website.config.ts` bundles `deployment/index.html` and `deployment/arcade.ts`
+into the static `deployment/web-dist/` directory, together with the two public
+JSON routes and licensed fonts. Only explicitly public assets are copied; the
+signing key is never part of the site build. Vercel's `deployment/` project root
+must allow source files outside the root so the build can use the repository's
+shared code and lockfile. `deployment/vercel.json` retains the metadata CORS
+headers. No server runtime is needed for gameplay.
+
 The three implemented plugins live in `src/adapters/{claude,chatgpt,gemini}`.
 ChatGPT and Gemini are beta. `public/manifest.json` limits scripts and
 web-accessible extension resources to the three hosts. Fonts and game assets are
