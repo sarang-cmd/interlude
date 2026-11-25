@@ -28,6 +28,7 @@ export type EngineState =
 export interface EngineOptions {
   settings: InterludeSettings;
   highScore: number;
+  doneLabel?: string;
   /** Called after a run ends and the new best (if any) is persisted. */
   onHighScore?: (best: number, isRecord: boolean) => void;
   /** First rendered frame after construction — for signal→frame timing. */
@@ -164,6 +165,8 @@ export class Engine implements GameContext {
     this.bootT = 0;
     if (this.active) this.render(0);
   }
+
+  get isLoopRunning(): boolean { return this.loop.isRunning; }
 
   getState(): EngineState {
     return this.state;
@@ -484,7 +487,7 @@ export class Engine implements GameContext {
     ctx.fillStyle = TOKENS.phosphor;
     ctx.font = '22px Silkscreen, monospace';
     const isDone = this.pauseReason === "done";
-    ctx.fillText(isDone ? "CLAUDE IS DONE" : "PAUSED", w / 2, h / 2 - 8);
+    ctx.fillText(isDone ? (this.options.doneLabel ?? "CLAUDE IS DONE") : "PAUSED", w / 2, h / 2 - 8);
     ctx.font = '15px VT323, monospace';
     ctx.fillStyle = TOKENS.phosphorDim;
     ctx.fillText(isDone ? "PRESS P OR RESUME — THE ANSWER IS IN" : "PRESS P TO RESUME", w / 2, h / 2 + 22);

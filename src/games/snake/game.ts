@@ -86,7 +86,7 @@ export class SnakeGame implements ArcadeGame {
     this.score = this.logic.score;
   }
 
-  render(_alpha: number): void {
+  render(alpha: number): void {
     const ctx = this.g.ctx;
     ctx.fillStyle = TOKENS.ink;
     ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL);
@@ -109,13 +109,18 @@ export class SnakeGame implements ArcadeGame {
 
     const n = this.logic.snake.length;
     this.logic.snake.forEach((seg, i) => {
+      const prev = this.logic.previousSnake[i] ?? this.logic.previousSnake.at(-1) ?? seg;
+      const progress = this.logic.movementProgress(alpha);
+      const crossesWrap = Math.abs(prev.x - seg.x) > 1 || Math.abs(prev.y - seg.y) > 1;
+      const x = Math.round((crossesWrap ? seg.x : prev.x + (seg.x - prev.x) * progress) * CELL);
+      const y = Math.round((crossesWrap ? seg.y : prev.y + (seg.y - prev.y) * progress) * CELL);
       const t = n <= 1 ? 1 : 1 - i / (n - 1);
       ctx.fillStyle =
         i === 0 ? TOKENS.phosphorHot : blendAmber(TOKENS.phosphor, TOKENS.phosphorDim, 1 - t);
       const inset = i === 0 ? 1 : 2;
       ctx.fillRect(
-        seg.x * CELL + inset,
-        seg.y * CELL + inset,
+        x + inset,
+        y + inset,
         CELL - inset * 2,
         CELL - inset * 2,
       );
@@ -124,8 +129,8 @@ export class SnakeGame implements ArcadeGame {
         const d = this.logic.direction;
         const ex = d.x * 4;
         const ey = d.y * 4;
-        ctx.fillRect(seg.x * CELL + 6 + ex, seg.y * CELL + 6 + ey, 3, 3);
-        ctx.fillRect(seg.x * CELL + CELL - 9 + ex, seg.y * CELL + 6 + ey, 3, 3);
+        ctx.fillRect(x + 6 + ex, y + 6 + ey, 3, 3);
+        ctx.fillRect(x + CELL - 9 + ex, y + 6 + ey, 3, 3);
       }
     });
 

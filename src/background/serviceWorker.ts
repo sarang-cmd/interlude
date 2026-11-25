@@ -5,6 +5,9 @@ chrome.runtime.onMessage.addListener((message: unknown, sender, respond) => {
     .then(() => respond({ ok: true }), () => respond({ ok: false }));
   return true;
 });
+const hosts = ((chrome.runtime.getManifest() as { host_permissions?: string[] }).host_permissions ?? []).map((pattern) => {
+  try { return { hostEquals: new URL(pattern.replace("/*", "/")).hostname }; } catch { return null; }
+}).filter((host): host is { hostEquals: string } => host !== null);
 chrome.webNavigation.onHistoryStateUpdated.addListener(({ tabId, frameId }) => {
   if (frameId === 0) void chrome.tabs.sendMessage(tabId, { type: "INTERLUDE_NAVIGATED" }).catch(() => {});
-}, { url: [{ hostEquals: "claude.ai" }] });
+}, { url: hosts });

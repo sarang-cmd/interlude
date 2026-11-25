@@ -49,6 +49,14 @@ export class ClaudeAdapter implements SiteAdapter {
 
   matches(url: string): boolean { try { return new URL(url).hostname === "claude.ai"; } catch { return false; } }
   getGeneratingSignal(): GeneratingObservable { return this.observable; }
+  getPhase(): string { return this.machine.snapshot.phase; }
+  activity(): { observers: number; timers: number } {
+    return { observers: Number(!!this.rootObserver) + Number(!!this.turnObserver), timers: Number(this.heartbeatTimer !== undefined) + Number(this.machine.hasPendingTimer) };
+  }
+  getComposerInput(): HTMLElement | null {
+    const input = this.first("composerInput", document).element;
+    return input instanceof HTMLElement ? input : null;
+  }
   setExcludedHost(host: Element): void { this.host = host; }
   onStructureChange(listener: () => void): () => void { this.watchers.add(listener); return () => this.watchers.delete(listener); }
 
@@ -97,6 +105,8 @@ export class ClaudeAdapter implements SiteAdapter {
   private onPageShow = (event: PageTransitionEvent): void => { if (event.persisted) this.navigation(); };
 
   setStreamHook(enabled: boolean): void {
+    const wasEnabled = this.stream.enabled;
+    if (!enabled && !wasEnabled) return;
     this.stream.enabled = enabled;
     if (!enabled) {
       this.stream.active = false;
@@ -136,7 +146,9 @@ export class ClaudeAdapter implements SiteAdapter {
     if (!(target instanceof Element) || (this.host && (target === this.host || this.host.contains(target)))) return;
     const keyboard = event instanceof KeyboardEvent;
     const isSendKey = keyboard && event.key === "Enter" && !event.shiftKey && !event.isComposing && this.isComposer(target);
-    const isSubmit = event.type === "submit";
+    const isSubmit = event.type === "submit" && this.selectors.composerArea.some((selector) => {
+      try { return target.matches(selector); } catch { return false; }
+    });
     if (!(isSendKey || isSubmit || (!keyboard && this.isIntentElement(target)))) return;
     // Capture runs before the site's handlers; the observer is in place before it mutates.
     this.machine.arm();
@@ -200,7 +212,7 @@ export class ClaudeAdapter implements SiteAdapter {
   }
 
   private first(name: keyof ClaudeSelectors, root: ParentNode): ResolveResult {
-    const result = resolveFirst(this.selectors[name], (s) => root.querySelector(s));
+    const result = resolveFirst(this.selectors[name], (s) => root instanceof Element && root.matches(s) ? root : root.querySelector(s));
     this.reports.set(name, { element: name, candidates: result.candidates, matchedIndex: result.matchedIndex, matchedSelector: result.matchedSelector });
     return result;
   }
@@ -258,7 +270,7 @@ export class ClaudeAdapter implements SiteAdapter {
 
   getTheme(): ThemeGuess {
     const color = getComputedStyle(document.documentElement).colorScheme;
-    return document.documentElement.classList.contains("dark") || color.includes("dark") ? "dark" : "light";
+    return !!this.first("darkTheme", document).element || color.includes("dark") ? "dark" : "light";
   }
   recordSignalToFrame(ms: number): void { this.signalToFrame = Math.round(ms * 10) / 10; }
   diagnostics(): AdapterDiagnostics {

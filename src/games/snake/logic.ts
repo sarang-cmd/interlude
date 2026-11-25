@@ -42,6 +42,7 @@ export class SnakeLogic {
   wrap: boolean;
 
   snake: Cell[] = [];
+  previousSnake: Cell[] = [];
   direction: Cell = { x: 1, y: 0 };
   private queue: Cell[] = [];
   food: Cell = { x: 0, y: 0 };
@@ -68,6 +69,7 @@ export class SnakeLogic {
       { x: midX - 1, y: midY },
       { x: midX - 2, y: midY },
     ];
+    this.previousSnake = this.snake.map((cell) => ({ ...cell }));
     this.direction = { x: 1, y: 0 };
     this.queue = [];
     this.food = this.spawnFood();
@@ -81,6 +83,11 @@ export class SnakeLogic {
   /** Seconds between grid steps for the current speed. */
   get stepInterval(): number {
     return Math.max(MIN_INTERVAL, BASE_INTERVAL - this.foodsEaten * RAMP_PER_FOOD);
+  }
+
+  /** Progress between the previous and current grid positions. */
+  movementProgress(alpha = 0): number {
+    return Math.max(0, Math.min(1, (this.stepTimer + alpha / 60) / this.stepInterval));
   }
 
   /** Queue a direction change. Reversals and duplicates are rejected. */
@@ -136,6 +143,7 @@ export class SnakeLogic {
     const next = this.queue.shift();
     if (next) this.direction = next;
 
+    this.previousSnake = this.snake.map((cell) => ({ ...cell }));
     const head = this.snake[0] as Cell;
     let nx = head.x + this.direction.x;
     let ny = head.y + this.direction.y;

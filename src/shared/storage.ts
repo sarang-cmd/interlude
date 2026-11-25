@@ -15,8 +15,6 @@ export interface InterludeSettings {
   placement: Placement;
   /** Which game to launch: "last", "random", or a game id. */
   game: GameChoice;
-  /** Pause the game and offer RESUME/CLOSE when generation finishes. */
-  pauseOnFinish: boolean;
   /** Auto-close the panel after the grace period once generation finishes. */
   autoClose: boolean;
   autoCloseGraceMs: number;
@@ -36,9 +34,9 @@ export interface InterludeSettings {
   pongDifficulty: "rookie" | "regular" | "veteran";
   /** Pong: points to win. */
   pongFirstTo: number;
-  /** BLOCKFALL: lock delay seconds multiplier not needed; kept simple. */
+  /** BLOCKFALL: show the landing ghost. */
   blockfallGhost: boolean;
-  /** BLOCKFALL: show ghost piece. */
+  /** BLOCKFALL: allow a held piece. */
   blockfallHold: boolean;
 }
 
@@ -47,7 +45,6 @@ export const DEFAULT_SETTINGS: InterludeSettings = {
   delayMs: 500,
   placement: "inline",
   game: "last",
-  pauseOnFinish: true,
   autoClose: false,
   autoCloseGraceMs: 10_000,
   skipBoot: false,

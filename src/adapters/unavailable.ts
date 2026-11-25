@@ -9,6 +9,13 @@ export class InactiveAdapter implements SiteAdapter {
   getGeneratingSignal(): GeneratingObservable { return this.signal; }
   findMountPoint(_placement: Placement): MountPointResult | null { return null; }
   getTheme(): ThemeGuess { return "light"; }
+  onStructureChange(_listener: () => void): () => void { return () => {}; }
+  setExcludedHost(_host: Element): void { /* inactive */ }
+  getComposerInput(): HTMLElement | null { return null; }
+  getPhase(): string { return "idle"; }
+  setStreamHook(_enabled: boolean): void { /* inactive */ }
+  navigation(): void { /* inactive */ }
+  activity(): { observers: number; timers: number } { return { observers: 0, timers: 0 }; }
   start(): void { /* intentionally inactive until this site has a verified adapter */ }
   stop(): void { /* no observers */ }
   recordSignalToFrame(_ms: number): void { /* no panel */ }

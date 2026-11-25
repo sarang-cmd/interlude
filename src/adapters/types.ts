@@ -78,6 +78,23 @@ export interface SiteAdapter {
   start(): void;
   /** Disconnect every observer and timer. After stop(), nothing runs. */
   stop(): void;
+  /** Structural invalidations are only emitted while observation is armed. */
+  onStructureChange(listener: () => void): () => void;
+  setExcludedHost(host: Element): void;
+  getComposerInput(): HTMLElement | null;
+  getPhase(): string;
+  setStreamHook(enabled: boolean): void;
+  navigation(): void;
+  activity(): { observers: number; timers: number };
   /** Record the signal→frame measurement. */
   recordSignalToFrame(ms: number): void;
+}
+
+/** A new adapter is discovered from its folder's default-exported plugin. */
+export interface SitePlugin {
+  id: string;
+  implemented: boolean;
+  matches(url: string): boolean;
+  selectorOverrideKey?: string;
+  create(configuration: unknown): SiteAdapter;
 }

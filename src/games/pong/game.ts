@@ -11,7 +11,7 @@ const PADDLE_H = 84;
 
 export class PongGame implements ArcadeGame {
   readonly manifest = PONG_MANIFEST;
-  readonly readyHint = "MOUSE OR ARROWS — FIRST TO 5";
+  readyHint = "MOUSE OR ARROWS — FIRST TO 5";
   score = 0;
 
   private g!: GameContext;
@@ -20,6 +20,7 @@ export class PongGame implements ArcadeGame {
   init(ctx: GameContext): void {
     this.g = ctx;
     this.score = 0;
+    this.readyHint = `MOUSE OR ARROWS — FIRST TO ${ctx.settings.pongFirstTo}`;
     this.logic = new PongLogic({
       seed: (Math.random() * 0xffffffff) >>> 0,
       difficulty: ctx.settings.pongDifficulty,

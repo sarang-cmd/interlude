@@ -7,3 +7,6 @@ test-results/
 .npm/
 *.zip
 .DS_Store
+.config/
+.local/
+.sudo_as_admin_successful

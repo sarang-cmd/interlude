@@ -14,6 +14,8 @@ export class GenerationMachine {
     private readonly startTimeoutMs = 4000,
   ) {}
 
+  get hasPendingTimer(): boolean { return this.timer !== undefined; }
+
   get snapshot(): MachineSnapshot {
     return { phase: this.phase, generating: this.phase === "generating" || this.phase === "finishing", votes: { ...this.votes } };
   }

@@ -2,28 +2,33 @@
   "composerArea": [
     "[data-testid='chat-composer']",
     "[data-testid='composer']",
+    "form:has([data-cds='Editor'])",
     "form:has([contenteditable='true'])",
     "form:has(textarea)",
-    "[class*='composer']:has([contenteditable='true'])"
+    "[class*='composer']:has([contenteditable='true'])",
+    "div:has([data-cds='Editor']):has([data-testid='chat-input-stop'])",
+    "div:has([data-cds='Editor']):has([data-testid='chat-input-send'])"
   ],
   "composerInput": [
     "[data-testid='chat-input']",
+    "[data-cds='Editor'][contenteditable='true']",
     "[contenteditable='true'][data-placeholder]",
     "[contenteditable='true'][role='textbox']",
     "div.ProseMirror[contenteditable='true']",
     "form textarea"
   ],
   "stopControl": [
+    "[data-testid='chat-input-stop']",
     "[data-testid='stop-button']",
     "button[aria-label='Stop response']",
     "button[aria-label='Stop generating']",
-    "button[aria-label*='Stop']",
-    "button[title*='Stop']"
+    "button[title='Stop response']"
   ],
   "assistantTurn": [
     "[data-testid='assistant-turn']",
     "[data-message-author-role='assistant']",
     "[data-testid='assistant-message']",
+    "[data-cds='AssistantMessage']",
     "[data-is-streaming]",
     ".font-claude-response"
   ],
@@ -35,7 +40,8 @@
     "[aria-label*='Thinking']",
     "[aria-label*='thinking']",
     "[aria-label*='Generating']",
-    "[data-state='thinking']"
+    "[data-state='thinking']",
+    "[data-is-streaming='true']"
   ],
   "conversationColumn": [
     "[data-testid='conversation-column']",
@@ -44,11 +50,17 @@
     "main"
   ],
   "startTrigger": [
+    "[data-testid='chat-input-send']",
     "[data-testid='send-button']",
     "[data-testid='regenerate-button']",
     "button[aria-label*='Send']",
     "button[aria-label*='Retry']",
     "button[aria-label*='Regenerate']",
     "button[type='submit']"
+  ],
+  "darkTheme": [
+    "html.dark",
+    "html[data-theme='dark']",
+    "[data-theme='dark']"
   ]
 }

@@ -45,7 +45,7 @@ export const TWENTY48_MANIFEST: GameManifest = {
 export const PONG_MANIFEST: GameManifest = {
   id: "pong",
   name: "PONG",
-  description: "First to five. The machine learns slower than you think.",
+  description: "First to the target score. Keep the rally alive.",
   controls: "UP/DOWN OR MOUSE — MOVE PADDLE",
   defaultDifficulty: "regular",
   supports: ["keyboard", "pointer", "touch", "gamepad"],
