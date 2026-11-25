@@ -154,8 +154,11 @@ export class DashlineLogic {
     const pTop = this.playerY - 34;
     const pBottom = this.playerY;
     for (const o of this.obstacles) {
-      const oTop = o.flying ? GROUND_Y - 96 : GROUND_Y - o.height;
-      const oBottom = o.flying ? GROUND_Y - 56 : GROUND_Y;
+      // The drone is drawn at ground-84 with an 18px body and a 3px bob.
+      // Keep its collision envelope aligned with that silhouette, not with
+      // invisible extra space above and below it.
+      const oTop = o.flying ? GROUND_Y - 87 : GROUND_Y - o.height;
+      const oBottom = o.flying ? GROUND_Y - 63 : GROUND_Y;
       const overlapX = px + 12 > o.x + 5 && px - 12 < o.x + o.width - 5;
       const overlapY = pBottom > oTop + 4 && pTop < oBottom - 4;
       if (overlapX && overlapY) {

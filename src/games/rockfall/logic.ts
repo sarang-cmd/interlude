@@ -51,7 +51,7 @@ export type RockfallEvent =
   | { kind: "shoot" }
   | { kind: "rockSplit"; x: number; y: number; size: number }
   | { kind: "rockDestroyed"; x: number; y: number; size: number }
-  | { kind: "shipHit" }
+  | { kind: "shipHit"; x: number; y: number }
   | { kind: "shieldSpawn"; x: number; y: number }
   | { kind: "shieldTake" }
   | { kind: "waveClear"; wave: number }
@@ -286,7 +286,7 @@ export class RockfallLogic {
     if (!this.shielded) {
       for (const rock of this.asteroids) {
         if (Math.hypot(rock.x - this.ship.x, rock.y - this.ship.y) < rock.radius + 10) {
-          events.push({ kind: "shipHit" });
+          events.push({ kind: "shipHit", x: this.ship.x, y: this.ship.y });
           this.lives -= 1;
           if (this.lives <= 0) {
             this.alive = false;

@@ -147,6 +147,8 @@ test("all eight lazy-loaded games start from the picker", async () => {
     await expect(host).toHaveAttribute("data-interlude-scene", "ready");
     await shadowClick("canvas");
     await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+    await page.waitForTimeout(180);
+    await host.screenshot({ path: `test-results/game-${id}.png` });
   }
 });
 

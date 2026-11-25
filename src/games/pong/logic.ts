@@ -22,8 +22,8 @@ const SERVE_SPEED = 300;
 /** AI model: max tracking speed + aim error in px per difficulty. */
 const AI_MODEL: Record<PongDifficulty, { maxSpeed: number; error: number; reactDelay: number }> = {
   rookie: { maxSpeed: 210, error: 46, reactDelay: 0.32 },
-  regular: { maxSpeed: 330, error: 22, reactDelay: 0.16 },
-  veteran: { maxSpeed: 430, error: 9, reactDelay: 0.07 },
+  regular: { maxSpeed: 280, error: 28, reactDelay: 0.20 },
+  veteran: { maxSpeed: 330, error: 18, reactDelay: 0.16 },
 };
 
 export class PongLogic {
@@ -43,6 +43,7 @@ export class PongLogic {
   winner: "player" | "ai" | null = null;
   private aiErrorOffset = 0;
   private aiReactTimer = 0;
+  private aiTargetY = 0;
   private serveTimer = 0;
   private serveDir: 1 | -1 = 1;
 
@@ -60,6 +61,7 @@ export class PongLogic {
     this.firstTo = options.firstTo ?? 5;
     this.playerY = this.height / 2 - PADDLE_H / 2;
     this.aiY = this.height / 2 - PADDLE_H / 2;
+    this.aiTargetY = FIELD_TOP + (this.height - FIELD_TOP) / 2;
     this.serve(this.rng.chance(0.5) ? 1 : -1);
   }
 
@@ -76,6 +78,8 @@ export class PongLogic {
     this.ball.vy = 0;
     this.rallyHits = 0;
     this.aiErrorOffset = this.rng.range(-1, 1);
+    this.aiReactTimer = 0;
+    this.aiTargetY = FIELD_TOP + (this.height - FIELD_TOP) / 2;
   }
 
   movePlayer(y: number): void {
@@ -107,14 +111,15 @@ export class PongLogic {
     if (this.aiReactTimer >= model.reactDelay) {
       this.aiReactTimer = 0;
       this.aiErrorOffset = this.rng.range(-1, 1) * model.error;
+      // Sample the ball only on a reaction tick, then commit to that target.
+      // Updating a random error on a timer while tracking every frame makes
+      // the hard opponent unrealistically perfect.
+      this.aiTargetY = this.ball.vx > 0
+        ? this.ball.y + this.aiErrorOffset
+        : FIELD_TOP + (this.height - FIELD_TOP) / 2;
     }
-    // Track the ball when it approaches; drift to center otherwise.
     const aiCenter = this.aiY + PADDLE_H / 2;
-    const approaching = this.ball.vx > 0;
-    const targetY = approaching
-      ? this.ball.y + this.aiErrorOffset
-      : FIELD_TOP + (this.height - FIELD_TOP) / 2;
-    const delta = targetY - aiCenter;
+    const delta = this.aiTargetY - aiCenter;
     const maxStep = model.maxSpeed * dt;
     if (Math.abs(delta) > 2) {
       this.aiY += Math.sign(delta) * Math.min(Math.abs(delta), maxStep);

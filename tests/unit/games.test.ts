@@ -85,3 +85,14 @@ describe("seeded games", () => {
     g.playerY = GROUND_Y; expect(g.update(0.001, false).some((e) => e.kind === "hit")).toBe(true);
   });
 });
+
+it("runner drone collisions match the drawn silhouette rather than invisible padding", () => {
+  const safe = new DashlineLogic({ seed: 1 });
+  safe.playerY = 208; safe.grounded = false;
+  safe.obstacles = [{ id: 1, x: 100, width: 22, height: 30, flying: true, passed: false }];
+  safe.update(0.001, true); expect(safe.alive).toBe(true);
+  const hit = new DashlineLogic({ seed: 1 });
+  hit.playerY = 220; hit.grounded = false;
+  hit.obstacles = [{ id: 1, x: 100, width: 22, height: 30, flying: true, passed: false }];
+  hit.update(0.001, true); expect(hit.alive).toBe(false);
+});

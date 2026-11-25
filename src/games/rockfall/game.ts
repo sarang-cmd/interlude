@@ -21,7 +21,7 @@ export class RockfallGame implements ArcadeGame {
     this.score = 0;
     this.elapsed = 0;
     this.logic = new RockfallLogic({ seed: Math.floor(ctx.rng.next() * 0xffffffff) });
-    // Touch: left/right halves rotate, upper area thrusts, tap fires.
+    // A held fire action repeats at the logic's fixed cooldown.
   }
 
   destroy(): void {
@@ -34,8 +34,10 @@ export class RockfallGame implements ArcadeGame {
     if (input.isDown("left")) this.logic.rotate(-1, dt);
     if (input.isDown("right")) this.logic.rotate(1, dt);
     this.logic.setThrust(input.isDown("up"));
-    if (input.wasPressedWithin("primary", 130, true)) {
+    const bufferedFire = input.wasPressedWithin("primary", 140);
+    if (bufferedFire || input.isDown("primary")) {
       if (this.logic.fire()) {
+        input.consumePresses("primary");
         this.g.sound.play("blip");
         this.g.particles.burst(this.logic.ship.x, this.logic.ship.y, 3, {
           color: ["#FFD36B"],
@@ -46,7 +48,7 @@ export class RockfallGame implements ArcadeGame {
         });
       }
     }
-    // Touch: hold right/left of ship to turn, double-tap top to thrust, tap fires
+    // Touch: hold right/left of ship to turn; hold near the ship to thrust.
     input.drainTaps();
     const pointer = input.pointerPosition();
     if (pointer.isDown) {
@@ -81,7 +83,7 @@ export class RockfallGame implements ArcadeGame {
           this.g.sound.play("explosion");
           this.g.shake(7, 0.4);
           this.g.hitStop(150);
-          this.g.particles.burst(this.logic.ship.x, this.logic.ship.y, 30, {
+          this.g.particles.burst(event.x, event.y, 30, {
             color: ["#D6452B", "#FFB000", "#FFD36B"],
             speed: 150,
             size: 3,
