@@ -137,6 +137,9 @@ export class Engine implements GameContext {
   get highScore(): number {
     return this.hiScore;
   }
+  get preview(): boolean {
+    return !!this.options.preview;
+  }
 
   shake(mag: number, dur: number): void {
     if (this.settings.reduceMotion) return;

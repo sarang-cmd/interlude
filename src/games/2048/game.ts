@@ -150,6 +150,7 @@ export class Game2048Game implements ArcadeGame {
   private recordBestTile(): void {
     if (this.logic.bestTile <= this.personalTile) return;
     this.personalTile = this.logic.bestTile;
+    if (this.g.preview) return;
     // Persist at the merge, not only at game-over: a waiting session can close
     // at any time. This stores the maximum even if a later undo is used.
     void saveHighScore("twenty48:tile", this.personalTile).then(({ best }) => {

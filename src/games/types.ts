@@ -30,6 +30,8 @@ export interface GameContext {
   readonly input: Input;
   readonly sound: Sound;
   readonly particles: ParticleSystem;
+  /** Preview runs are playable but must never persist game records. */
+  readonly preview?: boolean;
   /** Shake the whole canvas. mag in logical px, dur in seconds. */
   shake(mag: number, dur: number): void;
   /** Freeze updates for impact frames. */

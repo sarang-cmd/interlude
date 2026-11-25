@@ -68,3 +68,39 @@ it("2048 time attack ends once at its limit and can be disabled", async () => {
   unlimited.fixedUpdate(200);
   expect(report).toHaveBeenCalledTimes(1);
 });
+
+it("does not persist 2048 tile records during a playable options preview", async () => {
+  const store: Record<string, unknown> = {};
+  const set = vi.fn(async (values: Record<string, unknown>) =>
+    Object.assign(store, structuredClone(values)),
+  );
+  vi.stubGlobal("chrome", {
+    storage: {
+      local: { get: async (key: string) => ({ [key]: structuredClone(store[key]) }), set },
+    },
+  });
+  const context = {
+    preview: true,
+    rng: new RNG(8),
+    settings: DEFAULT_SETTINGS,
+    sound: { play() {} },
+    scorePop() {},
+    particles: { burst() {} },
+    shake() {},
+    hitStop() {},
+  } as unknown as GameContext;
+  const game = new Game2048Game();
+  game.init(context);
+  const internal = game as unknown as { logic: Game2048; move(direction: "left"): void };
+  internal.logic.grid = [
+    [2, 2, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+  ];
+  internal.logic.bestTile = 2;
+  internal.move("left");
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(set).not.toHaveBeenCalled();
+  expect((await loadHighScores())["twenty48:tile"]).toBeUndefined();
+});
