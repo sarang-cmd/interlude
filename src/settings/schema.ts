@@ -806,7 +806,7 @@ const generated: SettingDefinition[] = GAME_IDS.flatMap((game) => [
   ...GAME_ACTIONS[game].map((action): SettingDefinition => ({
     id: `key.${game}.${action}`,
     type: "keybinding",
-    default: ACTION_DEFAULTS[action]!,
+    default: game === "twenty48" && action === "secondary" ? "KeyU" : ACTION_DEFAULTS[action]!,
     label: `${names[game]} / ${action}`,
     description:
       "Press a physical key to assign this action. Duplicate bindings for one game are rejected.",

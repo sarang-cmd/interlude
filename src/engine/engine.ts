@@ -80,6 +80,8 @@ export class Engine implements GameContext {
   private recordedBest = false;
   private runVersion = 0;
   private pauseReason: "done" | "user" = "done";
+  private musicTime = 0;
+  private musicIndex = 0;
 
   constructor(canvas: HTMLCanvasElement, options: EngineOptions) {
     this._canvas = canvas;
@@ -91,7 +93,14 @@ export class Engine implements GameContext {
     ctx.imageSmoothingEnabled = false;
     this.options = options;
     this.hiScore = options.highScore;
+    this.sound.configure(options.settings.volume, options.settings.soundPack);
     this.sound.setMuted(options.settings.muted);
+    this.input.configure({
+      pointer: options.settings.pointerEnabled,
+      touch: options.settings.touchEnabled,
+      gamepad: options.settings.gamepadEnabled,
+      repeat: options.settings.keyRepeat,
+    });
     this.input.onGesture = () => {
       this.sound.unlock();
       // A real key/pointer/button gesture retries immediately, even if the
@@ -128,6 +137,7 @@ export class Engine implements GameContext {
   }
 
   shake(mag: number, dur: number): void {
+    if (this.settings.reduceMotion) return;
     this.shakeMag = Math.max(this.shakeMag, mag);
     this.shakeDur = Math.max(this.shakeDur, dur);
     this.shakeT = 0;
@@ -161,8 +171,26 @@ export class Engine implements GameContext {
   }
 
   setSettings(settings: InterludeSettings): void {
+    const old = this.options.settings;
     this.options.settings = settings;
-    this.sound.setMuted(settings.muted);
+    this.sound.configure(settings.volume, settings.soundPack);
+    this.sound.setMuted(
+      settings.muted || !!(this.game && settings[`game.${this.game.manifest.id}.muted`]),
+    );
+    if (
+      old.pointerEnabled !== settings.pointerEnabled ||
+      old.touchEnabled !== settings.touchEnabled ||
+      old.gamepadEnabled !== settings.gamepadEnabled ||
+      old.keyRepeat !== settings.keyRepeat
+    ) {
+      this.input.configure({
+        pointer: settings.pointerEnabled,
+        touch: settings.touchEnabled,
+        gamepad: settings.gamepadEnabled,
+        repeat: settings.keyRepeat,
+      });
+    }
+    this.game?.settingsChanged?.();
   }
 
   setGame(game: ArcadeGame, highScore = 0): void {
@@ -170,6 +198,7 @@ export class Engine implements GameContext {
     this.runVersion++;
     if (this.game) this.game.destroy();
     this.game = game;
+    this.sound.setMuted(this.settings.muted || !!this.settings[`game.${game.manifest.id}.muted`]);
     this.rngState = new RNG(randomSeed());
     this.particles.clear();
     this.scorePops = [];
@@ -229,7 +258,7 @@ export class Engine implements GameContext {
     }
     this.startedBefore = true;
     this.scenes.reset("ready");
-    if (!this.bootPlayed && !this.settings.skipBoot) {
+    if (!this.bootPlayed && !this.settings.skipBoot && !this.settings.reduceMotion) {
       this.bootT = 0;
       this.setState("boot");
     } else this.setState("ready");
@@ -266,7 +295,7 @@ export class Engine implements GameContext {
 
   /** Tab visibility: hidden → loop pauses entirely. */
   setTabHidden(hidden: boolean): void {
-    if (hidden) this.sound.silence();
+    if (hidden && this.settings.muteHidden) this.sound.silence();
     this.rafVisible = !hidden;
     this.applyRate();
   }
@@ -336,8 +365,22 @@ export class Engine implements GameContext {
         if (this.anyStartPressed()) this.beginRun();
         break;
       }
-      case "playing":
-        this.game?.fixedUpdate(dt);
+      case "playing": {
+        const id = this.game?.manifest.id;
+        const speed =
+          id && typeof this.settings[`game.${id}.speed`] === "number"
+            ? (this.settings[`game.${id}.speed`] as number)
+            : 100;
+        const difficulty = id ? this.settings[`game.${id}.difficulty`] : "standard";
+        const factor = difficulty === "relaxed" ? 0.8 : difficulty === "fast" ? 1.2 : 1;
+        this.game?.fixedUpdate(((dt * speed) / 100) * factor);
+        if (this.settings.music) {
+          this.musicTime += dt;
+          if (this.musicTime >= 0.45) {
+            this.musicTime %= 0.45;
+            this.sound.musicNote(this.musicIndex++);
+          }
+        }
         if (this.input.wasPressedWithin("pause", 120, true)) {
           this.stateBeforePause = "playing";
           this.setState("paused", "user");
@@ -346,6 +389,7 @@ export class Engine implements GameContext {
           this.render(1);
         }
         break;
+      }
       case "paused":
         if (this.input.wasPressedWithin("pause", 120, true)) {
           this.setState("playing");
@@ -414,7 +458,7 @@ export class Engine implements GameContext {
     if (!g) return;
     g.fillStyle = "rgba(0,0,0,0)";
     g.fillRect(0, 0, 4, 4);
-    g.fillStyle = "rgba(0,0,0,0.22)";
+    g.fillStyle = "rgba(0,0,0,1)";
     g.fillRect(0, 3, 4, 1);
     this.scanPattern = this._ctx.createPattern(c, "repeat");
   }
@@ -589,8 +633,11 @@ export class Engine implements GameContext {
   /** Scanlines + vignette + faint bloom. Canvas only — never over DOM text. */
   private renderCrtPass(ctx: CanvasRenderingContext2D): void {
     if (this.scanPattern) {
+      ctx.save();
+      ctx.globalAlpha = this.settings.scanlineStrength / 100;
       ctx.fillStyle = this.scanPattern;
       ctx.fillRect(0, 0, this.width, this.height);
+      ctx.restore();
     }
     // Square-edged vignette bands, kept inside the canvas. No gradients.
     ctx.fillStyle = "rgba(0,0,0,0.12)";
@@ -604,7 +651,7 @@ export class Engine implements GameContext {
     ctx.fillRect(8, 16, 8, this.height - 32);
     ctx.fillRect(this.width - 16, 16, 8, this.height - 32);
     // Faint amber bloom line at top — phosphor character, kept subtle
-    ctx.fillStyle = "rgba(255,176,0,0.05)";
+    ctx.fillStyle = `rgba(255,176,0,${this.settings.bloomStrength / 100})`;
     ctx.fillRect(0, 0, this.width, 26);
   }
 }

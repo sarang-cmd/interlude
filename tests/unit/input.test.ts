@@ -75,3 +75,28 @@ it("serializes concurrent score writes without discarding another cabinet", asyn
   ]);
   expect(await loadHighScores()).toEqual({ snake: 30, pong: 50 });
 });
+
+it("remapped actions release their old keys and key repeat is configurable", () => {
+  const target = document.createElement("canvas");
+  document.body.append(target);
+  const input = new Input();
+  input.attach(target, (x, y) => ({ x, y }));
+  input.setEnabled(true);
+  input.setKeymapOverrides({ left: "KeyQ", pause: "KeyR" });
+  expect(input.actionFor("ArrowLeft")).toBeUndefined();
+  expect(input.actionFor("KeyQ")).toBe("left");
+  expect(input.actionFor("KeyR")).toBe("pause");
+  input.configure({ pointer: true, touch: true, gamepad: true, repeat: true });
+  target.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyQ", cancelable: true }));
+  expect(input.wasPressedWithin("left", 100, true)).toBe(true);
+  target.dispatchEvent(
+    new KeyboardEvent("keydown", { code: "KeyQ", repeat: true, cancelable: true }),
+  );
+  expect(input.wasPressedWithin("left", 100, true)).toBe(true);
+  input.configure({ pointer: true, touch: true, gamepad: false, repeat: false });
+  target.dispatchEvent(
+    new KeyboardEvent("keydown", { code: "KeyQ", repeat: true, cancelable: true }),
+  );
+  expect(input.wasPressedWithin("left", 100, true)).toBe(false);
+  input.detach();
+});

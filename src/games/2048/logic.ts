@@ -23,7 +23,8 @@ export class Game2048 {
   private readonly rng: RNG;
   private history: Snapshot[] = [];
   private remaining: number;
-  private readonly undoLimit: number;
+  private undoLimit: number;
+  private usedUndo = 0;
   constructor(options: { seed?: number; undoLimit?: number } = {}) {
     this.rng = new RNG(options.seed ?? Date.now());
     this.undoLimit = Math.max(0, Math.min(20, Math.floor(options.undoLimit ?? 3)));
@@ -36,9 +37,14 @@ export class Game2048 {
     this.bestTile = 0;
     this.alive = true;
     this.history = [];
+    this.usedUndo = 0;
     this.remaining = this.undoLimit;
     this.spawn();
     this.spawn();
+  }
+  setUndoLimit(limit: number): void {
+    this.undoLimit = Math.max(0, Math.min(20, Math.floor(limit)));
+    this.remaining = Math.max(0, this.undoLimit - this.usedUndo);
   }
   get undoRemaining(): number {
     return this.remaining;
@@ -61,6 +67,7 @@ export class Game2048 {
     this.bestTile = snapshot.bestTile;
     this.rng.setState(snapshot.rngState);
     this.remaining--;
+    this.usedUndo++;
     this.alive = true;
     return true;
   }

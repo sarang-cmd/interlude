@@ -34,6 +34,11 @@ export class Input {
   private held = new Map<GameAction, Set<string>>();
   private presses = new Map<GameAction, number[]>();
   private overrides: Record<string, GameAction> = {};
+  private remappedActions = new Set<GameAction>();
+  private pointerAllowed = true;
+  private touchAllowed = true;
+  private gamepadAllowed = true;
+  private repeatsAllowed = false;
   private target: HTMLElement | ShadowRoot | null = null;
   private enabled = false;
   private anyPress = false;
@@ -92,11 +97,37 @@ export class Input {
   setPointerPrimary(enabled: boolean): void {
     this.pointerPrimary = enabled;
   }
+  configure(options: {
+    pointer: boolean;
+    touch: boolean;
+    gamepad: boolean;
+    repeat: boolean;
+  }): void {
+    this.pointerAllowed = options.pointer;
+    this.touchAllowed = options.touch;
+    this.gamepadAllowed = options.gamepad;
+    this.repeatsAllowed = options.repeat;
+    this.clear();
+  }
   setKeymapOverrides(overrides: Record<string, string>): void {
     this.overrides = {};
-    for (const [action, code] of Object.entries(overrides))
-      if (ACTIONS.includes(action as GameAction) && code)
+    this.remappedActions.clear();
+    for (const [action, code] of Object.entries(overrides)) {
+      if (ACTIONS.includes(action as GameAction) && code && !this.overrides[code]) {
         this.overrides[code] = action as GameAction;
+        this.remappedActions.add(action as GameAction);
+      }
+    }
+  }
+  actionFor(code: string): GameAction | undefined {
+    const fallback = DEFAULT_KEYMAP[code];
+    return (
+      this.overrides[code] ??
+      (fallback && !this.remappedActions.has(fallback) ? fallback : undefined)
+    );
+  }
+  private acceptsPointer(event: PointerEvent): boolean {
+    return event.pointerType === "touch" ? this.touchAllowed : this.pointerAllowed;
   }
   private clear(): void {
     this.held.clear();
@@ -154,19 +185,25 @@ export class Input {
       this.anyPress = true;
       this.onGesture();
     }
-    const action = this.overrides[event.code] ?? DEFAULT_KEYMAP[event.code];
+    const action = this.actionFor(event.code);
     if (!action || event.altKey || event.ctrlKey || event.metaKey) return;
     event.preventDefault();
     event.stopPropagation();
     if (!event.repeat) this.press(action, `key:${event.code}`);
+    else if (this.repeatsAllowed && action !== "pause") {
+      const queue = this.presses.get(action) ?? [];
+      queue.push(performance.now());
+      this.presses.set(action, queue);
+      this.anyPress = true;
+    }
   };
   private onKeyUp = (event: KeyboardEvent): void => {
     if (!this.enabled || this.isTextField(event)) return;
-    const action = this.overrides[event.code] ?? DEFAULT_KEYMAP[event.code];
+    const action = this.actionFor(event.code);
     if (action) this.release(action, `key:${event.code}`);
   };
   private onPointerDown = (event: PointerEvent): void => {
-    if (!this.enabled) return;
+    if (!this.enabled || !this.acceptsPointer(event)) return;
     const p = this.toLogical(event.clientX, event.clientY);
     this.pointer = {
       ...p,
@@ -189,14 +226,14 @@ export class Input {
     event.preventDefault();
   };
   private onPointerMove = (event: PointerEvent): void => {
-    if (!this.enabled) return;
+    if (!this.enabled || !this.acceptsPointer(event)) return;
     const p = this.toLogical(event.clientX, event.clientY);
     this.pointer.x = p.x;
     this.pointer.y = p.y;
     this.pointer.hasPosition = true;
   };
   private onPointerUp = (event: PointerEvent): void => {
-    if (!this.enabled || !this.pointer.isDown) return;
+    if (!this.enabled || !this.acceptsPointer(event) || !this.pointer.isDown) return;
     const p = this.toLogical(event.clientX, event.clientY);
     const dx = p.x - this.pointer.downX,
       dy = p.y - this.pointer.downY;
@@ -217,7 +254,8 @@ export class Input {
   };
   /** Poll only while the panel is focused and the engine loop is running. */
   pollGamepads(): void {
-    if (!this.enabled || typeof navigator.getGamepads !== "function") return;
+    if (!this.enabled || !this.gamepadAllowed || typeof navigator.getGamepads !== "function")
+      return;
     const pad = Array.from(navigator.getGamepads()).find((p) => p?.connected);
     const next = new Set<GameAction>();
     if (pad) {

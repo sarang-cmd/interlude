@@ -33,6 +33,8 @@ export class PongGame implements ArcadeGame {
   }
 
   fixedUpdate(dt: number): void {
+    this.logic.difficulty = this.g.settings.pongDifficulty;
+    this.logic.firstTo = this.g.settings.pongFirstTo;
     const input = this.g.input;
     const pointer = input.pointerPosition();
     if (input.isDown("up")) this.logic.nudgePlayer(-430 * dt);

@@ -35,6 +35,7 @@ export class SnakeGame implements ArcadeGame {
   }
 
   fixedUpdate(dt: number): void {
+    this.logic.wrap = this.g.settings.snakeWrap;
     const input = this.g.input;
     if (input.wasPressedWithin("left", 140, true)) this.logic.setDirection({ x: -1, y: 0 });
     if (input.wasPressedWithin("right", 140, true)) this.logic.setDirection({ x: 1, y: 0 });

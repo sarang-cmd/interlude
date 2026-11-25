@@ -49,6 +49,8 @@ export interface ArcadeGame {
   readonly score: number;
   init(ctx: GameContext): void;
   fixedUpdate(dt: number): void;
+  /** Apply rule changes to an existing run without replacing it. */
+  settingsChanged?(): void;
   /** alpha in [0,1) — interpolation factor between fixed steps. */
   render(alpha: number): void;
   destroy(): void;

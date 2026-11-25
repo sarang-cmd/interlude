@@ -26,11 +26,23 @@ export class Sound {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private muted = false;
+  private volume = 0.35;
+  private pack: "classic" | "soft" = "classic";
 
   setMuted(muted: boolean): void {
     this.muted = muted;
     if (muted) this.silence();
-    else if (this.master) this.master.gain.value = 0.35;
+    else if (this.master) this.master.gain.value = this.volume;
+  }
+
+  configure(volume: number, pack: string): void {
+    this.volume = Math.max(0, Math.min(1, volume / 100));
+    this.pack = pack === "soft" ? "soft" : "classic";
+    if (this.master) this.master.gain.value = this.muted ? 0 : this.volume;
+  }
+  musicNote(index: number): void {
+    const notes = [196, 247, 294, 392, 294, 247, 220, 294];
+    this.tone(notes[index % notes.length]!, 0.12, "triangle", { volume: 0.12 });
   }
 
   /** Must be called from a user gesture at least once. */
@@ -48,7 +60,7 @@ export class Sound {
     if (!AC) return;
     this.ctx = new AC();
     this.master = this.ctx.createGain();
-    this.master.gain.value = this.muted ? 0 : 0.35;
+    this.master.gain.value = this.muted ? 0 : this.volume;
     this.master.connect(this.ctx.destination);
   }
 
@@ -70,7 +82,7 @@ export class Sound {
     const t0 = this.ctx.currentTime + (options.delay ?? 0);
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    osc.type = type;
+    osc.type = this.pack === "soft" ? "triangle" : type;
     osc.frequency.setValueAtTime(freq, t0);
     if (options.slideTo !== undefined) {
       osc.frequency.exponentialRampToValueAtTime(Math.max(1, options.slideTo), t0 + duration);

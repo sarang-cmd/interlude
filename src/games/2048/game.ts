@@ -35,6 +35,8 @@ export class Game2048Game implements ArcadeGame {
   private pending: Direction | null = null;
   private personalTile = 0;
   private secondsRemaining = 0;
+  private elapsedSeconds = 0;
+  private clockLimit = 0;
   private timed = false;
   private ended = false;
   init(ctx: GameContext): void {
@@ -44,10 +46,12 @@ export class Game2048Game implements ArcadeGame {
     this.pending = null;
     this.ended = false;
     const limit = Number.isFinite(ctx.settings.twenty48Seconds)
-      ? Math.max(0, Math.min(180, Math.round(ctx.settings.twenty48Seconds)))
+      ? Math.max(0, Math.min(600, Math.round(ctx.settings.twenty48Seconds)))
       : 90;
     this.timed = limit > 0;
     this.secondsRemaining = limit;
+    this.clockLimit = limit;
+    this.elapsedSeconds = 0;
     this.readyHint = this.timed
       ? `${limit} SEC · ARROWS SLIDE · U UNDO`
       : "ARROWS SLIDE — U UNDOES";
@@ -62,10 +66,23 @@ export class Game2048Game implements ArcadeGame {
   destroy(): void {
     /* no retained listeners */
   }
+  settingsChanged(): void {
+    this.logic.setUndoLimit(this.g.settings.undo2048);
+    const limit = this.g.settings.twenty48Seconds;
+    if (limit !== this.clockLimit) {
+      this.clockLimit = limit;
+      this.timed = limit > 0;
+      this.secondsRemaining = Math.max(0, limit - this.elapsedSeconds);
+      this.readyHint = this.timed
+        ? `${limit} SEC · ARROWS SLIDE · U UNDO`
+        : "ARROWS SLIDE — U UNDOES";
+    }
+  }
   fixedUpdate(dt: number): void {
     if (this.ended) return;
+    this.elapsedSeconds += dt;
     if (this.timed) {
-      this.secondsRemaining = Math.max(0, this.secondsRemaining - dt);
+      this.secondsRemaining = Math.max(0, this.clockLimit - this.elapsedSeconds);
       if (this.secondsRemaining === 0) {
         this.end();
         return;
