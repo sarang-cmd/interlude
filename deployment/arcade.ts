@@ -34,6 +34,7 @@ const nameLabel = element<HTMLElement>("#game-name");
 const numberLabel = element<HTMLElement>("#game-number");
 const descriptionLabel = element<HTMLElement>("#game-description");
 const hintLabel = element<HTMLElement>("#control-hint");
+const gameAnnouncement = element<HTMLElement>("#game-announcement");
 const scoreLabel = element<HTMLElement>("#game-high-score");
 const gameList = element<HTMLElement>("#game-list");
 const controls = element<HTMLElement>("#game-controls");
@@ -43,6 +44,8 @@ const soundButton = element<HTMLButtonElement>("#sound-button");
 const focusIndicator = element<HTMLElement>("#game-focus");
 const speedSelect = element<HTMLSelectElement>("#game-speed");
 const pongSettings = element<HTMLElement>("#pong-settings");
+const ticSettings = element<HTMLElement>("#tictactoe-settings");
+const ticAI = element<HTMLSelectElement>("#tictactoe-ai");
 const pongMode = element<HTMLSelectElement>("#pong-mode");
 const pongAI = element<HTMLSelectElement>("#pong-ai");
 const pongTarget = element<HTMLSelectElement>("#pong-target");
@@ -95,6 +98,13 @@ const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> =
     ["FIRE", "primary", "Fire"],
   ],
   dashline: [["JUMP / HOLD", "primary", "Jump or hold to jump higher"]],
+  tictactoe: [
+    ["←", "left", "Select left"],
+    ["↑", "up", "Select up"],
+    ["↓", "down", "Select down"],
+    ["→", "right", "Select right"],
+    ["MARK", "primary", "Place mark"],
+  ],
 };
 
 let storage: Storage | null = null;
@@ -115,6 +125,8 @@ let settings: InterludeSettings = {
   pongAdaptive: preferences.pongAdaptive,
   pongWatch: preferences.pongWatch,
   pongFirstTo: preferences.pongFirstTo,
+  tictactoeDifficulty: preferences.tictactoeDifficulty,
+  tictactoeWatch: preferences.tictactoeWatch,
 };
 for (const [game, speed] of Object.entries(preferences.speeds)) {
   settings[`game.${game}.speed`] = speed;
@@ -122,7 +134,9 @@ for (const [game, speed] of Object.entries(preferences.speeds)) {
 let selectedGame = DEFAULT_GAME_ID;
 let pongModeId = preferences.pongWatch ? "watch" : "cpu";
 let pongModes: readonly GameMode[] = getManifest("pong")!.modes;
-const raceModeByGame: Record<string, string> = {};
+const raceModeByGame: Record<string, string> = {
+  tictactoe: preferences.tictactoeWatch ? "watch" : "cpu",
+};
 let raceModes: readonly GameMode[] = [];
 let removeLocalUI: (() => void) | null = null;
 let requestNumber = 0;
@@ -154,6 +168,9 @@ const engine = new Engine(canvas, {
   highScore: 0,
   preview: true,
   onStateChange: setScene,
+  onAnnouncement: (text) => {
+    gameAnnouncement.textContent = text;
+  },
   onHighScore(best) {
     saveWebScore(storage, scores, selectedGame, best);
     updateBest();
@@ -212,11 +229,11 @@ if ("IntersectionObserver" in window) {
   observer.observe(canvas);
 }
 
-function makeControls(manifest: GameManifest, splitRace = false): void {
+function makeControls(manifest: GameManifest, splitRace = false, watching = false): void {
   controls.replaceChildren();
   controls.setAttribute("aria-label", `${manifest.name} on-screen controls`);
   controls.hidden = splitRace;
-  if (splitRace || (manifest.id === "pong" && settings.pongWatch)) return;
+  if (splitRace || watching) return;
   for (const [label, action, description] of controlSets[manifest.id] ?? []) {
     const button = document.createElement("button");
     button.type = "button";
@@ -275,7 +292,9 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
   try {
     const mode = id === "pong" ? pongModeId : (raceModeByGame[id] ?? "solo");
     const local = id === "pong" && mode === "local";
-    const splitRace = id !== "pong" && mode === "local";
+    const hotseat = id === "tictactoe" && mode === "local";
+    const splitRace = id !== "pong" && !hotseat && mode === "local";
+    const watching = (id === "pong" || id === "tictactoe") && mode === "watch";
     const sharedCoop = id === "twenty48" && mode === "coop";
     const localUI =
       __PLATFORM__ === "web" && local ? import("../src/twoplayer/pong-ui") : Promise.resolve(null);
@@ -301,17 +320,24 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     const index = GAME_MANIFESTS.findIndex((entry) => entry.id === id);
     numberLabel.textContent = `GAME ${String(index + 1).padStart(2, "0")} / ${String(GAME_MANIFESTS.length).padStart(2, "0")}`;
     nameLabel.textContent = manifest.name;
-    descriptionLabel.textContent = manifest.description;
+    descriptionLabel.textContent = hotseat
+      ? "Two people share a board and take turns. Solo scores are not changed."
+      : id === "tictactoe" && watching
+        ? "Watch two CPU opponents play. Solo scores are not changed."
+        : manifest.description;
     hintLabel.textContent = local
       ? "LOCAL MATCH · SET KEYS BELOW · P PAUSES"
       : splitRace
         ? "SPLIT SCREEN · TWO SETS OF CONTROLS · P PAUSES"
         : sharedCoop
           ? "SHARED BOARD · TAKE TURNS · P PAUSES"
-          : id === "pong" && settings.pongWatch
-            ? "WATCH CPU · P PAUSES · ESC RELEASES FOCUS"
-            : `${manifest.controls} · P PAUSES`;
+          : hotseat
+            ? "SHARED CONTROLS · TAKE TURNS · P PAUSES"
+            : watching
+              ? "WATCH CPU · P PAUSES · ESC RELEASES FOCUS"
+              : `${manifest.controls} · P PAUSES`;
     pongSettings.hidden = id !== "pong";
+    ticSettings.hidden = id !== "tictactoe" || hotseat;
     raceModeField.hidden = id === "pong" || !modes.some((choice) => choice.players === 2);
     if (id !== "pong") {
       raceModes = modes;
@@ -331,10 +357,10 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     canvas.dataset.game = id;
     canvas.setAttribute(
       "aria-label",
-      `${manifest.name}${splitRace ? " two-player split screen" : sharedCoop ? " shared co-op board" : " game screen"}`,
+      `${manifest.name}${splitRace ? " two-player split screen" : sharedCoop ? " shared co-op board" : hotseat ? " shared board" : " game screen"}`,
     );
     updateBest();
-    makeControls(manifest, splitRace || sharedCoop);
+    makeControls(manifest, splitRace || sharedCoop, watching);
     engine.setGame(game, scores[id] ?? 0);
     engine.start();
     if (local && localModule) {
@@ -417,10 +443,14 @@ function changeSettings(patch: Record<string, SettingValue>): void {
 }
 for (const speed of SPEED_CHOICES) addOption(speedSelect, String(speed), `${speed}%`);
 for (const mode of getManifest("pong")!.modes) addOption(pongMode, mode.id, mode.label);
-for (const level of AI_LEVELS) addOption(pongAI, level, level.toUpperCase());
+for (const level of AI_LEVELS) {
+  addOption(pongAI, level, level.toUpperCase());
+  addOption(ticAI, level, level.toUpperCase());
+}
 for (const target of PONG_TARGETS) addOption(pongTarget, String(target), String(target));
 pongMode.value = preferences.pongWatch ? "watch" : "cpu";
 pongAI.value = preferences.pongDifficulty;
+ticAI.value = preferences.tictactoeDifficulty;
 pongTarget.value = String(preferences.pongFirstTo);
 pongAdaptive.checked = preferences.pongAdaptive;
 
@@ -434,6 +464,11 @@ speedSelect.addEventListener("change", () => {
 raceMode.addEventListener("change", () => {
   if (!raceModes.some((mode) => mode.id === raceMode.value)) return;
   raceModeByGame[selectedGame] = raceMode.value;
+  if (selectedGame === "tictactoe") {
+    preferences.tictactoeWatch = raceMode.value === "watch";
+    changeSettings({ tictactoeWatch: preferences.tictactoeWatch });
+    saveWebPreferences(storage, preferences);
+  }
   void chooseGame(selectedGame);
 });
 pongMode.addEventListener("change", () => {
@@ -443,6 +478,12 @@ pongMode.addEventListener("change", () => {
   changeSettings({ pongWatch: preferences.pongWatch });
   saveWebPreferences(storage, preferences);
   void chooseGame("pong");
+});
+ticAI.addEventListener("change", () => {
+  if (!isAIDifficulty(ticAI.value)) return;
+  preferences.tictactoeDifficulty = ticAI.value;
+  changeSettings({ tictactoeDifficulty: preferences.tictactoeDifficulty });
+  saveWebPreferences(storage, preferences);
 });
 pongAI.addEventListener("change", () => {
   if (!isAIDifficulty(pongAI.value)) return;

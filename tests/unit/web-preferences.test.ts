@@ -30,6 +30,8 @@ it("persists valid local AI and per-game speed choices", () => {
   settings.pongWatch = true;
   settings.pongAdaptive = true;
   settings.pongFirstTo = 3;
+  settings.tictactoeDifficulty = "veteran";
+  settings.tictactoeWatch = true;
   settings.speeds.pong = 400;
   saveWebPreferences(storage, settings);
   expect(readWebPreferences(storage)).toEqual(settings);
@@ -44,6 +46,8 @@ it("drops malformed values and stays usable without storage", () => {
       pongWatch: "yes",
       pongAdaptive: true,
       pongFirstTo: 500,
+      tictactoeDifficulty: "unknown",
+      tictactoeWatch: "yes",
       speeds: { pong: 900, snake: 200, unknown: 100 },
     }),
   );
@@ -53,6 +57,8 @@ it("drops malformed values and stays usable without storage", () => {
     pongWatch: false,
     pongAdaptive: true,
     pongFirstTo: 5,
+    tictactoeDifficulty: "regular",
+    tictactoeWatch: false,
   });
   expect(readWebPreferences(null).pongDifficulty).toBe("regular");
   storage.setItem(WEB_PREFERENCES_KEY, "broken json");

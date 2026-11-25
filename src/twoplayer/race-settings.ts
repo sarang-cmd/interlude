@@ -3,13 +3,7 @@ import type { GameId } from "../games/catalog";
 import { cleanPlayerName } from "./pong-settings";
 import { readLocalJson, writeLocalJson, type LocalStorage } from "./local-storage";
 
-export type RaceGameId = Exclude<GameId, "pong">;
-export type RaceAction = Exclude<GameAction, "confirm" | "pause">;
-export type RaceKeys = [Partial<Record<RaceAction, string>>, Partial<Record<RaceAction, string>>];
-export type RaceWinner = 1 | 2 | null;
-export const RACE_DURATIONS = [30, 60, 120, 180, 300] as const;
-export const RACE_HANDICAPS = [100, 125, 150, 200] as const;
-export const RACE_GAMES: readonly RaceGameId[] = [
+export const RACE_GAMES = [
   "snake",
   "breakout",
   "flappy",
@@ -17,7 +11,13 @@ export const RACE_GAMES: readonly RaceGameId[] = [
   "blockfall",
   "rockfall",
   "dashline",
-];
+] as const satisfies readonly GameId[];
+export type RaceGameId = (typeof RACE_GAMES)[number];
+export type RaceAction = Exclude<GameAction, "confirm" | "pause">;
+export type RaceKeys = [Partial<Record<RaceAction, string>>, Partial<Record<RaceAction, string>>];
+export type RaceWinner = 1 | 2 | null;
+export const RACE_DURATIONS = [30, 60, 120, 180, 300] as const;
+export const RACE_HANDICAPS = [100, 125, 150, 200] as const;
 export const RACE_RECORDS_KEY = "interlude.website.race.records.v1";
 export const raceSettingsKey = (game: RaceGameId): string =>
   `interlude.website.race.${game}.settings.v1`;

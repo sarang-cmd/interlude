@@ -60,6 +60,8 @@ export interface GameContext {
   readonly settings: InterludeSettings;
   /** Personal best for this game (already loaded). */
   readonly highScore: number;
+  /** Announce meaningful game state to assistive technology, without reading the host page. */
+  announce?(text: string): void;
   /** End the run; engine persists the high score and shows GAME OVER. */
   reportGameOver(): Promise<void>;
 }
@@ -79,6 +81,8 @@ export interface ArcadeGame {
   /** alpha in [0,1) — interpolation factor between fixed steps. */
   render(alpha: number): void;
   destroy(): void;
+  /** Cancel in-flight work when play is paused, hidden or stopped. */
+  suspend?(): void;
   /** Arcade-manual hint line for the READY screen. */
   readyHint: string;
   /** Called instead of fixedUpdate when the game is in 'ready' attract mode. */

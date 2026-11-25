@@ -44,6 +44,8 @@ describe("game metadata and surface modes", () => {
     expect(PLATFORM).toBe("extension");
     expect(await availableModes("pong")).toEqual(sharedModesFor("pong", "extension"));
     expect((await availableModes("pong")).map((mode) => mode.id)).toEqual(["cpu", "watch"]);
+    expect((await availableModes("tictactoe")).map((mode) => mode.id)).toEqual(["cpu", "watch"]);
+    expect(localModesFor("tictactoe").map((mode) => mode.id)).toEqual(["local"]);
     expect(localModesFor("pong").map((mode) => mode.id)).toEqual(["local"]);
     for (const id of GAME_IDS) {
       expect(localModesFor(id).map((mode) => mode.id)).toEqual(

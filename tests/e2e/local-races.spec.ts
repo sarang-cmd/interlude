@@ -139,3 +139,79 @@ test("both players have usable touch controls on a narrow screen", async ({ brow
   await expect(canvas).toHaveAttribute("data-scene", "playing");
   await context.close();
 });
+
+test("two simultaneous touch points drive both race boards independently", async ({ browser }) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 1000 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  try {
+    const page = await context.newPage();
+    await page.goto(SITE);
+    await selectRace(page, "twenty48", "2048");
+    const canvas = page.locator("#game-canvas");
+    await page.getByRole("button", { name: "START GAME" }).tap();
+    await expect(canvas).toHaveAttribute("data-scene", "playing");
+    const left = page.getByRole("button", { name: "Player 1 slide left", exact: true });
+    const right = page.getByRole("button", { name: "Player 2 slide right", exact: true });
+    await right.scrollIntoViewIfNeeded();
+    const a = await left.boundingBox();
+    const b = await right.boundingBox();
+    if (!a || !b) throw new Error("Both touch controls must be visible");
+    for (const box of [a, b]) {
+      expect(box.x + box.width / 2).toBeGreaterThan(0);
+      expect(box.x + box.width / 2).toBeLessThan(390);
+      expect(box.y + box.height / 2).toBeGreaterThan(0);
+      expect(box.y + box.height / 2).toBeLessThan(1000);
+    }
+    const before = [await boardHash(canvas, 1), await boardHash(canvas, 2)];
+    await page.evaluate(() => {
+      const trace: Array<{ type: string; id: number; pointerType: string }> = [];
+      (window as unknown as { raceTouchTrace: typeof trace }).raceTouchTrace = trace;
+      for (const label of ["Player 1 slide left", "Player 2 slide right"]) {
+        const button = document.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!;
+        for (const type of ["pointerdown", "pointerup"] as const)
+          button.addEventListener(type, (event) =>
+            trace.push({ type, id: event.pointerId, pointerType: event.pointerType }),
+          );
+      }
+    });
+    const cdp = await context.newCDPSession(page);
+    const points = [
+      { x: a.x + a.width / 2, y: a.y + a.height / 2, id: 1 },
+      { x: b.x + b.width / 2, y: b.y + b.height / 2, id: 2 },
+    ];
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: points });
+    // Check while both contacts are still down, not after sequential taps.
+    await expect.poll(() => boardHash(canvas, 1)).not.toBe(before[0]);
+    await expect.poll(() => boardHash(canvas, 2)).not.toBe(before[1]);
+    let trace = await page.evaluate(
+      () =>
+        (
+          window as unknown as {
+            raceTouchTrace: Array<{ type: string; id: number; pointerType: string }>;
+          }
+        ).raceTouchTrace,
+    );
+    expect(trace.filter((event) => event.type === "pointerdown")).toHaveLength(2);
+    expect(new Set(trace.map((event) => event.id)).size).toBe(2);
+    expect(trace.every((event) => event.pointerType === "touch")).toBe(true);
+    expect(trace.some((event) => event.type === "pointerup")).toBe(false);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [points[1]!] });
+    trace = await page.evaluate(
+      () =>
+        (
+          window as unknown as {
+            raceTouchTrace: Array<{ type: string; id: number; pointerType: string }>;
+          }
+        ).raceTouchTrace,
+    );
+    expect(trace.filter((event) => event.type === "pointerup")).toHaveLength(1);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await cdp.detach();
+    await expect(canvas).toHaveAttribute("data-scene", "playing");
+  } finally {
+    await context.close();
+  }
+});

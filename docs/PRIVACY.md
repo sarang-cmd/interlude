@@ -50,6 +50,20 @@ until the page closes. Clearing the site's browser storage removes those website
 records. Visiting the website still exposes ordinary IP and HTTP/TLS metadata to
 the host, as with any website.
 
+## Local game AI
+
+Tic-Tac-Toe search runs in a dedicated local worker. The website loads that
+worker as a static asset from its own host. On the extension, a temporary
+extension-origin frame hosts the packaged worker because a content script cannot
+start an extension-origin worker directly from a chat page. The private message
+channel carries only the game board and bounded search settings, not prompts,
+responses, page DOM or chat text. The host is accessible only on the three
+permitted sites and exposes no general storage or script-execution API. A
+malicious host page can interfere with the frame; the game can fall back to a
+basic local move if the worker cannot complete. The frame and worker are removed
+on completion, cancellation or timeout. No additional extension permissions
+or remote AI services are used.
+
 ## Extension-initiated network requests
 
 There are exactly two automatic JSON check purposes; both are GETs, at most once
@@ -91,7 +105,8 @@ report before publishing it.
 `npm run check:privacy:built` inspects the built manifest, JavaScript, HTML and
 CSS, disallows extra permissions/hosts and analytics markers, and checks that
 only the two documented callers use the single guarded GET transport. Its
-negative tests inject prohibited calls, headers, permissions and external assets.
+negative tests inject prohibited calls, headers, permissions, remote workers,
+arbitrary frames and external assets.
 These conservative static checks and synthetic browser tests are safeguards,
 **not a formal proof** against every possible obfuscation or browser behavior;
 review the built extension and network behavior as well.

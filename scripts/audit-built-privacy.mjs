@@ -14,7 +14,10 @@ const violations = [];
 let fetchCount = 0,
   selectorCalls = 0,
   updateCalls = 0,
-  nativeForwardCount = 0;
+  nativeForwardCount = 0,
+  workerCount = 0,
+  frameCount = 0,
+  frameSourceCount = 0;
 let foundSelectorUrl = false,
   foundUpdateUrl = false;
 function fail(file, text) {
@@ -102,6 +105,82 @@ function forbiddenSink(name) {
     "Function",
   ]).has(name);
 }
+/** Only Vite's static extension-owned search worker is permitted. */
+function approvedWorker(node, file) {
+  if (
+    !ts.isNewExpression(node) ||
+    !ts.isIdentifier(node.expression) ||
+    node.expression.text !== "Worker"
+  )
+    return false;
+  if (
+    ancestorFunction(node) !== "searchInWorker" ||
+    node.arguments?.length !== 2 ||
+    (file !== "ai-worker-host.js" && !/^chunks\/worker-client-[A-Za-z0-9_-]+\.js$/.test(file))
+  )
+    return false;
+  const [outer, options] = node.arguments;
+  if (
+    !outer ||
+    !ts.isNewExpression(outer) ||
+    !ts.isIdentifier(outer.expression) ||
+    outer.expression.text !== "URL" ||
+    outer.arguments?.length !== 2
+  )
+    return false;
+  const [href, outerBase] = outer.arguments;
+  if (
+    !href ||
+    !ts.isBinaryExpression(href) ||
+    href.operatorToken.kind !== ts.SyntaxKind.PlusToken ||
+    staticString(href.left) !== "" ||
+    outerBase?.getText() !== "import.meta.url"
+  )
+    return false;
+  const property = href.right;
+  if (!ts.isPropertyAccessExpression(property) || property.name.text !== "href") return false;
+  const inner = property.expression;
+  if (
+    !ts.isNewExpression(inner) ||
+    !ts.isIdentifier(inner.expression) ||
+    inner.expression.text !== "URL" ||
+    inner.arguments?.length !== 2
+  )
+    return false;
+  const [url, base] = inner.arguments;
+  if (
+    !url ||
+    !ts.isStringLiteralLike(url) ||
+    !/^(?:\.\.\/)?assets\/search-worker-[A-Za-z0-9_-]+\.js$/.test(url.text) ||
+    base?.getText() !== "import.meta.url"
+  )
+    return false;
+  if (!options || !ts.isObjectLiteralExpression(options) || options.properties.length !== 1)
+    return false;
+  const option = options.properties[0];
+  if (
+    !ts.isPropertyAssignment(option) ||
+    option.name.getText() !== "type" ||
+    staticString(option.initializer) !== "module"
+  )
+    return false;
+  const resolved = path.resolve(root, path.dirname(file), url.text);
+  const assetRoot = path.join(root, "assets") + path.sep;
+  return (
+    resolved.startsWith(assetRoot) && fs.existsSync(resolved) && fs.statSync(resolved).isFile()
+  );
+}
+
+function approvedFrame(node) {
+  return (
+    ts.isCallExpression(node) &&
+    node.expression.getText() === "document.createElement" &&
+    node.arguments.length === 1 &&
+    staticString(node.arguments[0]) === "iframe" &&
+    ancestorFunction(node) === "searchInExtensionFrame"
+  );
+}
+
 function auditJS(filename, contents) {
   const file = path.relative(root, filename),
     source = ts.createSourceFile(file, contents, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
@@ -111,7 +190,9 @@ function auditJS(filename, contents) {
       const value = node.text;
       if (value === selectorUrl) foundSelectorUrl = true;
       if (value === updateUrl) foundUpdateUrl = true;
-      if (/^https?:\/\//i.test(value) && !allowedURL(value))
+      const workerHostOrigin =
+        file === "ai-worker-host.js" && hosts.some((host) => host.slice(0, -2) === value);
+      if (/^https?:\/\//i.test(value) && !allowedURL(value) && !workerHostOrigin)
         fail(file, `unapproved absolute URL ${value}`);
     }
     if (ts.isTemplateExpression(node)) {
@@ -144,7 +225,10 @@ function auditJS(filename, contents) {
     if (ts.isCallExpression(node) || ts.isNewExpression(node)) {
       const expression = node.expression;
       const name = ts.isIdentifier(expression) ? expression.text : propertyName(expression);
-      if (name && forbiddenSink(name)) fail(file, `forbidden network/dynamic API ${name}`);
+      if (name && forbiddenSink(name)) {
+        if (name === "Worker" && approvedWorker(node, file)) workerCount++;
+        else fail(file, `forbidden network/dynamic API ${name}`);
+      }
       if (name === "fetch") {
         fetchCount++;
         const args = node.arguments ?? [];
@@ -231,16 +315,30 @@ function auditJS(filename, contents) {
         /^(?:script|iframe|img|image|audio|video|source|object|embed)$/i.test(
           node.arguments[0].text,
         )
+      ) {
+        if (approvedFrame(node)) frameCount++;
+        else fail(file, `dynamic network element ${node.arguments[0].text}`);
+      }
+      if (
+        name === "setAttribute" &&
+        node.arguments?.[0] &&
+        ts.isStringLiteralLike(node.arguments[0]) &&
+        /^(?:src|srcdoc|srcset|href|data)$/i.test(node.arguments[0].text)
       )
-        fail(file, `dynamic network element ${node.arguments[0].text}`);
+        fail(file, "dynamic resource attribute");
       if (ts.isIdentifier(expression) && expression.text === "__vitePreload") {
         const deps = node.arguments?.[1]?.getText(source);
         if (deps !== "true ? [] : void 0" && deps !== "[]")
           fail(file, "nonempty Vite preload dependencies");
       }
     }
-    if (ts.isIdentifier(node) && forbiddenSink(node.text))
-      fail(file, `forbidden network/dynamic API reference ${node.text}`);
+    if (ts.isIdentifier(node) && forbiddenSink(node.text)) {
+      const approved =
+        node.text === "Worker" &&
+        node.parent.expression === node &&
+        approvedWorker(node.parent, file);
+      if (!approved) fail(file, `forbidden network/dynamic API reference ${node.text}`);
+    }
     if (ts.isIdentifier(node) && node.text === "fetchStaticJSON") {
       const parent = node.parent;
       const allowed =
@@ -297,7 +395,12 @@ function auditJS(filename, contents) {
         file === "diagnostics.js" &&
         left === 'byId("issue").href' &&
         right.startsWith("`https://github.com/sarang-cmd/interlude/issues/new?");
-      if (!vite && !exportDownload && !issue)
+      const workerFrame =
+        left === "frame.src" &&
+        right === 'chrome.runtime.getURL("ai-worker-host.html")' &&
+        ancestorFunction(node) === "searchInExtensionFrame";
+      if (workerFrame) frameSourceCount++;
+      if (!vite && !exportDownload && !issue && !workerFrame)
         fail(file, `unapproved resource/navigation assignment ${left}`);
     }
     ts.forEachChild(node, visit);
@@ -326,9 +429,21 @@ for (const key of ["optional_permissions", "optional_host_permissions", "externa
 for (const script of manifest.content_scripts ?? [])
   if (!Array.isArray(script.matches) || script.matches.some((host) => !hosts.includes(host)))
     fail("manifest.json", "unexpected content-script matches");
-for (const item of manifest.web_accessible_resources ?? [])
+const approvedResources = [
+  "fonts/*.woff2",
+  "content-entry.js",
+  "chunks/*.js",
+  "ai-worker-host.html",
+];
+for (const item of manifest.web_accessible_resources ?? []) {
   if (!Array.isArray(item.matches) || item.matches.some((host) => !hosts.includes(host)))
     fail("manifest.json", "unexpected resource matches");
+  if (
+    !Array.isArray(item.resources) ||
+    item.resources.some((resource) => !approvedResources.includes(resource))
+  )
+    fail("manifest.json", "unexpected web-accessible resource");
+}
 const analytics =
   /google-analytics|googletagmanager|mixpanel|segment\.io|amplitude\.com|sentry\.io|posthog|doubleclick|telemetry|analytics/i;
 for (const filename of files(root)) {
@@ -356,6 +471,22 @@ for (const filename of files(root)) {
       validateCSS(file, style.textContent ?? "");
   }
 }
+const exposesWorkerHost = (manifest.web_accessible_resources ?? []).some(
+  (item) => Array.isArray(item.resources) && item.resources.includes("ai-worker-host.html"),
+);
+if (exposesWorkerHost) {
+  if (workerCount !== 1 || frameCount !== 1 || frameSourceCount !== 1)
+    fail(
+      "bundle",
+      `expected one local worker and frame, found ${workerCount}/${frameCount}/${frameSourceCount}`,
+    );
+  if (
+    !fs.existsSync(path.join(root, "ai-worker-host.html")) ||
+    !fs.existsSync(path.join(root, "ai-worker-host.js"))
+  )
+    fail("bundle", "local worker host is missing");
+} else if (workerCount || frameCount || frameSourceCount)
+  fail("bundle", "worker host is not declared");
 if (fetchCount !== 1) fail("bundle", `expected exactly one guarded fetch, found ${fetchCount}`);
 if (selectorCalls !== 1 || updateCalls !== 1)
   fail(

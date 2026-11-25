@@ -9,6 +9,7 @@ import {
 } from "@playwright/test";
 import path from "node:path";
 import fs from "node:fs";
+import { GAME_IDS } from "../../src/games/catalog";
 
 type Debug = {
   state: string;
@@ -252,7 +253,7 @@ test("reparents the original closed host when the latest turn is replaced", asyn
   await expect(host).toHaveCount(1);
 });
 
-test("all eight lazy-loaded games start from the picker", async () => {
+test("all nine lazy-loaded games start from the picker", async () => {
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -266,6 +267,7 @@ test("all eight lazy-loaded games start from the picker", async () => {
     "blockfall",
     "rockfall",
     "dashline",
+    "tictactoe",
   ]) {
     await selectGame(id);
     await expect(host).toHaveAttribute("data-interlude-game", id);
@@ -875,6 +877,7 @@ test("each cabinet can start from its touch controls", async () => {
     "blockfall",
     "rockfall",
     "dashline",
+    "tictactoe",
   ]) {
     await selectGame(id);
     await expect(host).toHaveAttribute("data-interlude-game", id);
@@ -1191,27 +1194,25 @@ test("first-message-only closes a previous cabinet and suppresses later response
 });
 
 test("preload none and enabled-game filtering only load a permitted cabinet", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.sync.set({
-      "interlude.settings.v2": {
-        version: 2,
-        global: {
-          delayMs: 0,
-          skipBoot: true,
-          muted: true,
-          preload: "none",
-          game: "random",
-          "game.snake.enabled": false,
-          "game.breakout.enabled": false,
-          "game.flappy.enabled": false,
-          "game.twenty48.enabled": false,
-          "game.blockfall.enabled": false,
-          "game.rockfall.enabled": false,
-          "game.dashline.enabled": false,
+  await worker.evaluate(
+    (ids) =>
+      chrome.storage.sync.set({
+        "interlude.settings.v2": {
+          version: 2,
+          global: {
+            delayMs: 0,
+            skipBoot: true,
+            muted: true,
+            preload: "none",
+            game: "random",
+            ...Object.fromEntries(
+              ids.filter((id) => id !== "pong").map((id) => [`game.${id}.enabled`, false]),
+            ),
+          },
+          sites: {},
         },
-        sites: {},
-      },
-    }),
+      }),
+    [...GAME_IDS],
   );
   const loaded: string[] = [];
   page.on("request", (request) => {

@@ -25,8 +25,18 @@ const COOP_2048: GameMode = {
   surfaces: ["web"],
 };
 
+const TICTACTOE_LOCAL: GameMode = {
+  id: "local",
+  label: "TWO PLAYERS / SHARED BOARD",
+  description:
+    "Take turns on one device, sharing the controls. Local matches do not change solo scores.",
+  players: 2,
+  surfaces: ["web"],
+};
+
 export function localModesFor(gameId: string): readonly GameMode[] {
   if (gameId === "pong") return [PONG_LOCAL];
+  if (gameId === "tictactoe") return [TICTACTOE_LOCAL];
   if (gameId === "twenty48") return [RACE_LOCAL, COOP_2048];
   return isRaceGame(gameId) ? [RACE_LOCAL] : [];
 }
@@ -39,6 +49,8 @@ export async function loadLocalGame(gameId: string, modeId: string): Promise<Arc
   switch (gameId) {
     case "pong":
       return new (await import("../games/pong/pong.2p")).PongLocalGame();
+    case "tictactoe":
+      return new (await import("../games/tictactoe/tictactoe.2p")).TicTacToeLocalGame();
     case "snake":
       return new (await import("../games/snake/snake.2p")).SnakeLocalRace();
     case "breakout":

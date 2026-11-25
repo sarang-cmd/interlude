@@ -35,7 +35,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["fonts/*.woff2", "content-entry.js", "chunks/*.js"],
+      "resources": ["fonts/*.woff2", "content-entry.js", "chunks/*.js", "ai-worker-host.html"],
       "matches": ["https://claude.ai/*", "https://chatgpt.com/*", "https://gemini.google.com/*"]
     }
   ],

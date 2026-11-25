@@ -16,11 +16,13 @@ for the current page session. The web arcade does not connect to your chats.
 Install the extension below if you want the cabinet to appear inside a chat.
 The public site currently runs the earlier eight-game build. This branch adds
 five Pong CPU levels, adaptive difficulty, watch mode and website-only local
-matches. Pong uses two paddles. The other seven cabinets use split-screen races
-with seeded starts, remappable keys, touch controls and a series scoreboard.
-Race boards are independent. 2048 also has a shared-board co-op mode with
-alternating turns. These additions are not deployed yet. Watch and local
-matches do not change solo records. Speed controls cover 25% to 400%.
+matches. Pong uses two paddles. The other seven original cabinets use
+split-screen races with seeded starts, remappable keys, touch controls and a
+series scoreboard. Race boards are independent. 2048 also has shared-board
+co-op with alternating turns. This branch adds a ninth game, Tic-Tac-Toe, with
+five CPU levels, watch mode and a website-only shared-control hot-seat match.
+These additions are not deployed yet. Watch and local matches do not change
+solo records. Speed controls cover 25% to 400%.
 
 > Claude, ChatGPT and Gemini use structural signals. ChatGPT and Gemini are
 > **BETA**. Automated site checks use synthetic pages rather than signed-in
@@ -62,6 +64,7 @@ normal one-time tab reload.
 | Blockfall     | Seven-bag pieces, kicks, hold and ghost.                      |
 | Rockfall Belt | Inertial flight, splitting rocks and shields.                 |
 | Dashline      | Tap or hold to vary jump height.                              |
+| Tic-Tac-Toe   | Three in a row against the CPU; hot-seat on the website.      |
 
 Each cabinet has configurable enablement, speed, difficulty, mute and key
 bindings. Keyboard input is focus-gated; pointer, touch and standard gamepad

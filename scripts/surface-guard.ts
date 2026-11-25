@@ -25,10 +25,17 @@ export function surfaceGuard(surface: Platform): Plugin {
       if (surface === "web" && !webOnly.some((id) => id.includes("/src/twoplayer/registry.ts"))) {
         this.error("Web mode registry missing from the website build");
       }
-      const sizes = chunks.map((chunk) => ({
-        file: chunk.fileName,
-        bytes: Buffer.byteLength(chunk.code),
-      }));
+      // Vite emits dedicated worker bundles as assets, not Rollup chunks.
+      // Count them too so the reported JavaScript budget covers shipped code.
+      const sizes = Object.values(bundle)
+        .filter((entry) => entry.type === "chunk" || entry.fileName.endsWith(".js"))
+        .map((entry) => ({
+          file: entry.fileName,
+          bytes:
+            entry.type === "chunk"
+              ? Buffer.byteLength(entry.code)
+              : Buffer.byteLength(entry.source),
+        }));
       const total = sizes.reduce((sum, item) => sum + item.bytes, 0);
       const largest = sizes.reduce((max, item) => Math.max(max, item.bytes), 0);
       const budget = BUDGETS[surface];

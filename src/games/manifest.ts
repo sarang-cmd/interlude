@@ -22,7 +22,7 @@ const CPU: GameMode = {
 const WATCH: GameMode = {
   id: "watch",
   label: "WATCH CPU",
-  description: "Watch two CPU paddles play. Watch matches do not save records.",
+  description: "Watch two CPU opponents play. Watch matches do not save records.",
   players: 0,
   surfaces: BOTH,
 };
@@ -140,6 +140,20 @@ export const DASHLINE_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("dashline"),
 };
 
+export const TICTACTOE_MANIFEST: GameManifest = {
+  ...common,
+  id: "tictactoe",
+  name: "TIC-TAC-TOE",
+  description: "Three in a row. Choose a square and outsmart the machine.",
+  controls: "ARROWS SELECT · SPACE MARK · TAP A SQUARE",
+  defaultDifficulty: "regular",
+  category: "board",
+  runLength: "Under 2 minutes",
+  modes: [CPU, WATCH],
+  ai: { opponent: true, watchable: true },
+  playerOneBindings: playerOneBindings("tictactoe"),
+};
+
 export const GAME_MANIFESTS: readonly GameManifest[] = [
   SNAKE_MANIFEST,
   BREAKOUT_MANIFEST,
@@ -149,6 +163,7 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   BLOCKFALL_MANIFEST,
   ROCKFALL_MANIFEST,
   DASHLINE_MANIFEST,
+  TICTACTOE_MANIFEST,
 ];
 
 export const DEFAULT_GAME_ID = "snake";
@@ -184,6 +199,8 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
   blockfall: async () => new (await import("./blockfall/game")).BlockfallGame(),
   rockfall: async () => new (await import("./rockfall/game")).RockfallGame(),
   dashline: async () => new (await import("./dashline/game")).DashlineGame(),
+  tictactoe: async (mode) =>
+    new (await import("./tictactoe/game")).TicTacToeGame(mode ? mode === "watch" : undefined),
 };
 
 /** Lazy-load a game. A mode must be implemented on this build's surface. */

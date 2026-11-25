@@ -2,6 +2,13 @@
 
 ## Unreleased / browser arcade
 
+- Add Tic-Tac-Toe on both surfaces with five CPU levels, CPU watch and a
+  website-only shared-board hot-seat mode. A bounded local worker performs
+  search; watch and hot-seat matches do not write solo scores.
+- Add website-only local Pong, split-screen races for the other seven original
+  cabinets, and shared-board 2048 co-op. Add Pong CPU tiers, optional adaptive
+  difficulty, CPU watch and per-game speed controls.
+
 - Make all eight games playable on the website using the shared canvas engine,
   with keyboard, touch and gamepad controls, pause/reset, optional sound and
   website-local high scores. Gameplay freezes when out of view.

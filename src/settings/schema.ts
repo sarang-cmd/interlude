@@ -61,6 +61,7 @@ const gameOptions = opts(
   ["blockfall", "Blockfall"],
   ["rockfall", "Rockfall Belt"],
   ["dashline", "Dashline"],
+  ["tictactoe", "Tic-Tac-Toe"],
 );
 
 const BASE = [
@@ -352,6 +353,33 @@ const BASE = [
     description: "Points needed to win a match.",
     category: "Games",
     tags: ["pong", "score"],
+    perSite: true,
+  }),
+  def({
+    id: "tictactoeDifficulty",
+    type: "enum",
+    default: "regular",
+    label: "Tic-Tac-Toe / AI level",
+    description: "Search strength and error rate of the machine.",
+    category: "Games",
+    tags: ["tictactoe", "ai", "difficulty"],
+    perSite: true,
+    options: opts(
+      ["rookie", "Rookie"],
+      ["easy", "Easy"],
+      ["regular", "Regular"],
+      ["hard", "Hard"],
+      ["veteran", "Veteran"],
+    ),
+  }),
+  def({
+    id: "tictactoeWatch",
+    type: "boolean",
+    default: false,
+    label: "Tic-Tac-Toe / watch CPU match",
+    description: "Watch two CPU opponents. Watch matches never save records.",
+    category: "Games",
+    tags: ["tictactoe", "ai", "watch", "bot"],
     perSite: true,
   }),
   def({
@@ -758,6 +786,7 @@ const names: Record<GameId, string> = {
   blockfall: "Blockfall",
   rockfall: "Rockfall Belt",
   dashline: "Dashline",
+  tictactoe: "Tic-Tac-Toe",
 };
 const generated: SettingDefinition[] = GAME_IDS.flatMap((game) => [
   {
@@ -833,9 +862,13 @@ type ValueFor<T> = T extends { type: "boolean" }
         : string;
 type BaseValues = { [D in (typeof BASE)[number] as D["id"]]: ValueFor<D> };
 export type Placement = "inline" | "overlay" | "docked-composer" | "side-panel";
-export type InterludeSettings = Omit<BaseValues, "placement" | "pongDifficulty"> & {
+export type InterludeSettings = Omit<
+  BaseValues,
+  "placement" | "pongDifficulty" | "tictactoeDifficulty"
+> & {
   placement: Placement;
   pongDifficulty: AIDifficulty;
+  tictactoeDifficulty: AIDifficulty;
 } & Record<string, SettingValue>;
 
 export function defaults(): InterludeSettings {

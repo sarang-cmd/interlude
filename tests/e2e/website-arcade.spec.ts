@@ -11,9 +11,10 @@ const games = [
   { id: "blockfall", name: "BLOCKFALL", control: "Rotate" },
   { id: "rockfall", name: "ROCKFALL BELT", control: "Fire" },
   { id: "dashline", name: "DASHLINE", control: "Jump or hold to jump higher" },
+  { id: "tictactoe", name: "TIC-TAC-TOE", control: "Select left" },
 ] as const;
 
-test("all eight games load, start, and respond to their on-screen controls", async ({ page }) => {
+test("all nine games load, start, and respond to their on-screen controls", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1600 });
   const errors: string[] = [];
   const external: string[] = [];

@@ -15,6 +15,7 @@ and never use networking.
 | Blockfall     | Solo              | Solo, split-screen race        | No         |
 | Rockfall Belt | Solo              | Solo, split-screen race        | No         |
 | Dashline      | Solo              | Solo, split-screen race        | No         |
+| Tic-Tac-Toe   | vs CPU, watch CPU | vs CPU, watch CPU, hot-seat    | No         |
 
 Scores persist separately on each surface. The existing 2048 undo is not a saved
 run. The shared manifest lists default player-one keys, inputs, categories and
@@ -33,6 +34,48 @@ not pass solely because both builds dropped the registry.
 All eight original games now have a website-only local mode. Unknown or
 unavailable modes are rejected. These changes are local to this branch and are
 not deployed to the public site.
+
+## Tic-Tac-Toe
+
+X begins. On both surfaces, play X against the CPU's O or watch two CPUs. On the
+website, two people can take turns on the same board using the same keyboard,
+controller or on-screen controls; a pointer or touch can select a square
+directly. The hot-seat match uses one shared control mapping: it has no separate
+player names, series scoreboard, local match history or per-player remaps.
+It is not a split-screen race. It never changes solo high scores.
+
+The CPU has Rookie, Easy, Regular, Hard and Veteran tiers, each with a bounded
+minimax search depth and seeded error rate. With a functioning worker, Veteran
+searches every remaining move and never deliberately makes a mistake. A unit
+test explores every opponent reply against the deterministic Veteran on both
+sides. If the worker is blocked, fails or times out, a small tactical fallback
+first attempts an immediate win or block and otherwise chooses a legal square.
+The canvas shows `CPU: BASIC` and the accessible status says `using fallback`;
+that fallback is not guaranteed unbeatable. Watch or partly watched runs never
+write human records. In a human-versus-CPU game, a win scores 1,000 plus 50 per
+empty square, a draw scores 200 and a loss scores zero. The best score is local
+to the surface, not a ranking across difficulty levels.
+
+Arrow keys move the highlighted square and Space places a mark. The board's
+live accessibility status describes each move, the selected cell and the three
+rows; an occupied cell does not advance the turn. P pauses. Match state is not
+saved across reloads. The webpage persists CPU level and watch preference in
+localStorage; the extension uses its normal validated settings store.
+
+### CPU simulation
+
+Run `npx tsx scripts/simulate-tictactoe.ts` for 300 seeded games per tier: a
+random X against CPU O. This is one artificial opponent, not a human playtest.
+Veteran's safe, deterministic tie-breaking leads to more draws rather than
+maximizing wins against random mistakes.
+
+| CPU     | CPU wins | Random X wins | Draws |
+| ------- | -------: | ------------: | ----: |
+| Rookie  |      204 |            51 |    45 |
+| Easy    |      217 |            34 |    49 |
+| Regular |      253 |            13 |    34 |
+| Hard    |      267 |             4 |    29 |
+| Veteran |      248 |             0 |    52 |
 
 ## Split-screen races
 
@@ -106,9 +149,10 @@ speeds per game. Extension settings also accept other multiples of five within
 below the normal fixed-step size. Site preferences remain in localStorage.
 
 The reusable AI library includes seeded error and reaction helpers, bounded
-minimax, Monte Carlo playouts and a terminating worker client. The worker has a
-three-in-a-row search task for later board games. Pong uses the reaction and
-adaptive helpers directly and does not start a worker.
+minimax, Monte Carlo playouts and a terminating worker client. Tic-Tac-Toe uses
+the local three-in-a-row worker; Pong uses the reaction and adaptive helpers
+directly and does not start a worker. See [ARCHITECTURE.md](ARCHITECTURE.md)
+for the extension-origin worker bridge and cancellation behavior.
 
 ## Pong simulation
 

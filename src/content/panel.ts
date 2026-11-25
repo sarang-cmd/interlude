@@ -15,6 +15,7 @@ const CSS = `
 @font-face{font-family:VT323;src:url('${fontUrl("vt323")}') format('woff2');font-display:swap}
 @font-face{font-family:'IBM Plex Mono';src:url('${fontUrl("ibm-plex-mono-400")}') format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:'IBM Plex Mono';src:url('${fontUrl("ibm-plex-mono-600")}') format('woff2');font-weight:600;font-display:swap}
+.announcement{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 :host{all:initial;box-sizing:border-box;color:#DDC796;font-family:'IBM Plex Mono',monospace;contain:style}
 *,*::before,*::after{box-sizing:border-box} button,select{font:inherit;border-radius:0}
 .machine{font-family:'IBM Plex Mono',monospace;background:#0E0B07;color:#DDC796;border:2px solid #7A5600;box-shadow:4px 4px 0 #000;overflow:hidden;width:100%}
@@ -94,6 +95,13 @@ const CONTROL_SETS: Record<string, Array<[string, GameAction]>> = {
     ["FIRE", "primary"],
   ],
   dashline: [["JUMP / HOLD", "primary"]],
+  tictactoe: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+    ["MARK", "primary"],
+  ],
 };
 
 function node<K extends keyof HTMLElementTagNameMap>(
@@ -144,8 +152,12 @@ export class Panel {
   private readonly quickPongAI = node("select");
   private readonly quickPongWatch = node("select");
   private readonly quickPongAdaptive = node("select");
+  private readonly quickTic = node("div", "quick-tic");
+  private readonly quickTicAI = node("select");
+  private readonly quickTicWatch = node("select");
   private readonly daily = node("span", "daily");
   private readonly notice = node("div", "notice");
+  private readonly announcement = node("div", "announcement");
   private readonly lockMessage = node("div", "lock-message", "OUT OF COINS. BACK TO WORK.");
   private locked = false;
   private settings: InterludeSettings;
@@ -267,6 +279,31 @@ export class Panel {
     row("ADAPTIVE CPU", this.quickPongAdaptive, this.quickPong);
     this.quickPong.hidden = true;
     this.drawer.append(this.quickPong);
+    for (const level of AI_LEVELS) {
+      const option = node("option", "", level.toUpperCase());
+      option.value = level;
+      this.quickTicAI.append(option);
+    }
+    this.quickTicAI.setAttribute("aria-label", "Tic-Tac-Toe CPU level");
+    this.quickTicAI.addEventListener("change", () =>
+      this.events.onQuickChange({ tictactoeDifficulty: this.quickTicAI.value }),
+    );
+    row("TIC-TAC-TOE CPU", this.quickTicAI, this.quickTic);
+    for (const [value, label] of [
+      ["false", "PLAY VS CPU"],
+      ["true", "WATCH CPU"],
+    ]) {
+      const option = node("option", "", label);
+      option.value = value!;
+      this.quickTicWatch.append(option);
+    }
+    this.quickTicWatch.setAttribute("aria-label", "Tic-Tac-Toe watch mode");
+    this.quickTicWatch.addEventListener("change", () =>
+      this.events.onQuickChange({ tictactoeWatch: this.quickTicWatch.value === "true" }),
+    );
+    row("TIC-TAC-TOE MODE", this.quickTicWatch, this.quickTic);
+    this.quickTic.hidden = true;
+    this.drawer.append(this.quickTic);
     this.quickVolume.type = "range";
     this.quickVolume.min = "0";
     this.quickVolume.max = "100";
@@ -313,7 +350,11 @@ export class Panel {
       "Game screen. Click to focus. Escape returns to the composer.",
     );
     this.canvas.setAttribute("role", "application");
-    this.screen.append(this.canvas, this.done);
+    this.announcement.id = "game-announcement";
+    this.announcement.setAttribute("role", "status");
+    this.announcement.setAttribute("aria-live", "polite");
+    this.canvas.setAttribute("aria-describedby", "game-announcement");
+    this.screen.append(this.canvas, this.done, this.announcement);
     this.done.hidden = true;
     const resume = node("button", "resume", "RESUME");
     resume.type = "button";
@@ -341,6 +382,9 @@ export class Panel {
       doneLabel: `${siteName.toUpperCase()} IS DONE`,
       onFirstFrame: () => this.events.onFirstFrame(),
       onStateChange: (state) => this.sceneChanged(state),
+      onAnnouncement: (text) => {
+        this.announcement.textContent = text;
+      },
     });
     // Register before Input: pointerdown puts focus on the canvas in the same event.
     this.canvas.addEventListener("pointerdown", () => this.focus());
@@ -466,7 +510,9 @@ export class Panel {
     this.engine.input.setKeymapOverrides(map);
   }
   private updateModeControls(): void {
-    const watching = this.currentGameId === "pong" && this.settings.pongWatch;
+    const watching =
+      (this.currentGameId === "pong" && this.settings.pongWatch) ||
+      (this.currentGameId === "tictactoe" && this.settings.tictactoeWatch);
     const caption = this.controls.querySelector<HTMLElement>(".caption");
     if (caption) caption.textContent = watching ? "WATCH CPU / NO RECORDS" : "PLAYER CONTROLS";
     for (const button of this.controls.querySelectorAll<HTMLButtonElement>("button")) {
@@ -475,6 +521,7 @@ export class Panel {
   }
   private syncQuickControls(): void {
     this.quickPong.hidden = this.currentGameId !== "pong";
+    this.quickTic.hidden = this.currentGameId !== "tictactoe";
     this.quickSpeed.disabled = !this.currentGameId;
     const value = this.settings[`game.${this.currentGameId}.speed`];
     const speed = typeof value === "number" ? value : 100;
@@ -491,6 +538,8 @@ export class Panel {
     this.quickPongAI.value = this.settings.pongDifficulty;
     this.quickPongWatch.value = String(this.settings.pongWatch);
     this.quickPongAdaptive.value = String(this.settings.pongAdaptive);
+    this.quickTicAI.value = this.settings.tictactoeDifficulty;
+    this.quickTicWatch.value = String(this.settings.tictactoeWatch);
   }
   updateSettings(settings: InterludeSettings): void {
     this.settings = settings;

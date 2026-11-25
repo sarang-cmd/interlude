@@ -27,11 +27,15 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
   run's website-local score survives a reload. In Pong, select the local match,
   hold W and Down together, try a remap conflict, and finish a short series.
   Check the recent local match record and the separate solo high score. For each
-  other cabinet, select the split-screen race, play both sides, finish a round,
+  other original cabinet, select the split-screen race, play both sides, finish a round,
   and check the seed, handicaps, series score and browser-local record. In 2048
   co-op, alternate moves, try undo, and finish a round. Repeat with two gamepads
-  and narrow touch controls.
-- Play all eight games on keyboard, pointer/touch and a standard focused
+  and narrow touch controls. A synthetic mobile CDP test holds two simultaneous
+  touch points on the 2048 race; physical-device testing is still worthwhile.
+  For Tic-Tac-Toe, try all CPU levels, watch a match,
+  and play the website hot-seat board with shared controls and touch. Verify
+  pause/fallback and that watch and hot-seat results do not change solo scores.
+- Play all nine branch games on keyboard, pointer/touch and a standard focused
   gamepad; check game-specific rules, remaps/conflicts, sounds, preview and
   records. Assess human difficulty and run length; simulation tests do not prove
   game feel.

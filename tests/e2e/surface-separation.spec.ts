@@ -29,5 +29,9 @@ test("built extension excludes web-only modules and both surfaces meet their bud
     expect(report.javascriptBytes).toBeLessThanOrEqual(report.budgets.total);
     expect(report.largestChunkBytes).toBeLessThanOrEqual(report.budgets.chunk);
     expect(report.chunks.reduce((sum, chunk) => sum + chunk.bytes, 0)).toBe(report.javascriptBytes);
+    const worker = report.chunks.find((chunk) => /search-worker-.*\.js$/.test(chunk.file));
+    expect(worker).toBeDefined();
+    const root = report.surface === "extension" ? "dist" : "deployment/web-dist";
+    expect((await readFile(`${root}/${worker!.file}`)).byteLength).toBe(worker!.bytes);
   }
 });

@@ -36,6 +36,8 @@ export interface EngineOptions {
   /** First rendered frame after construction — for signal→frame timing. */
   onFirstFrame?: () => void;
   onStateChange?: (state: EngineState) => void;
+  /** Accessible, game-owned text only; never host-page content. */
+  onAnnouncement?: (text: string) => void;
 }
 
 interface ScorePop {
@@ -156,6 +158,10 @@ export class Engine implements GameContext {
     this.scorePops.push({ x, y, text, t: 0 });
   }
 
+  announce(text: string): void {
+    this.options.onAnnouncement?.(text);
+  }
+
   // ---- lifecycle ---------------------------------------------------------
 
   /** Attach input listeners to a focusable element (panel's canvas wrapper). */
@@ -212,6 +218,7 @@ export class Engine implements GameContext {
     const preservePause = this.active && this.state === "paused";
     this.runVersion++;
     if (this.game) this.game.destroy();
+    this.options.onAnnouncement?.("");
     this.game = game;
     this.sound.setMuted(this.settings.muted || !!this.settings[`game.${game.manifest.id}.muted`]);
     this.rngState = new RNG(randomSeed());
@@ -285,6 +292,7 @@ export class Engine implements GameContext {
   }
 
   stop(): void {
+    this.game?.suspend?.();
     this.active = false;
     this.loop.stop();
     this.input.setEnabled(false);
@@ -293,6 +301,7 @@ export class Engine implements GameContext {
 
   freezeForDone(): void {
     if (!this.active) return;
+    this.game?.suspend?.();
     if (this.state !== "paused")
       this.stateBeforePause = this.state === "boot" ? "ready" : this.state;
     this.setState("paused", "done");
@@ -304,6 +313,7 @@ export class Engine implements GameContext {
   /** Pause a running cabinet without a site-completion message. */
   pauseByUser(): void {
     if (!this.active || this.state !== "playing") return;
+    this.game?.suspend?.();
     this.stateBeforePause = "playing";
     this.setState("paused", "user");
     this.loop.stop();
@@ -320,6 +330,7 @@ export class Engine implements GameContext {
 
   /** Tab visibility: hidden → loop pauses entirely. */
   setTabHidden(hidden: boolean): void {
+    if (hidden) this.game?.suspend?.();
     if (hidden && this.settings.muteHidden) this.sound.silence();
     this.rafVisible = !hidden;
     this.applyRate();

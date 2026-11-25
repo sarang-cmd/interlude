@@ -8,6 +8,7 @@ export const GAME_IDS = [
   "blockfall",
   "rockfall",
   "dashline",
+  "tictactoe",
 ] as const;
 export type GameId = (typeof GAME_IDS)[number];
 export const SPEED_CHOICES = [25, 50, 75, 100, 125, 150, 200, 300, 400] as const;
@@ -21,6 +22,7 @@ export const GAME_ACTIONS: Record<GameId, readonly string[]> = {
   blockfall: ["left", "right", "up", "down", "primary", "secondary", "pause"],
   rockfall: ["left", "right", "up", "primary", "pause"],
   dashline: ["primary", "pause"],
+  tictactoe: ["left", "right", "up", "down", "primary", "pause"],
 };
 export const ACTION_DEFAULTS: Record<string, string> = {
   left: "ArrowLeft",

@@ -39,8 +39,30 @@ Player-one binding defaults come from `src/games/catalog.ts`, also used by the
 settings schema. The website loads the web-only mode registry lazily. The
 extension build substitutes `__PLATFORM__` with `extension`, removes the web
 branch, and rejects any chunk containing `src/twoplayer/` or `*.2p.ts` modules.
-The web build requires the registry. Both builds enforce JavaScript budgets and
-emit a bundle report. See [GAME-MODES.md](GAME-MODES.md) for shipped modes.
+The web build requires the registry. Both builds enforce JavaScript budgets,
+including emitted worker JavaScript assets, and emit a bundle report. See
+[GAME-MODES.md](GAME-MODES.md) for shipped modes.
+
+## Local AI search
+
+Tic-Tac-Toe starts a dedicated worker only on a CPU turn. A website worker is
+loaded from a same-origin static asset. A Chrome content script cannot directly
+construct a `chrome-extension://` worker from the chat page's origin; the
+extension instead opens a short-lived, extension-origin worker-host iframe in
+its closed cabinet shadow root. The options preview uses the same host in its
+extension document. A private `MessageChannel` sends only a bounded game
+position and search parameters to the host; the host accepts one port from its
+immediate supported parent, validates the task, and starts the packaged worker.
+No chat content is read or sent. The host HTML alone is web-accessible on the
+three permitted sites; it offers no arbitrary-code or storage interface.
+
+The worker is terminated on completion, error, deadline, pause, hidden tab,
+close or game change. Results are validated and applied only in the game loop,
+never in a paused frame; cancellation invalidates late results. A bounded
+immediate-win/block fallback keeps the game playable if the worker cannot load.
+The build privacy audit permits only the static local worker and its matching
+extension-origin frame; negative tests still reject remote workers, arbitrary
+frames and extra web-accessible resources.
 
 ## Detection and lifecycle
 

@@ -27,6 +27,19 @@ changed. The static routes use `Access-Control-Allow-Origin: *` (see
 `deployment/vercel.json`). Confirm both endpoints return JSON and the CORS
 header from a fresh extension installation after any deployment.
 
+## Local game worker boundary
+
+The Tic-Tac-Toe search worker and its host are packaged with the extension. The
+host page accepts only a single `MessagePort` from its immediate supported chat
+origin (or an extension-owned options preview), and accepts only a bounded
+three-in-a-row task. It exposes no generic script execution, browser storage or
+network transport. Returned moves are checked against the current board, and
+cancelled or stale replies are ignored. A malicious supported page may interfere
+with the short-lived host frame, so a failed search uses a basic legal fallback;
+this is not a security boundary against a fully compromised browser. The built
+privacy audit restricts worker construction, frame source and web-accessible
+resources to the packaged host and search asset.
+
 ## Signing and rotation
 
 1. On an offline or appropriately secured machine run

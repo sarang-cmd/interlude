@@ -18,7 +18,7 @@ test("the playable landing page remains usable on desktop and mobile without ext
     "https://github.com/sarang-cmd/interlude/releases/latest",
   );
   await expect(page.getByText(/optional selector feed uses a staging signing key/i)).toBeVisible();
-  await expect(page.locator("#game-list button")).toHaveCount(8);
+  await expect(page.locator("#game-list button")).toHaveCount(9);
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(

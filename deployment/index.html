@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0e0b07" />
     <meta
       name="description"
-      content="Play eight little arcade games in your browser, or bring them into your AI chats with the Interlude Chrome extension."
+      content="Play nine little arcade games in your browser, or bring them into your AI chats with the Interlude Chrome extension."
     />
     <title>Interlude / Arcade for the wait</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
@@ -30,11 +30,11 @@
         <section class="hero" aria-labelledby="hero-title">
           <div class="hero-copy">
             <p class="eyebrow">
-              <span class="lamp" aria-hidden="true"></span> FREE PLAY / 08 CABINETS
+              <span class="lamp" aria-hidden="true"></span> FREE PLAY / 09 CABINETS
             </p>
             <h1 id="hero-title">A little arcade<br />for the wait<span class="period">.</span></h1>
             <p class="lede">
-              Eight small games, ready when you are. Play right here, or bring the arcade into your
+              Nine small games, ready when you are. Play right here, or bring the arcade into your
               AI chats with the Chrome extension.
             </p>
             <div class="actions">
@@ -86,7 +86,7 @@
                   height="360"
                   tabindex="0"
                   aria-label="Game screen"
-                  aria-describedby="control-hint game-instructions"
+                  aria-describedby="control-hint game-instructions game-announcement"
                   data-scene="loading"
                   >Your browser does not support canvas games.</canvas
                 >
@@ -96,7 +96,7 @@
               </div>
               <div class="machine-detail">
                 <div class="game-copy">
-                  <p class="micro-label" id="game-number">GAME 01 / 08</p>
+                  <p class="micro-label" id="game-number">GAME 01 / 09</p>
                   <h3 id="game-name">SNAKE</h3>
                   <p id="game-description">Grid serpent. Eat, grow, do not bite yourself.</p>
                 </div>
@@ -137,6 +137,7 @@
                 <div id="local-pong-controls" class="local-controls" hidden></div>
                 <div id="local-race-controls" class="local-controls race-controls" hidden></div>
                 <p class="control-hint" id="control-hint">ARROWS STEER · SWIPE ON TOUCH</p>
+                <p class="sr-only" id="game-announcement" role="status" aria-live="polite"></p>
                 <p class="sr-only" id="game-instructions">
                   Press Start or focus the game screen and use a game key. Press P to pause or
                   resume. Escape releases focus.
@@ -150,6 +151,10 @@
                 <label class="game-setting" for="race-mode" id="race-mode-field" hidden>
                   <span>GAME MODE</span
                   ><select id="race-mode"></select>
+                </label>
+                <label class="game-setting" for="tictactoe-ai" id="tictactoe-settings" hidden>
+                  <span>TIC-TAC-TOE CPU</span
+                  ><select id="tictactoe-ai"></select>
                 </label>
                 <div id="pong-settings" class="pong-settings" hidden>
                   <label class="game-setting" for="pong-mode">
@@ -180,7 +185,7 @@
               <div id="local-race" class="local-pong" hidden></div>
             </div>
             <aside class="selector" aria-labelledby="selector-title">
-              <p class="micro-label">THE GAME LIBRARY / 08</p>
+              <p class="micro-label">THE GAME LIBRARY / 09</p>
               <h3 id="selector-title">Choose your cabinet.</h3>
               <p class="selector-intro">Select a game, then press start.</p>
               <div class="games" id="game-list" aria-label="Choose a game">

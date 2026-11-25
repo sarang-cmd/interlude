@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -33,6 +33,49 @@ function fixture(): string {
   writeFileSync(join(dir, "release.js"), release);
   return dir;
 }
+function workerFixture(): string {
+  const dir = fixture();
+  mkdirSync(join(dir, "chunks"));
+  mkdirSync(join(dir, "assets"));
+  writeFileSync(
+    join(dir, "manifest.json"),
+    JSON.stringify({
+      manifest_version: 3,
+      permissions: ["storage", "alarms"],
+      host_permissions: hosts,
+      web_accessible_resources: [{ resources: ["ai-worker-host.html"], matches: hosts }],
+    }),
+  );
+  writeFileSync(
+    join(dir, "ai-worker-host.html"),
+    '<script type="module" src="./ai-worker-host.js"></script>',
+  );
+  writeFileSync(
+    join(dir, "ai-worker-host.js"),
+    'const origins = ["https://claude.ai", "https://chatgpt.com", "https://gemini.google.com"];',
+  );
+  writeFileSync(join(dir, "assets/search-worker-test.js"), "postMessage({ ok: true });");
+  writeFileSync(
+    join(dir, "chunks/worker-client-test.js"),
+    `
+    function searchInWorker() {
+      return new Worker(new URL("" + new URL("../assets/search-worker-test.js", import.meta.url).href, import.meta.url), { type: "module" });
+    }
+  `,
+  );
+  writeFileSync(
+    join(dir, "chunks/game-test.js"),
+    `
+    function searchInExtensionFrame() {
+      const frame = document.createElement("iframe");
+      frame.src = chrome.runtime.getURL("ai-worker-host.html");
+      return frame;
+    }
+  `,
+  );
+  return dir;
+}
+
 function audit(dir: string) {
   return spawnSync("node", ["scripts/audit-built-privacy.mjs", dir], { encoding: "utf8" });
 }
@@ -46,6 +89,71 @@ describe("built-extension privacy audit", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+  it("allows only the packaged worker and extension-origin frame", () => {
+    const dir = workerFixture();
+    try {
+      expect(audit(dir).status).toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  const workerCases: Array<[string, (dir: string) => void, string]> = [
+    [
+      "a remote worker",
+      (dir) =>
+        writeFileSync(
+          join(dir, "chunks/worker-client-test.js"),
+          'function searchInWorker() { return new Worker("https://bad.example/worker.js"); }',
+        ),
+      "forbidden network",
+    ],
+    [
+      "a frame with a remote source",
+      (dir) =>
+        writeFileSync(
+          join(dir, "chunks/game-test.js"),
+          'function searchInExtensionFrame() { const frame = document.createElement("iframe"); frame.src = "https://bad.example/"; }',
+        ),
+      "unapproved resource",
+    ],
+    [
+      "an extra iframe",
+      (dir) => writeFileSync(join(dir, "evil.js"), 'document.createElement("iframe")'),
+      "dynamic network element",
+    ],
+    [
+      "a dynamic source attribute",
+      (dir) => writeFileSync(join(dir, "evil.js"), 'node.setAttribute("src", "x")'),
+      "dynamic resource attribute",
+    ],
+    [
+      "a wildcard exposed resource",
+      (dir) =>
+        writeFileSync(
+          join(dir, "manifest.json"),
+          JSON.stringify({
+            manifest_version: 3,
+            permissions: ["storage", "alarms"],
+            host_permissions: hosts,
+            web_accessible_resources: [{ resources: ["*"], matches: hosts }],
+          }),
+        ),
+      "unexpected web-accessible resource",
+    ],
+  ];
+  it.each(workerCases)("rejects %s around the local worker", (_name, mutate, expected) => {
+    const dir = workerFixture();
+    try {
+      mutate(dir);
+      const result = audit(dir);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(expected);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   const cases: Array<[string, (dir: string) => void, string]> = [
     [
       "an extra fetch",
