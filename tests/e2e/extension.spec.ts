@@ -41,6 +41,17 @@ async function openFixture(name = "idle"): Promise<void> {
   await page.goto(`https://claude.ai/chat/${name}`);
   await expect(page.locator('[data-interlude="panel"]')).toHaveCount(1, { timeout: 12000 });
 }
+// Exercise the current v2 storage contract; v1 is migrated only once and is
+// not a live settings channel after a v2 document exists.
+async function setGlobalSettings(patch: Record<string, unknown>): Promise<void> {
+  await worker.evaluate(async (value) => {
+    const key = "interlude.settings.v2";
+    const document = (await chrome.storage.sync.get(key))[key];
+    if (!document || !document.global) throw new Error("v2 test settings not initialized");
+    Object.assign(document.global, value);
+    await chrome.storage.sync.set({ [key]: document });
+  }, patch);
+}
 async function diagnostic(): Promise<Debug> {
   return worker.evaluate(async () => {
     const [tab] = await chrome.tabs.query({ url: "https://claude.ai/*" });
@@ -101,8 +112,12 @@ test.beforeEach(async () => {
   });
   worker = context.serviceWorkers()[0] ?? (await context.waitForEvent("serviceworker"));
   await worker.evaluate(() =>
-    chrome.storage.local.set({
-      "interlude.settings": { delayMs: 500, skipBoot: true, muted: true },
+    chrome.storage.sync.set({
+      "interlude.settings.v2": {
+        version: 2,
+        global: { delayMs: 500, skipBoot: true, muted: true, updateChecks: false },
+        sites: {},
+      },
     }),
   );
   page = await context.newPage();
@@ -263,9 +278,7 @@ test("all eight lazy-loaded games start from the picker", async () => {
 });
 
 test("already generating fixtures are recognised on load", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture("regenerating");
   const host = page.locator('[data-interlude="panel"]');
   await expect(host).toBeVisible();
@@ -274,9 +287,7 @@ test("already generating fixtures are recognised on load", async () => {
 });
 
 test("current structural fallbacks detect an assistant streaming attribute", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture("modern");
   const host = page.locator('[data-interlude="panel"]');
   await expect(host).toBeVisible();
@@ -290,18 +301,12 @@ test("current structural fallbacks detect an assistant streaming attribute", asy
 });
 
 test("other placements remount and overlay drag position persists", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
   await expect(host).toBeVisible();
-  const setPlacement = async (placement: string) =>
-    worker.evaluate(async (value) => {
-      const current = (await chrome.storage.local.get("interlude.settings"))["interlude.settings"];
-      await chrome.storage.local.set({ "interlude.settings": { ...current, placement: value } });
-    }, placement);
+  const setPlacement = (placement: string) => setGlobalSettings({ placement });
   await setPlacement("docked-composer");
   await expect
     .poll(() =>
@@ -356,17 +361,13 @@ test("other placements remount and overlay drag position persists", async () => 
 });
 
 test("auto-close freezes before closing after the configured grace", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({
-      "interlude.settings": {
-        delayMs: 0,
-        skipBoot: true,
-        muted: true,
-        autoClose: true,
-        autoCloseGraceMs: 600,
-      },
-    }),
-  );
+  await setGlobalSettings({
+    delayMs: 0,
+    skipBoot: true,
+    muted: true,
+    autoClose: true,
+    autoCloseGraceMs: 600,
+  });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -423,11 +424,7 @@ test("settings and diagnostic selector bench operate inside the built extension"
 });
 
 test("optional stream hook observes only open and close while preserving bytes", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({
-      "interlude.settings": { delayMs: 0, skipBoot: true, muted: true, streamHookEnabled: true },
-    }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true, streamHookEnabled: true });
   await openFixture();
   await page.waitForFunction(
     () => !!(window as unknown as { __interludeStreamTiming?: unknown }).__interludeStreamTiming,
@@ -478,9 +475,7 @@ test("optional stream hook observes only open and close while preserving bytes",
 });
 
 test("any key instantly restarts after game over", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -493,9 +488,7 @@ test("any key instantly restarts after game over", async () => {
 });
 
 test("out-of-view cabinets use the low-rate loop", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await page.setViewportSize({ width: 1000, height: 400 });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
@@ -534,9 +527,7 @@ test("only the selected game chunk loads until the picker changes", async () => 
 });
 
 test("SPA navigation tears down the old conversation rather than reopening stale controls", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -549,9 +540,7 @@ test("SPA navigation tears down the old conversation rather than reopening stale
 });
 
 test("small cabinets downscale in whole source-pixel groups", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await page.setViewportSize({ width: 500, height: 800 });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
@@ -573,9 +562,7 @@ test("small cabinets downscale in whole source-pixel groups", async () => {
 });
 
 test("P resumes both a manual pause and the completion freeze without pausing again", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -610,18 +597,12 @@ test("P resumes both a manual pause and the completion freeze without pausing ag
 });
 
 test("re-enabling keeps structural remount subscriptions alive", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
   await expect(host).toBeVisible();
-  const setEnabled = async (enabled: boolean) =>
-    worker.evaluate(async (value) => {
-      const current = (await chrome.storage.local.get("interlude.settings"))["interlude.settings"];
-      await chrome.storage.local.set({ "interlude.settings": { ...current, enabled: value } });
-    }, enabled);
+  const setEnabled = (enabled: boolean) => setGlobalSettings({ enabled });
   await setEnabled(false);
   await expect(host).toBeHidden();
   await page.evaluate(() =>
@@ -645,9 +626,7 @@ test("re-enabling keeps structural remount subscriptions alive", async () => {
 });
 
 test("back navigation closes the old session rather than presenting a completion prompt", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.evaluate(() => history.pushState({}, "", "/chat/next"));
   await page.waitForTimeout(200);
@@ -660,9 +639,7 @@ test("back navigation closes the old session rather than presenting a completion
 });
 
 test("changing games during a completion freeze preserves a resumable READY scene", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -685,9 +662,7 @@ test("changing games during a completion freeze preserves a resumable READY scen
 });
 
 test("a popstate event closes synchronously without mistaking navigation for completion", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -735,9 +710,7 @@ test("concurrent game records from different extension tabs retain every best", 
 });
 
 test("branch switches ignore hidden stale turns and re-anchor to the active turn", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -782,9 +755,7 @@ test("branch switches ignore hidden stale turns and re-anchor to the active turn
 });
 
 test("regeneration and edited composer submissions re-arm discovery, then disconnect on idle", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   const host = page.locator('[data-interlude="panel"]');
   await page.locator('[data-testid="regenerate-button"]').click();
@@ -821,9 +792,7 @@ test("regeneration and edited composer submissions re-arm discovery, then discon
 });
 
 test("Escape releases focus from the picker, and composer clicks stop capture", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -851,11 +820,7 @@ test("Escape releases focus from the picker, and composer clicks stop capture", 
 });
 
 test("power-on is brief, appears only once, and is never replayed on the next generation", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({
-      "interlude.settings": { delayMs: 0, skipBoot: false, muted: true },
-    }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: false, muted: true });
   await openFixture();
   await expect.poll(async () => (await diagnostic()).panel.gameId).toBe("snake");
   await page.evaluate(() => {
@@ -894,9 +859,7 @@ test("power-on is brief, appears only once, and is never replayed on the next ge
 });
 
 test("each cabinet can start from its touch controls", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -931,9 +894,7 @@ test("each cabinet can start from its touch controls", async () => {
 });
 
 test("closing a running cabinet returns focus and dismisses it for that generation", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -952,9 +913,7 @@ test("closing a running cabinet returns focus and dismisses it for that generati
 });
 
 test("completion survives replacement of the entire assistant turn", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -981,10 +940,7 @@ test("completion survives replacement of the entire assistant turn", async () =>
   ).toBe("panel");
   expect((await diagnostic()).panel.loopRunning).toBe(false);
   for (const placement of ["overlay", "inline"]) {
-    await worker.evaluate(async (value) => {
-      const current = (await chrome.storage.local.get("interlude.settings"))["interlude.settings"];
-      await chrome.storage.local.set({ "interlude.settings": { ...current, placement: value } });
-    }, placement);
+    await setGlobalSettings({ placement });
     await expect
       .poll(() => host.evaluate((element) => getComputedStyle(element).position))
       .toBe(placement === "overlay" ? "fixed" : "relative");
@@ -999,9 +955,7 @@ test("completion survives replacement of the entire assistant turn", async () =>
 });
 
 test("latest active turn wins across mixed selector markup, including nested matches", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -1061,11 +1015,7 @@ test("latest active turn wins across mixed selector markup, including nested mat
 });
 
 test("in-panel gear drawer updates the site profile live and Escape closes it", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({
-      "interlude.settings": { delayMs: 0, skipBoot: true, muted: true, autoClose: false },
-    }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true, autoClose: false });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
@@ -1165,9 +1115,7 @@ test("Focus Guard counts active play, locks at the budget, and unlocks live", as
 });
 
 test("toolbar pause stops all site activity and can be resumed without reload", async () => {
-  await worker.evaluate(() =>
-    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
-  );
+  await setGlobalSettings({ delayMs: 0, skipBoot: true, muted: true });
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
