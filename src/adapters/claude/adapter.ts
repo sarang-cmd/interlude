@@ -159,7 +159,14 @@ export class ClaudeAdapter implements SiteAdapter {
 
   private onMachineChange(snapshot: MachineSnapshot): void {
     if (snapshot.phase === "starting" || snapshot.phase === "generating" || snapshot.phase === "finishing") this.observe();
-    if (snapshot.phase === "idle") this.disconnectObservers();
+    if (snapshot.phase === "idle") {
+      this.disconnectObservers();
+      // A finishing timer can expire before the heartbeat's own timeout.
+      // Diagnostics must describe the reset votes rather than stale activity.
+      for (const key of ["a", "b", "c"] as const) {
+        this.updateReport(key, snapshot.votes[key], snapshot.votes[key] ? this.signalReports[key].matchedSelector : null);
+      }
+    }
     const reasons = (["a", "b", "c"] as const).filter((k) => snapshot.votes[k]).map((k) => k.toUpperCase());
     const current = this.observable.value;
     if (current.generating !== snapshot.generating || current.reasons.join() !== reasons.join()) this.observable.set({ generating: snapshot.generating, reasons });

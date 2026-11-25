@@ -2,7 +2,7 @@ import { test, expect, chromium, type BrowserContext, type Page, type Worker, ty
 import path from "node:path";
 import fs from "node:fs";
 
-type Debug = { state: string; generating: boolean; lastSignalToFrameMs: number | null; panel: { visible: boolean; scene: string; gameId: string; loopRunning: boolean; lowRate: boolean; overheadMs: number | null }; activity: { timers: number; observers: number; scheduledFrames: number } };
+type Debug = { state: string; generating: boolean; signals: Record<"a" | "b" | "c" | "d", { active: boolean }>; lastSignalToFrameMs: number | null; panel: { visible: boolean; scene: string; gameId: string; loopRunning: boolean; lowRate: boolean; overheadMs: number | null }; activity: { timers: number; observers: number; scheduledFrames: number } };
 type DomNode = { nodeId: number; attributes?: string[]; children?: DomNode[]; shadowRoots?: DomNode[] };
 let context: BrowserContext, page: Page, worker: Worker;
 
@@ -421,7 +421,9 @@ test("regeneration and edited composer submissions re-arm discovery, then discon
   await page.evaluate(() => (window as unknown as { fixture: { finish(): void } }).fixture.finish());
   await expect(host).toHaveAttribute("data-interlude-scene", "paused"); await shadowClick(".done button:not(.resume)"); await expect(host).toBeHidden();
   await expect.poll(async () => (await diagnostic()).state).toBe("idle");
-  expect((await diagnostic()).activity).toEqual({ observers: 0, timers: 0, scheduledFrames: 0 });
+  const idle = await diagnostic();
+  expect(idle.activity).toEqual({ observers: 0, timers: 0, scheduledFrames: 0 });
+  expect([idle.signals.a.active, idle.signals.b.active, idle.signals.c.active]).toEqual([false, false, false]);
   // Model a site handling Enter on an edited composer without reading the text.
   await page.evaluate(() => {
     const field = document.querySelector('[data-testid="chat-input"]')!;
