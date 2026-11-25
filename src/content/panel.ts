@@ -39,17 +39,51 @@ canvas{display:block;width:100%;max-width:640px;height:auto;margin:0 auto;image-
 `;
 
 const CONTROL_SETS: Record<string, Array<[string, GameAction]>> = {
-  snake: [["←", "left"], ["↑", "up"], ["↓", "down"], ["→", "right"]],
-  breakout: [["←", "left"], ["→", "right"], ["LAUNCH", "primary"]],
+  snake: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+  ],
+  breakout: [
+    ["←", "left"],
+    ["→", "right"],
+    ["LAUNCH", "primary"],
+  ],
   flappy: [["FLAP", "primary"]],
-  twenty48: [["←", "left"], ["↑", "up"], ["↓", "down"], ["→", "right"], ["UNDO", "secondary"]],
-  pong: [["↑", "up"], ["↓", "down"]],
-  blockfall: [["←", "left"], ["→", "right"], ["↓", "down"], ["ROTATE", "up"], ["DROP", "primary"], ["HOLD", "secondary"]],
-  rockfall: [["←", "left"], ["→", "right"], ["THRUST", "up"], ["FIRE", "primary"]],
+  twenty48: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+    ["UNDO", "secondary"],
+  ],
+  pong: [
+    ["↑", "up"],
+    ["↓", "down"],
+  ],
+  blockfall: [
+    ["←", "left"],
+    ["→", "right"],
+    ["↓", "down"],
+    ["ROTATE", "up"],
+    ["DROP", "primary"],
+    ["HOLD", "secondary"],
+  ],
+  rockfall: [
+    ["←", "left"],
+    ["→", "right"],
+    ["THRUST", "up"],
+    ["FIRE", "primary"],
+  ],
   dashline: [["JUMP / HOLD", "primary"]],
 };
 
-function node<K extends keyof HTMLElementTagNameMap>(tag: K, className = "", label?: string): HTMLElementTagNameMap[K] {
+function node<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  className = "",
+  label?: string,
+): HTMLElementTagNameMap[K] {
   const element = document.createElement(tag);
   if (className) element.className = className;
   if (label !== undefined) element.textContent = label;
@@ -88,44 +122,91 @@ export class Panel {
   private resizeObserver: ResizeObserver | null = null;
   private lastScreenWidth = 0;
 
-  constructor(settings: InterludeSettings, private readonly siteName: string, private readonly events: PanelEvents) {
+  constructor(
+    settings: InterludeSettings,
+    private readonly siteName: string,
+    private readonly events: PanelEvents,
+  ) {
     this.host.dataset.interlude = "panel";
     this.host.dataset.interludeVisible = "false";
     this.host.setAttribute("aria-label", "Interlude arcade");
     this.shadow = this.host.attachShadow({ mode: "closed" });
-    const style = node("style"); style.textContent = CSS; this.shadow.append(style);
+    const style = node("style");
+    style.textContent = CSS;
+    this.shadow.append(style);
     this.machine.setAttribute("aria-label", "Interlude arcade panel");
     const brand = node("div", "brand");
-    brand.append(node("span", "mark"), node("span", "", "INTERLUDE"), node("span", "tag", "— ARCADE / 01"));
+    brand.append(
+      node("span", "mark"),
+      node("span", "", "INTERLUDE"),
+      node("span", "tag", "— ARCADE / 01"),
+    );
     this.picker.setAttribute("aria-label", "Choose game");
-    for (const [value, name] of [["last", "LAST PLAYED"], ["random", "RANDOM"], ...GAME_MANIFESTS.map((game) => [game.id, game.name])]) {
-      const option = node("option", "", name); option.value = value as string; this.picker.append(option);
+    for (const [value, name] of [
+      ["last", "LAST PLAYED"],
+      ["random", "RANDOM"],
+      ...GAME_MANIFESTS.map((game) => [game.id, game.name]),
+    ]) {
+      const option = node("option", "", name);
+      option.value = value as string;
+      this.picker.append(option);
     }
     this.picker.value = settings.game;
     this.picker.addEventListener("change", () => this.events.onChoose(this.picker.value));
-    const close = node("button", "close", "×"); close.type = "button"; close.setAttribute("aria-label", "Close Interlude"); close.addEventListener("click", () => this.events.onClose());
+    const close = node("button", "close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", "Close Interlude");
+    close.addEventListener("click", () => this.events.onClose());
     this.top.append(brand, this.picker, close);
-    const meta = node("div", "meta"); meta.append(this.cabinet, this.stateLabel);
-    this.canvas.tabIndex = 0; this.canvas.setAttribute("aria-label", "Game screen. Click to focus. Escape returns to the composer."); this.canvas.setAttribute("role", "application");
+    const meta = node("div", "meta");
+    meta.append(this.cabinet, this.stateLabel);
+    this.canvas.tabIndex = 0;
+    this.canvas.setAttribute(
+      "aria-label",
+      "Game screen. Click to focus. Escape returns to the composer.",
+    );
+    this.canvas.setAttribute("role", "application");
     this.screen.append(this.canvas, this.done);
     this.done.hidden = true;
-    const resume = node("button", "resume", "RESUME"); resume.type = "button"; resume.addEventListener("click", () => this.events.onResume());
-    const doneClose = node("button", "", "CLOSE"); doneClose.type = "button"; doneClose.addEventListener("click", () => this.events.onClose());
+    const resume = node("button", "resume", "RESUME");
+    resume.type = "button";
+    resume.addEventListener("click", () => this.events.onResume());
+    const doneClose = node("button", "", "CLOSE");
+    doneClose.type = "button";
+    doneClose.addEventListener("click", () => this.events.onClose());
     this.done.append(resume, doneClose);
-    const foot = node("footer", "foot"); foot.append(this.hint, node("span", "keys", "NO CHAT CONTENT READ"));
+    const foot = node("footer", "foot");
+    foot.append(this.hint, node("span", "keys", "NO CHAT CONTENT READ"));
     this.machine.append(this.top, meta, this.screen, this.controls, foot);
     this.shadow.append(this.machine);
     this.engine = new Engine(this.canvas, {
-      settings, highScore: 0, doneLabel: `${siteName.toUpperCase()} IS DONE`, onFirstFrame: () => this.events.onFirstFrame(),
+      settings,
+      highScore: 0,
+      doneLabel: `${siteName.toUpperCase()} IS DONE`,
+      onFirstFrame: () => this.events.onFirstFrame(),
       onStateChange: (state) => this.sceneChanged(state),
     });
     // Register before Input: pointerdown puts focus on the canvas in the same event.
     this.canvas.addEventListener("pointerdown", () => this.focus());
     this.canvas.addEventListener("focus", () => this.engine.setFocused(true));
     this.canvas.addEventListener("blur", () => this.engine.setFocused(false));
+    this.shadow.addEventListener(
+      "keydown",
+      (event) => {
+        if (!(event instanceof KeyboardEvent) || event.key !== "Escape") return;
+        const target = event.composedPath()[0];
+        const textField =
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          (target instanceof HTMLElement && target.isContentEditable);
+        if (!textField) event.preventDefault();
+        event.stopPropagation();
+        this.events.onEscape();
+      },
+      true,
+    );
     this.canvas.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); this.events.onEscape(); }
-      else if (event.code === "KeyP" && this.engine.getState() === "paused") {
+      if (event.code === "KeyP" && this.engine.getState() === "paused") {
         event.preventDefault();
         // Input also listens on the canvas. Do not enqueue the same P as a new
         // pause after resuming, and do not resume on keyboard auto-repeat.
@@ -137,17 +218,26 @@ export class Panel {
     this.top.addEventListener("pointerdown", this.startDrag);
     this.host.addEventListener("transitionend", (event) => {
       if (event.target === this.host && event.propertyName === "height" && this.visible) {
-        this.prop("transition", "none"); this.prop("height", "auto");
+        this.prop("transition", "none");
+        this.prop("height", "auto");
       }
     });
     this.hideImmediately();
     document.body.append(this.host);
   }
 
-  setSceneListener(fn: (state: EngineState) => void): void { this.onScene = fn; }
+  setSceneListener(fn: (state: EngineState) => void): void {
+    this.onScene = fn;
+  }
   private sceneChanged(state: EngineState): void {
     this.host.dataset.interludeScene = state;
-    this.stateLabel.textContent = ({ boot: "POWER ON", ready: "READY", playing: "PLAYER 1", paused: "PAUSED", gameover: "GAME OVER" })[state];
+    this.stateLabel.textContent = {
+      boot: "POWER ON",
+      ready: "READY",
+      playing: "PLAYER 1",
+      paused: "PAUSED",
+      gameover: "GAME OVER",
+    }[state];
     this.onScene?.(state);
   }
   setGame(game: ArcadeGame, best: number, bindings: Record<string, string>): void {
@@ -156,18 +246,28 @@ export class Panel {
     this.controls.replaceChildren();
     this.controls.append(node("span", "caption", "PLAYER CONTROLS"));
     for (const [label, action] of CONTROL_SETS[game.manifest.id] ?? []) {
-      const button = node("button", "", label); button.type = "button";
+      const button = node("button", "", label);
+      button.type = "button";
       button.setAttribute("aria-label", `${game.manifest.name}: ${label}`);
       button.addEventListener("pointerdown", (event) => {
-        event.preventDefault(); this.focus();
-        try { button.setPointerCapture(event.pointerId); } catch { /* detached */ }
+        event.preventDefault();
+        this.focus();
+        try {
+          button.setPointerCapture(event.pointerId);
+        } catch {
+          /* detached */
+        }
         this.engine.input.virtualDown(action, `button:${event.pointerId}`);
       });
-      const release = (event: PointerEvent): void => this.engine.input.virtualUp(action, `button:${event.pointerId}`);
-      button.addEventListener("pointerup", release); button.addEventListener("pointercancel", release);
+      const release = (event: PointerEvent): void =>
+        this.engine.input.virtualUp(action, `button:${event.pointerId}`);
+      button.addEventListener("pointerup", release);
+      button.addEventListener("pointercancel", release);
       button.addEventListener("click", (event) => {
         if (event.detail !== 0) return;
-        this.focus(); this.engine.input.virtualDown(action, "accessible"); this.engine.input.virtualUp(action, "accessible");
+        this.focus();
+        this.engine.input.virtualDown(action, "accessible");
+        this.engine.input.virtualUp(action, "accessible");
       });
       this.controls.append(button);
     }
@@ -180,34 +280,84 @@ export class Panel {
     this.hint.textContent = `${settings.focusHotkey.toUpperCase()} FOCUS · ESC RELEASE`;
     this.engine.setSettings(settings);
   }
-  get isVisible(): boolean { return this.visible; }
-  setPosition(position: { x: number; y: number } | null): void { this.position = position; }
-  setDone(done: boolean, completed = true): void { this.done.hidden = !done; if (done) this.stateLabel.textContent = completed ? `${this.siteName.toUpperCase()} IS DONE` : "PAUSED"; }
-  focus(): void { if (!this.visible) return; this.canvas.focus({ preventScroll: true }); this.engine.setFocused(true); }
-  blur(): void { this.canvas.blur(); this.engine.setFocused(false); }
+  get isVisible(): boolean {
+    return this.visible;
+  }
+  setPosition(position: { x: number; y: number } | null): void {
+    this.position = position;
+  }
+  setDone(done: boolean, completed = true): void {
+    this.done.hidden = !done;
+    if (done)
+      this.stateLabel.textContent = completed ? `${this.siteName.toUpperCase()} IS DONE` : "PAUSED";
+  }
+  focus(): void {
+    if (!this.visible) return;
+    this.canvas.focus({ preventScroll: true });
+    this.engine.setFocused(true);
+  }
+  blur(): void {
+    this.canvas.blur();
+    this.engine.setFocused(false);
+  }
 
-  private prop(name: string, value: string): void { this.host.style.setProperty(name, value, "important"); }
+  private prop(name: string, value: string): void {
+    this.host.style.setProperty(name, value, "important");
+  }
   private hideImmediately(): void {
-    this.prop("all", "initial"); this.prop("display", "none"); this.prop("position", "fixed"); this.prop("left", "-10000px"); this.prop("top", "-10000px");
-    this.host.dataset.interludeVisible = "false"; this.visible = false;
+    this.prop("all", "initial");
+    this.prop("display", "none");
+    this.prop("position", "fixed");
+    this.prop("left", "-10000px");
+    this.prop("top", "-10000px");
+    this.host.dataset.interludeVisible = "false";
+    this.visible = false;
   }
   private setHostPosition(point: MountPointResult, placement: Placement): void {
     this.placement = placement;
-    this.prop("all", "initial"); this.prop("box-sizing", "border-box"); this.prop("display", "block");
-    this.prop("visibility", "visible"); this.prop("margin", "0"); this.prop("padding", "0");
-    this.prop("overflow", "hidden"); this.prop("max-width", "none"); this.prop("z-index", placement === "overlay" || placement === "side-panel" ? "2147483000" : "auto");
+    this.prop("all", "initial");
+    this.prop("box-sizing", "border-box");
+    this.prop("display", "block");
+    this.prop("visibility", "visible");
+    this.prop("margin", "0");
+    this.prop("padding", "0");
+    this.prop("overflow", "hidden");
+    this.prop("max-width", "none");
+    this.prop(
+      "z-index",
+      placement === "overlay" || placement === "side-panel" ? "2147483000" : "auto",
+    );
     if (placement === "overlay") {
-      this.prop("position", "fixed"); this.prop("width", "min(440px, calc(100vw - 24px))");
-      const x = Math.max(0, Math.min(window.innerWidth - 100, this.position?.x ?? window.innerWidth - 452));
-      const y = Math.max(0, Math.min(window.innerHeight - 50, this.position?.y ?? window.innerHeight - 390));
-      this.prop("left", `${x}px`); this.prop("top", `${y}px`); this.prop("right", "auto"); this.prop("bottom", "auto");
+      this.prop("position", "fixed");
+      this.prop("width", "min(440px, calc(100vw - 24px))");
+      const x = Math.max(
+        0,
+        Math.min(window.innerWidth - 100, this.position?.x ?? window.innerWidth - 452),
+      );
+      const y = Math.max(
+        0,
+        Math.min(window.innerHeight - 50, this.position?.y ?? window.innerHeight - 390),
+      );
+      this.prop("left", `${x}px`);
+      this.prop("top", `${y}px`);
+      this.prop("right", "auto");
+      this.prop("bottom", "auto");
     } else if (placement === "side-panel") {
-      this.prop("position", "fixed"); this.prop("width", "min(440px, calc(100vw - 24px))"); this.prop("right", "0"); this.prop("top", "12px"); this.prop("left", "auto");
+      this.prop("position", "fixed");
+      this.prop("width", "min(440px, calc(100vw - 24px))");
+      this.prop("right", "0");
+      this.prop("top", "12px");
+      this.prop("left", "auto");
     } else {
-      this.prop("position", "relative"); this.prop("width", "100%"); this.prop("left", "auto"); this.prop("top", "auto"); this.prop("right", "auto");
+      this.prop("position", "relative");
+      this.prop("width", "100%");
+      this.prop("left", "auto");
+      this.prop("top", "auto");
+      this.prop("right", "auto");
     }
     if (point.position === "after") point.anchor.insertAdjacentElement("afterend", this.host);
-    else if (point.position === "before") point.anchor.insertAdjacentElement("beforebegin", this.host);
+    else if (point.position === "before")
+      point.anchor.insertAdjacentElement("beforebegin", this.host);
     else point.anchor.append(this.host);
   }
   correctlyMounted(point: MountPointResult): boolean {
@@ -221,10 +371,12 @@ export class Panel {
     if (this.collapseHandler) this.host.removeEventListener("transitionend", this.collapseHandler);
     this.collapseHandler = null;
     this.setHostPosition(point, placement);
-    this.visible = true; this.host.dataset.interludeVisible = "true";
+    this.visible = true;
+    this.host.dataset.interludeVisible = "true";
     this.startCanvasScaling();
     this.setDone(false);
-    this.prop("height", "auto"); this.prop("transition", "none");
+    this.prop("height", "auto");
+    this.prop("transition", "none");
     const height = this.machine.getBoundingClientRect().height;
     if (placement === "inline" && !skipMotion && height > 80) {
       this.prop("height", "80px");
@@ -241,31 +393,50 @@ export class Panel {
     this.setHostPosition(point, placement);
     this.lastScreenWidth = 0;
     this.scaleCanvas();
-    this.prop("height", "auto"); this.prop("transition", "none");
+    this.prop("height", "auto");
+    this.prop("transition", "none");
     this.engine.watchVisibility(this.host);
   }
   close(smooth: boolean): void {
     if (!this.visible) return;
-    this.visible = false; this.host.dataset.interludeVisible = "false";
-    this.engine.stop(); this.engine.unwatchVisibility(); this.resizeObserver?.disconnect(); this.resizeObserver = null; this.lastScreenWidth = 0; this.blur(); this.setDone(false);
+    this.visible = false;
+    this.host.dataset.interludeVisible = "false";
+    this.engine.stop();
+    this.engine.unwatchVisibility();
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    this.lastScreenWidth = 0;
+    this.blur();
+    this.setDone(false);
     // Collapse only the reserved flow space. The cabinet itself disappears immediately.
     if (smooth && this.placement === "inline" && this.host.isConnected && !document.hidden) {
       const height = this.host.getBoundingClientRect().height;
-      this.prop("height", `${Math.ceil(height)}px`); this.prop("transition", "none");
+      this.prop("height", `${Math.ceil(height)}px`);
+      this.prop("transition", "none");
       void this.host.offsetHeight;
-      this.prop("visibility", "hidden"); this.prop("transition", "height 160ms steps(6,end)"); this.prop("height", "0px");
+      this.prop("visibility", "hidden");
+      this.prop("transition", "height 160ms steps(6,end)");
+      this.prop("height", "0px");
       this.collapseHandler = (event) => {
         if (event.target !== this.host || event.propertyName !== "height") return;
-        if (this.collapseHandler) this.host.removeEventListener("transitionend", this.collapseHandler);
-        this.collapseHandler = null; this.hideImmediately(); document.body.append(this.host);
+        if (this.collapseHandler)
+          this.host.removeEventListener("transitionend", this.collapseHandler);
+        this.collapseHandler = null;
+        this.hideImmediately();
+        document.body.append(this.host);
       };
       this.host.addEventListener("transitionend", this.collapseHandler);
-    } else { this.hideImmediately(); document.body.append(this.host); }
+    } else {
+      this.hideImmediately();
+      document.body.append(this.host);
+    }
   }
   destroy(): void {
     if (this.collapseHandler) this.host.removeEventListener("transitionend", this.collapseHandler);
-    this.resizeObserver?.disconnect(); this.resizeObserver = null;
-    this.engine.destroy(); this.host.remove();
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    this.engine.destroy();
+    this.host.remove();
   }
   /** Use whole source-pixel groups when reducing the 640px logical buffer. */
   private scaleCanvas(): void {
@@ -285,21 +456,33 @@ export class Panel {
     }
   }
   private startDrag = (event: PointerEvent): void => {
-    if (this.placement !== "overlay" || (event.target instanceof Element && event.target.closest("button, select"))) return;
+    if (
+      this.placement !== "overlay" ||
+      (event.target instanceof Element && event.target.closest("button, select"))
+    )
+      return;
     event.preventDefault();
-    const rect = this.host.getBoundingClientRect(), dx = event.clientX - rect.left, dy = event.clientY - rect.top;
+    const rect = this.host.getBoundingClientRect(),
+      dx = event.clientX - rect.left,
+      dy = event.clientY - rect.top;
     this.top.setPointerCapture(event.pointerId);
     const move = (e: PointerEvent): void => {
       if (e.pointerId !== event.pointerId) return;
       const x = Math.max(0, Math.min(window.innerWidth - 80, e.clientX - dx));
       const y = Math.max(0, Math.min(window.innerHeight - 40, e.clientY - dy));
-      this.position = { x, y }; this.prop("left", `${x}px`); this.prop("top", `${y}px`);
+      this.position = { x, y };
+      this.prop("left", `${x}px`);
+      this.prop("top", `${y}px`);
     };
     const end = (e: PointerEvent): void => {
       if (e.pointerId !== event.pointerId) return;
-      this.top.removeEventListener("pointermove", move); this.top.removeEventListener("pointerup", end); this.top.removeEventListener("pointercancel", end);
+      this.top.removeEventListener("pointermove", move);
+      this.top.removeEventListener("pointerup", end);
+      this.top.removeEventListener("pointercancel", end);
       if (this.position) this.events.onMove(this.position.x, this.position.y);
     };
-    this.top.addEventListener("pointermove", move); this.top.addEventListener("pointerup", end); this.top.addEventListener("pointercancel", end);
+    this.top.addEventListener("pointermove", move);
+    this.top.addEventListener("pointerup", end);
+    this.top.addEventListener("pointercancel", end);
   };
 }

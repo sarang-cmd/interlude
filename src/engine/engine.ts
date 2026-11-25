@@ -43,6 +43,8 @@ interface ScorePop {
   t: number;
 }
 
+const BOOT_SECONDS = 0.2;
+
 export class Engine implements GameContext {
   readonly width = LOGICAL_WIDTH;
   readonly height = LOGICAL_HEIGHT;
@@ -62,7 +64,9 @@ export class Engine implements GameContext {
   private bootPlayed = false;
   private startedBefore = false;
   private stateBeforePause: EngineState = "ready";
-  private get state(): EngineState { return this.scenes.current; }
+  private get state(): EngineState {
+    return this.scenes.current;
+  }
   private bootT = 0;
   private shakeMag = 0;
   private shakeDur = 0;
@@ -178,13 +182,19 @@ export class Engine implements GameContext {
       this.stateBeforePause = "ready";
       this.setState("paused", this.pauseReason);
     } else this.options.onStateChange?.("ready");
-    this.input.setPointerPrimary(["flappy", "dashline", "breakout", "rockfall"].includes(game.manifest.id));
+    this.input.setPointerPrimary(
+      ["flappy", "dashline", "breakout", "rockfall"].includes(game.manifest.id),
+    );
     this.bootT = 0;
     if (this.active) this.render(0);
   }
 
-  get isLoopRunning(): boolean { return this.loop.isRunning; }
-  get isLowRate(): boolean { return this.loop.isLowRate; }
+  get isLoopRunning(): boolean {
+    return this.loop.isRunning;
+  }
+  get isLowRate(): boolean {
+    return this.loop.isLowRate;
+  }
 
   getState(): EngineState {
     return this.state;
@@ -239,7 +249,8 @@ export class Engine implements GameContext {
 
   freezeForDone(): void {
     if (!this.active) return;
-    if (this.state !== "paused") this.stateBeforePause = this.state === "boot" ? "ready" : this.state;
+    if (this.state !== "paused")
+      this.stateBeforePause = this.state === "boot" ? "ready" : this.state;
     this.setState("paused", "done");
     this.loop.stop();
     this.sound.silence();
@@ -262,6 +273,8 @@ export class Engine implements GameContext {
 
   /** Panel out of view → 30 Hz; in view → 60 Hz. */
   setPanelVisible(visible: boolean): void {
+    // An unseen boot is skipped instead of being stretched by low-rate mode.
+    if (!visible && this.state === "boot") this.setState("ready");
     this.loop.setLowRate(!visible);
   }
 
@@ -316,7 +329,7 @@ export class Engine implements GameContext {
     switch (this.state) {
       case "boot":
         this.bootT += dt;
-        if (this.bootT >= 0.24) this.setState("ready");
+        if (this.bootT >= BOOT_SECONDS) this.setState("ready");
         break;
       case "ready": {
         this.game?.updateAttract?.(dt);
@@ -463,7 +476,7 @@ export class Engine implements GameContext {
   private renderBoot(ctx: CanvasRenderingContext2D): void {
     const w = this.width;
     const h = this.height;
-    const t = this.bootT / 0.24; // 0..1
+    const t = this.bootT / BOOT_SECONDS; // 0..1
     ctx.fillStyle = TOKENS.ink;
     ctx.fillRect(0, 0, w, h);
     // Horizontal collapse line expanding — the power-on thump.
@@ -474,7 +487,7 @@ export class Engine implements GameContext {
     if (t > 0.55) {
       ctx.globalAlpha = Math.min(1, (t - 0.55) * 2.4);
       ctx.fillStyle = TOKENS.phosphor;
-      ctx.font = '32px Silkscreen, monospace';
+      ctx.font = "32px Silkscreen, monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("INTERLUDE", w / 2, h / 2);
@@ -489,9 +502,9 @@ export class Engine implements GameContext {
     ctx.fillRect(0, 0, w, h);
     ctx.textAlign = "center";
     ctx.fillStyle = TOKENS.phosphor;
-    ctx.font = '28px Silkscreen, monospace';
+    ctx.font = "28px Silkscreen, monospace";
     ctx.fillText(this.game?.manifest.name ?? "INTERLUDE", w / 2, 128);
-    ctx.font = '16px VT323, monospace';
+    ctx.font = "16px VT323, monospace";
     ctx.fillStyle = TOKENS.phosphorHot;
     ctx.fillText(`HI-SCORE ${String(this.hiScore).padStart(6, "0")}`, w / 2, 168);
     ctx.fillStyle = TOKENS.phosphor;
@@ -508,29 +521,41 @@ export class Engine implements GameContext {
     ctx.fillRect(0, 0, w, h);
     ctx.textAlign = "center";
     ctx.fillStyle = TOKENS.phosphor;
-    ctx.font = '22px Silkscreen, monospace';
+    ctx.font = "22px Silkscreen, monospace";
     const isDone = this.pauseReason === "done";
-    ctx.fillText(isDone ? (this.options.doneLabel ?? "CLAUDE IS DONE") : "PAUSED", w / 2, h / 2 - 8);
-    ctx.font = '15px VT323, monospace';
+    ctx.fillText(
+      isDone ? (this.options.doneLabel ?? "CLAUDE IS DONE") : "PAUSED",
+      w / 2,
+      h / 2 - 8,
+    );
+    ctx.font = "15px VT323, monospace";
     ctx.fillStyle = TOKENS.phosphorDim;
-    ctx.fillText(isDone ? "PRESS P OR RESUME — THE ANSWER IS IN" : "PRESS P TO RESUME", w / 2, h / 2 + 22);
+    ctx.fillText(
+      isDone ? "PRESS P OR RESUME — THE ANSWER IS IN" : "PRESS P TO RESUME",
+      w / 2,
+      h / 2 + 22,
+    );
   }
 
   private renderHud(ctx: CanvasRenderingContext2D): void {
     const w = this.width;
     ctx.fillStyle = TOKENS.phosphorHot;
-    ctx.font = '13px Silkscreen, monospace';
+    ctx.font = "13px Silkscreen, monospace";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillText(`SCORE ${String(this.game?.score ?? 0).padStart(6, "0")}`, 10, 8);
     ctx.textAlign = "right";
     ctx.fillStyle = TOKENS.phosphorDim;
-    ctx.fillText(`HI ${String(Math.max(this.hiScore, this.game?.score ?? 0)).padStart(6, "0")}`, w - 10, 8);
+    ctx.fillText(
+      `HI ${String(Math.max(this.hiScore, this.game?.score ?? 0)).padStart(6, "0")}`,
+      w - 10,
+      8,
+    );
     ctx.textBaseline = "alphabetic";
   }
 
   private renderScorePops(ctx: CanvasRenderingContext2D): void {
-    ctx.font = '14px VT323, monospace';
+    ctx.font = "14px VT323, monospace";
     ctx.textAlign = "center";
     for (const pop of this.scorePops) {
       ctx.globalAlpha = Math.max(0, 1 - pop.t / 0.9);
@@ -547,9 +572,9 @@ export class Engine implements GameContext {
     ctx.fillRect(0, 0, w, h);
     ctx.textAlign = "center";
     ctx.fillStyle = TOKENS.signalRed;
-    ctx.font = '30px Silkscreen, monospace';
+    ctx.font = "30px Silkscreen, monospace";
     ctx.fillText("GAME OVER", w / 2, 128);
-    ctx.font = '17px VT323, monospace';
+    ctx.font = "17px VT323, monospace";
     ctx.fillStyle = TOKENS.phosphorHot;
     const finalScore = this.game?.score ?? 0;
     ctx.fillText(`SCORE ${String(finalScore).padStart(6, "0")}`, w / 2, 176);
