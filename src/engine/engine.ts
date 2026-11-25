@@ -167,6 +167,7 @@ export class Engine implements GameContext {
   }
 
   get isLoopRunning(): boolean { return this.loop.isRunning; }
+  get isLowRate(): boolean { return this.loop.isLowRate; }
 
   getState(): EngineState {
     return this.state;

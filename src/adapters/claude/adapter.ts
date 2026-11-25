@@ -98,8 +98,9 @@ export class ClaudeAdapter implements SiteAdapter {
     this.heartbeatAt = null;
     this.turn = null;
     this.indicator = null;
-    this.scan();
-    if (this.votes.a || this.votes.b) { this.machine.arm(); this.scan(); }
+    this.votes = emptyVote();
+    // The old conversation can remain mounted briefly after pushState. Do not
+    // re-interpret its stale signals as a new generation in the new route.
   }
   private onNavigation = (): void => this.navigation();
   private onPageShow = (event: PageTransitionEvent): void => { if (event.persisted) this.navigation(); };

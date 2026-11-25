@@ -200,7 +200,7 @@ export class InterludeController {
   diagnostics() {
     const adapter = this.adapter.diagnostics();
     const activity = this.adapter.activity();
-    return { ...adapter, panel: { visible: this.panel.isVisible, scene: this.panel.engine.getState(), gameId: this.gameId, error: this.gameError, configuredDelayMs: this.lastDelay, overheadMs: adapter.lastSignalToFrameMs === null ? null : Math.max(0, Math.round((adapter.lastSignalToFrameMs - this.lastDelay) * 10) / 10), loopRunning: this.panel.engine.isLoopRunning }, activity: { observers: activity.observers, timers: activity.timers + Number(this.revealTimer !== undefined) + Number(this.closeTimer !== undefined), scheduledFrames: Number(this.revealFrame !== undefined) + Number(this.remountFrame !== undefined) } };
+    return { ...adapter, panel: { visible: this.panel.isVisible, scene: this.panel.engine.getState(), gameId: this.gameId, error: this.gameError, configuredDelayMs: this.lastDelay, overheadMs: adapter.lastSignalToFrameMs === null ? null : Math.max(0, Math.round((adapter.lastSignalToFrameMs - this.lastDelay) * 10) / 10), loopRunning: this.panel.engine.isLoopRunning, lowRate: this.panel.engine.isLowRate }, activity: { observers: activity.observers, timers: activity.timers + Number(this.revealTimer !== undefined) + Number(this.closeTimer !== undefined), scheduledFrames: Number(this.revealFrame !== undefined) + Number(this.remountFrame !== undefined) } };
   }
   destroy(): void {
     this.destroyed = true; this.cancelReveal(); this.cancelClose();

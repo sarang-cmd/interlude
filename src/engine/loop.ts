@@ -3,7 +3,7 @@
  *
  * Rate control:
  *  - full rate: update+render every rAF (capped at 60 Hz logic)
- *  - low rate: renders every 2nd rAF (~30 Hz), logic still fixed-step
+ *  - low rate: processes every 2nd rAF (~30 Hz) with fixed-size logic steps
  *  - stopped: no rAF at all. Idle means zero timers, zero frames.
  *  - `hitStop(ms)`: freezes updates (render continues) for impact frames
  */
@@ -35,7 +35,9 @@ export class GameLoop {
 
   setLowRate(low: boolean): void {
     this.lowRate = low;
+    this.frameCounter = 0;
   }
+  get isLowRate(): boolean { return this.lowRate; }
 
   hitStop(ms: number): void {
     this.hitStopUntil = performance.now() + ms;
@@ -65,6 +67,10 @@ export class GameLoop {
     // Clamp huge deltas (tab was suspended) so we don't spiral.
     if (frameTime > 0.25) frameTime = 0.25;
 
+    // Offscreen, skip both update and render on alternate frames. The game
+    // deliberately runs at half speed rather than taking large physics steps.
+    if (this.lowRate && ++this.frameCounter % 2 !== 0) return;
+
     const frozen = now < this.hitStopUntil;
     if (!frozen) {
       this.accumulator += frameTime;
@@ -77,15 +83,10 @@ export class GameLoop {
       if (steps === 5) this.accumulator = 0;
     }
 
-    if (this.lowRate) {
-      this.frameCounter++;
-      if (this.frameCounter % 2 !== 0) return;
-    }
-
     const alpha = frozen ? 1 : this.accumulator / GameLoop.STEP;
     this.onRender(alpha);
 
-    this.fpsTimer += frameTime;
+    this.fpsTimer += frameTime * (this.lowRate ? 2 : 1);
     this.fpsFrames++;
     if (this.fpsTimer >= 0.5) {
       this.onFrameStats(this.fpsFrames / this.fpsTimer);

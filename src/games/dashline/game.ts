@@ -20,7 +20,7 @@ export class DashlineGame implements ArcadeGame {
     this.g = ctx;
     this.score = 0;
     this.elapsed = 0;
-    this.logic = new DashlineLogic({ seed: (Math.random() * 0xffffffff) >>> 0 });
+    this.logic = new DashlineLogic({ seed: Math.floor(ctx.rng.next() * 0xffffffff) });
   }
 
   destroy(): void {

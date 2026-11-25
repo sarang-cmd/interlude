@@ -19,7 +19,7 @@ const PIECE_COLORS: Record<number, string> = {
   3: "#E08600",            // T
   4: TOKENS.signalGreen,   // S
   5: TOKENS.signalRed,     // Z
-  6: TOKENS.paper,         // J
+  6: "#D9A85C",         // J
   7: "#B8710A",            // L
 };
 const KIND_TO_COLOR: Record<PieceKind, string> = {
@@ -44,7 +44,7 @@ export class BlockfallGame implements ArcadeGame {
     this.g = ctx;
     this.score = 0;
     this.flashT = 0;
-    this.logic = new BlockfallLogic({ seed: (Math.random() * 0xffffffff) >>> 0 });
+    this.logic = new BlockfallLogic({ seed: Math.floor(ctx.rng.next() * 0xffffffff) });
   }
 
   destroy(): void {
@@ -128,7 +128,7 @@ export class BlockfallGame implements ArcadeGame {
               BOARD_X + Math.random() * BOARD_W,
               BOARD_Y + Math.random() * BOARD_H,
               2,
-              { color: ["#FFD36B", "#FFB000", "#E9DFC8"], speed: 70, size: 1, gravity: 120, life: 0.6 },
+              { color: ["#FFD36B", "#FFB000", "#D9A85C"], speed: 70, size: 1, gravity: 120, life: 0.6 },
             );
           }
           if (lines === 4) {

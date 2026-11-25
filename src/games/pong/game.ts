@@ -22,7 +22,7 @@ export class PongGame implements ArcadeGame {
     this.score = 0;
     this.readyHint = `MOUSE OR ARROWS — FIRST TO ${ctx.settings.pongFirstTo}`;
     this.logic = new PongLogic({
-      seed: (Math.random() * 0xffffffff) >>> 0,
+      seed: Math.floor(ctx.rng.next() * 0xffffffff),
       difficulty: ctx.settings.pongDifficulty,
       firstTo: ctx.settings.pongFirstTo,
     });

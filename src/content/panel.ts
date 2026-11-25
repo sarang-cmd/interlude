@@ -12,9 +12,9 @@ const CSS = `
 @font-face{font-family:VT323;src:url('${fontUrl("vt323")}') format('woff2');font-display:swap}
 @font-face{font-family:'IBM Plex Mono';src:url('${fontUrl("ibm-plex-mono-400")}') format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:'IBM Plex Mono';src:url('${fontUrl("ibm-plex-mono-600")}') format('woff2');font-weight:600;font-display:swap}
-:host{all:initial;box-sizing:border-box;color:#E9DFC8;font-family:'IBM Plex Mono',monospace;contain:style}
+:host{all:initial;box-sizing:border-box;color:#DDC796;font-family:'IBM Plex Mono',monospace;contain:style}
 *,*::before,*::after{box-sizing:border-box} button,select{font:inherit;border-radius:0}
-.machine{font-family:'IBM Plex Mono',monospace;background:#0E0B07;color:#E9DFC8;border:2px solid #7A5600;box-shadow:4px 4px 0 #000;overflow:hidden;width:100%}
+.machine{font-family:'IBM Plex Mono',monospace;background:#0E0B07;color:#DDC796;border:2px solid #7A5600;box-shadow:4px 4px 0 #000;overflow:hidden;width:100%}
 .top{display:flex;align-items:center;gap:10px;min-height:42px;padding:7px 10px;border-bottom:1px solid #7A5600;background:#171209}
 .brand{display:flex;align-items:center;gap:8px;flex:1;min-width:0;color:#FFB000;font:700 12px Silkscreen,monospace;letter-spacing:.04em}
 .mark{display:inline-block;width:14px;height:14px;background:linear-gradient(90deg,#FFB000 0 28%,transparent 28% 38%,#FFB000 38% 66%,transparent 66% 76%,#FFB000 76%);image-rendering:pixelated}
@@ -23,7 +23,7 @@ select{appearance:none;color:#FFD36B;background:#0E0B07;border:1px solid #7A5600
 select:focus-visible,button:focus-visible,canvas:focus-visible{outline:2px solid #FFD36B;outline-offset:-2px}
 button{border:1px solid #7A5600;background:#171209;color:#FFD36B;cursor:pointer;font-size:10px;letter-spacing:.04em}
 button:hover{background:#2A2114;border-color:#FFB000}button:active{transform:translate(1px,1px)}
-.close{width:27px;height:27px;font-size:16px;line-height:1;color:#E9DFC8;flex:none}
+.close{width:27px;height:27px;font-size:16px;line-height:1;color:#DDC796;flex:none}
 .meta{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 10px;color:#C2A86B;font-size:9px;line-height:1.3;letter-spacing:.07em;text-transform:uppercase}
 .state{color:#5FBF6A}.state::before{content:'■';margin-right:6px;font-size:8px}
 .screen{position:relative;background:#0E0B07;text-align:center;line-height:0;border-top:1px solid #382C15;border-bottom:1px solid #382C15}
@@ -85,6 +85,8 @@ export class Panel {
   private position: { x: number; y: number } | null = null;
   private collapseHandler: ((event: TransitionEvent) => void) | null = null;
   private onScene: ((state: EngineState) => void) | null = null;
+  private resizeObserver: ResizeObserver | null = null;
+  private lastScreenWidth = 0;
 
   constructor(settings: InterludeSettings, private readonly siteName: string, private readonly events: PanelEvents) {
     this.host.dataset.interlude = "panel";
@@ -214,6 +216,7 @@ export class Panel {
     this.collapseHandler = null;
     this.setHostPosition(point, placement);
     this.visible = true; this.host.dataset.interludeVisible = "true";
+    this.startCanvasScaling();
     this.setDone(false);
     this.prop("height", "auto"); this.prop("transition", "none");
     const height = this.machine.getBoundingClientRect().height;
@@ -230,13 +233,15 @@ export class Panel {
   remount(point: MountPointResult, placement: Placement): void {
     if (!this.visible) return;
     this.setHostPosition(point, placement);
+    this.lastScreenWidth = 0;
+    this.scaleCanvas();
     this.prop("height", "auto"); this.prop("transition", "none");
     this.engine.watchVisibility(this.host);
   }
   close(smooth: boolean): void {
     if (!this.visible) return;
     this.visible = false; this.host.dataset.interludeVisible = "false";
-    this.engine.stop(); this.engine.unwatchVisibility(); this.blur(); this.setDone(false);
+    this.engine.stop(); this.engine.unwatchVisibility(); this.resizeObserver?.disconnect(); this.resizeObserver = null; this.lastScreenWidth = 0; this.blur(); this.setDone(false);
     // Collapse only the reserved flow space. The cabinet itself disappears immediately.
     if (smooth && this.placement === "inline" && this.host.isConnected && !document.hidden) {
       const height = this.host.getBoundingClientRect().height;
@@ -253,7 +258,25 @@ export class Panel {
   }
   destroy(): void {
     if (this.collapseHandler) this.host.removeEventListener("transitionend", this.collapseHandler);
+    this.resizeObserver?.disconnect(); this.resizeObserver = null;
     this.engine.destroy(); this.host.remove();
+  }
+  /** Use whole source-pixel groups when reducing the 640px logical buffer. */
+  private scaleCanvas(): void {
+    const available = Math.floor(this.screen.clientWidth);
+    if (available <= 0 || available === this.lastScreenWidth) return;
+    this.lastScreenWidth = available;
+    const divisor = Math.max(1, Math.ceil(640 / available));
+    this.canvas.style.width = `${640 / divisor}px`;
+  }
+  private startCanvasScaling(): void {
+    this.lastScreenWidth = 0;
+    this.scaleCanvas();
+    this.resizeObserver?.disconnect();
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(() => this.scaleCanvas());
+      this.resizeObserver.observe(this.screen);
+    }
   }
   private startDrag = (event: PointerEvent): void => {
     if (this.placement !== "overlay" || (event.target instanceof Element && event.target.closest("button, select"))) return;

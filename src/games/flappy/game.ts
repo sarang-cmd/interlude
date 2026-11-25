@@ -3,7 +3,7 @@
  */
 import type { ArcadeGame, GameContext } from "../types";
 import { FLAPPY_MANIFEST } from "../manifest";
-import { BIRD_R, BIRD_X, FlappyLogic } from "./logic";
+import { BIRD_X, FlappyLogic } from "./logic";
 import { TOKENS } from "../../../design/tokens";
 import { drawText } from "../shared";
 
@@ -22,7 +22,7 @@ export class FlappyGame implements ArcadeGame {
     this.score = 0;
     this.flapBuffer = 0;
     this.elapsed = 0;
-    this.logic = new FlappyLogic({ seed: (Math.random() * 0xffffffff) >>> 0 });
+    this.logic = new FlappyLogic({ seed: Math.floor(ctx.rng.next() * 0xffffffff) });
   }
 
   destroy(): void {

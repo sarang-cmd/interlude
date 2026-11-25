@@ -20,7 +20,7 @@ export class RockfallGame implements ArcadeGame {
     this.g = ctx;
     this.score = 0;
     this.elapsed = 0;
-    this.logic = new RockfallLogic({ seed: (Math.random() * 0xffffffff) >>> 0 });
+    this.logic = new RockfallLogic({ seed: Math.floor(ctx.rng.next() * 0xffffffff) });
     // Touch: left/right halves rotate, upper area thrusts, tap fires.
   }
 

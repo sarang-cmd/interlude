@@ -26,6 +26,7 @@ export class SnakeGame implements ArcadeGame {
       cols: COLS,
       rows: ROWS,
       wrap: ctx.settings.snakeWrap,
+      seed: Math.floor(ctx.rng.next() * 0xffffffff),
     });
   }
 

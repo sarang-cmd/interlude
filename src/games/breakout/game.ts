@@ -4,8 +4,6 @@
 import type { ArcadeGame, GameContext } from "../types";
 import { BREAKOUT_MANIFEST } from "../manifest";
 import {
-  BRICK_H,
-  BRICK_W,
   BreakoutLogic,
   PADDLE_H,
   PADDLE_Y,
@@ -31,7 +29,7 @@ export class BreakoutGame implements ArcadeGame {
   init(ctx: GameContext): void {
     this.g = ctx;
     this.score = 0;
-    this.logic = new BreakoutLogic({ seed: (Math.random() * 0xffffffff) >>> 0 });
+    this.logic = new BreakoutLogic({ seed: Math.floor(ctx.rng.next() * 0xffffffff) });
   }
 
   destroy(): void {
