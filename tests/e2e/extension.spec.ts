@@ -344,6 +344,15 @@ test("other placements remount and overlay drag position persists", async () => 
     Math.round(saved.x),
   );
   await cdp.detach();
+  await page.reload();
+  await expect(host).toHaveCount(1);
+  await expect(host).toBeHidden();
+  await expect.poll(async () => (await diagnostic()).panel.gameId).toBe("snake");
+  await page.locator('[data-testid="send-button"]').click();
+  await expect(host).toBeVisible();
+  await expect
+    .poll(async () => Math.round(await host.evaluate((el) => el.getBoundingClientRect().x)))
+    .toBe(Math.round(saved.x));
 });
 
 test("auto-close freezes before closing after the configured grace", async () => {
@@ -915,4 +924,25 @@ test("each cabinet can start from its touch controls", async () => {
     await expect(host).toHaveAttribute("data-interlude-scene", "playing");
   }
   await cdp.detach();
+});
+
+test("closing a running cabinet returns focus and dismisses it for that generation", async () => {
+  await worker.evaluate(() =>
+    chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }),
+  );
+  await openFixture();
+  await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]');
+  await expect(host).toBeVisible();
+  await shadowClick(".close");
+  await expect(host).toBeHidden();
+  await expect(page.locator('[data-testid="chat-input"]')).toBeFocused();
+  await page.waitForTimeout(250);
+  await expect(host).toBeHidden();
+  await page.evaluate(() =>
+    (window as unknown as { fixture: { finish(): void } }).fixture.finish(),
+  );
+  await expect.poll(async () => (await diagnostic()).state).toBe("idle");
+  await page.locator('[data-testid="regenerate-button"]').click();
+  await expect(host).toBeVisible();
 });

@@ -65,7 +65,10 @@ export class InterludeController {
     this.adapter = adapter;
     this.panel = new Panel(settings, adapter.displayName, {
       onChoose: (choice) => this.choose(choice),
-      onClose: () => this.close(true),
+      onClose: () => {
+        this.close(true);
+        this.adapter.getComposerInput()?.focus({ preventScroll: true });
+      },
       onResume: () => this.resume(),
       onEscape: () => this.returnToComposer(),
       onFirstFrame: () => {

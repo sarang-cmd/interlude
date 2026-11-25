@@ -29,11 +29,13 @@ export class Sound {
 
   setMuted(muted: boolean): void {
     this.muted = muted;
-    if (this.master) this.master.gain.value = muted ? 0 : 0.35;
+    if (muted) this.silence();
+    else if (this.master) this.master.gain.value = 0.35;
   }
 
   /** Must be called from a user gesture at least once. */
   unlock(): void {
+    if (this.muted) return;
     if (this.ctx) {
       if (this.ctx.state === "suspended") void this.ctx.resume();
       return;
