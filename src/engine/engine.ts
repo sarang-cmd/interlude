@@ -583,7 +583,13 @@ export class Engine implements GameContext {
     ctx.fillText(this.game?.manifest.name ?? "INTERLUDE", w / 2, 128);
     ctx.font = "16px VT323, monospace";
     ctx.fillStyle = TOKENS.phosphorHot;
-    ctx.fillText(`HI-SCORE ${String(this.hiScore).padStart(6, "0")}`, w / 2, 168);
+    ctx.fillText(
+      this.game?.recordsAllowed === false
+        ? "NO SOLO RECORD FOR THIS MODE"
+        : `HI-SCORE ${String(this.hiScore).padStart(6, "0")}`,
+      w / 2,
+      168,
+    );
     ctx.fillStyle = TOKENS.phosphor;
     ctx.fillText(this.game?.readyHint ?? "PRESS SPACE TO START", w / 2, 216);
     ctx.fillStyle = TOKENS.phosphorDim;

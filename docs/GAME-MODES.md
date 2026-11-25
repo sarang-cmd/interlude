@@ -7,14 +7,14 @@ and never use networking.
 
 | Game          | Extension         | Website                        | Save a run |
 | ------------- | ----------------- | ------------------------------ | ---------- |
-| Snake         | Solo              | Solo                           | No         |
-| Breakout      | Solo              | Solo                           | No         |
-| Flapper       | Solo              | Solo                           | No         |
-| 2048          | Solo              | Solo                           | No         |
+| Snake         | Solo              | Solo, split-screen race        | No         |
+| Breakout      | Solo              | Solo, split-screen race        | No         |
+| Flapper       | Solo              | Solo, split-screen race        | No         |
+| 2048          | Solo              | Solo, split-screen race        | No         |
 | Pong          | vs CPU, watch CPU | vs CPU, watch CPU, local match | No         |
-| Blockfall     | Solo              | Solo                           | No         |
-| Rockfall Belt | Solo              | Solo                           | No         |
-| Dashline      | Solo              | Solo                           | No         |
+| Blockfall     | Solo              | Solo, split-screen race        | No         |
+| Rockfall Belt | Solo              | Solo, split-screen race        | No         |
+| Dashline      | Solo              | Solo, split-screen race        | No         |
 
 Scores persist separately on each surface. The existing 2048 undo is not a saved
 run. The shared manifest lists default player-one keys, inputs, categories and
@@ -30,8 +30,35 @@ emits `bundle-report.json` with JavaScript byte counts and budget limits. The
 website build must include the local-mode registry, so the separation check does
 not pass solely because both builds dropped the registry.
 
-Pong is the first local mode. The remaining seven original games do not yet
-have local match modes. Unknown or unavailable modes are rejected.
+All eight original games now have a website-only local mode. Unknown or
+unavailable modes are rejected. These changes are local to this branch and are
+not deployed to the public site.
+
+## Split-screen races
+
+Snake, Breakout, Flapper, 2048, Blockfall, Rockfall Belt and Dashline offer
+competitive races. The engine runs two independent instances of the existing
+solo game at once, not a second arcade or a shared-board co-op mode. Both boards
+receive the same seed at the start of a round. Player actions affect later
+random draws, so boards need not stay identical. Each completed round increments
+the seed. Resetting a series restores the configured starting seed.
+
+Each player has remappable keys, separate touch controls and a gamepad slot.
+Defaults use W/A/S/D, F and Q for player one and arrows, Space and Enter for
+player two. Only actions used by a game appear. Conflicts and the P pause key
+are rejected. Assigned gamepad slots stay with the same player if the other
+controller disconnects. Names, a 30 to 300 game-second clock, best-of-one,
+three or five, and score handicaps of 100%, 125%, 150% or 200% are configurable
+between rounds. Speed settings scale the game clock as well as the games.
+
+The higher adjusted score wins. If adjusted scores match, longer survival wins.
+Equal scores and survival produce a draw, which does not advance the series.
+An eliminated board freezes while the other continues until its game ends or
+the clock expires. The solo 2048 clock is off during a race so both boards use
+the shared race clock. No local race updates a solo high score or best tile.
+The last 100 race results and per-game preferences stay in browser storage. The
+active scoreboard resets on reload. Race data is never transmitted. Shared-board
+co-op and private hot-seat games are not part of these race modes.
 
 ## Local Pong
 

@@ -26,7 +26,10 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
   Check pause/resume, sound, mobile layout, offscreen freezing and that a completed
   run's website-local score survives a reload. In Pong, select the local match,
   hold W and Down together, try a remap conflict, and finish a short series.
-  Check the recent local match record and the separate solo high score.
+  Check the recent local match record and the separate solo high score. For each
+  other cabinet, select the split-screen race, play both sides, finish a round,
+  and check the seed, handicaps, series score and browser-local record. Repeat
+  with two gamepads and narrow touch controls.
 - Play all eight games on keyboard, pointer/touch and a standard focused
   gamepad; check game-specific rules, remaps/conflicts, sounds, preview and
   records. Assess human difficulty and run length; simulation tests do not prove

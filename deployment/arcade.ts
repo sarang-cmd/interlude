@@ -9,6 +9,7 @@ import {
 } from "../src/games/manifest";
 import type { GameManifest, GameMode } from "../src/games/types";
 import type { PongLocalGame } from "../src/games/pong/pong.2p";
+import type { SplitRaceGame } from "../src/twoplayer/split-race";
 import { defaults, type InterludeSettings, type SettingValue } from "../src/settings/schema";
 import { isAIDifficulty } from "../src/ai/difficulty";
 import {
@@ -49,6 +50,10 @@ const pongAIField = element<HTMLElement>("#pong-ai-field");
 const pongAdaptiveField = element<HTMLElement>("#pong-adaptive-field");
 const localPong = element<HTMLElement>("#local-pong");
 const localControls = element<HTMLElement>("#local-pong-controls");
+const raceModeField = element<HTMLElement>("#race-mode-field");
+const raceMode = element<HTMLSelectElement>("#race-mode");
+const localRace = element<HTMLElement>("#local-race");
+const localRaceControls = element<HTMLElement>("#local-race-controls");
 
 const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> = {
   snake: [
@@ -116,6 +121,8 @@ for (const [game, speed] of Object.entries(preferences.speeds)) {
 let selectedGame = DEFAULT_GAME_ID;
 let pongModeId = preferences.pongWatch ? "watch" : "cpu";
 let pongModes: readonly GameMode[] = getManifest("pong")!.modes;
+const raceModeByGame: Record<string, string> = {};
+let raceModes: readonly GameMode[] = [];
 let removeLocalUI: (() => void) | null = null;
 let requestNumber = 0;
 let canvasVisible = true;
@@ -204,10 +211,11 @@ if ("IntersectionObserver" in window) {
   observer.observe(canvas);
 }
 
-function makeControls(manifest: GameManifest): void {
+function makeControls(manifest: GameManifest, splitRace = false): void {
   controls.replaceChildren();
   controls.setAttribute("aria-label", `${manifest.name} on-screen controls`);
-  if (manifest.id === "pong" && settings.pongWatch) return;
+  controls.hidden = splitRace;
+  if (splitRace || (manifest.id === "pong" && settings.pongWatch)) return;
   for (const [label, action, description] of controlSets[manifest.id] ?? []) {
     const button = document.createElement("button");
     button.type = "button";
@@ -258,18 +266,26 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
   engine.stop();
   playButton.disabled = true;
   resetButton.disabled = true;
+  raceMode.disabled = true;
+  pongMode.disabled = true;
   canvas.dataset.scene = "loading";
   stateLabel.textContent = "LOADING";
   selectButtons(id);
   try {
-    const mode = id === "pong" ? pongModeId : undefined;
+    const mode = id === "pong" ? pongModeId : (raceModeByGame[id] ?? "solo");
     const local = id === "pong" && mode === "local";
+    const splitRace = id !== "pong" && mode === "local";
     const localUI =
       __PLATFORM__ === "web" && local ? import("../src/twoplayer/pong-ui") : Promise.resolve(null);
-    const [game, modes, localModule] = await Promise.all([
+    const raceUI =
+      __PLATFORM__ === "web" && splitRace
+        ? import("../src/twoplayer/race-ui")
+        : Promise.resolve(null);
+    const [game, modes, localModule, raceModule] = await Promise.all([
       loadGame(id, mode),
       availableModes(id),
       localUI,
+      raceUI,
     ]);
     if (sequence !== requestNumber) return;
     if (!modes.length || (mode && !modes.some((item) => item.id === mode)))
@@ -281,10 +297,19 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     descriptionLabel.textContent = manifest.description;
     hintLabel.textContent = local
       ? "LOCAL MATCH · SET KEYS BELOW · P PAUSES"
-      : id === "pong" && settings.pongWatch
-        ? "WATCH CPU · P PAUSES · ESC RELEASES FOCUS"
-        : `${manifest.controls} · P PAUSES`;
+      : splitRace
+        ? "SPLIT SCREEN · TWO SETS OF CONTROLS · P PAUSES"
+        : id === "pong" && settings.pongWatch
+          ? "WATCH CPU · P PAUSES · ESC RELEASES FOCUS"
+          : `${manifest.controls} · P PAUSES`;
     pongSettings.hidden = id !== "pong";
+    raceModeField.hidden = id === "pong" || !modes.some((choice) => choice.players === 2);
+    if (id !== "pong") {
+      raceModes = modes;
+      raceMode.replaceChildren();
+      for (const choice of modes) addOption(raceMode, choice.id, choice.label);
+      raceMode.value = mode;
+    }
     pongAIField.hidden = local;
     pongAdaptiveField.hidden = local;
     if (id === "pong") {
@@ -295,9 +320,12 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     }
     speedSelect.value = String(preferences.speeds[id] ?? 100);
     canvas.dataset.game = id;
-    canvas.setAttribute("aria-label", `${manifest.name} game screen`);
+    canvas.setAttribute(
+      "aria-label",
+      `${manifest.name}${splitRace ? " two-player split screen" : " game screen"}`,
+    );
     updateBest();
-    makeControls(manifest);
+    makeControls(manifest, splitRace);
     engine.setGame(game, scores[id] ?? 0);
     engine.start();
     if (local && localModule) {
@@ -309,11 +337,22 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
         focusGame: () => focusGame(true),
         acceptsInput: () => loaded && engine.getState() !== "paused",
       });
+    } else if (splitRace && raceModule) {
+      removeLocalUI = raceModule.mountLocalRace({
+        root: localRace,
+        controlRoot: localRaceControls,
+        game: game as SplitRaceGame,
+        storage,
+        focusGame: () => focusGame(false),
+        acceptsInput: () => loaded && engine.getState() !== "paused",
+      });
     }
     updateVisibility();
     loaded = true;
     playButton.disabled = false;
     resetButton.disabled = false;
+    raceMode.disabled = false;
+    pongMode.disabled = false;
     // On narrow screens the picker sits below the screen. Bring the selected
     // cabinet back into view so touch controls never start an unseen game.
     if (reveal && window.matchMedia("(max-width: 740px)").matches) {
@@ -373,6 +412,11 @@ speedSelect.addEventListener("change", () => {
   preferences.speeds[selectedGame] = speed;
   changeSettings({ [`game.${selectedGame}.speed`]: speed });
   saveWebPreferences(storage, preferences);
+});
+raceMode.addEventListener("change", () => {
+  if (!raceModes.some((mode) => mode.id === raceMode.value)) return;
+  raceModeByGame[selectedGame] = raceMode.value;
+  void chooseGame(selectedGame);
 });
 pongMode.addEventListener("change", () => {
   if (!pongModes.some((mode) => mode.id === pongMode.value)) return;

@@ -1,3 +1,5 @@
+import { readLocalJson, writeLocalJson, type LocalStorage } from "./local-storage";
+
 /** Local match preferences and records stay in the website's browser storage. */
 export const LOCAL_PONG_SETTINGS_KEY = "interlude.website.pong-local.settings.v1";
 export const LOCAL_PONG_RECORDS_KEY = "interlude.website.pong-local.records.v1";
@@ -50,11 +52,11 @@ export function bindingError(keys: Record<LocalAction, string>): string | null {
   return null;
 }
 
-type StorageLike = Pick<Storage, "getItem" | "setItem"> | null;
+type StorageLike = LocalStorage;
 export function readLocalPongSettings(storage: StorageLike): LocalPongSettings {
   const settings = defaultLocalPongSettings();
   try {
-    const value: unknown = JSON.parse(storage?.getItem(LOCAL_PONG_SETTINGS_KEY) ?? "{}");
+    const value = readLocalJson(storage, LOCAL_PONG_SETTINGS_KEY);
     if (!value || typeof value !== "object" || Array.isArray(value)) return settings;
     const data = value as Record<string, unknown>;
     if (Array.isArray(data.names)) {
@@ -97,16 +99,12 @@ export function readLocalPongSettings(storage: StorageLike): LocalPongSettings {
 }
 
 export function saveLocalPongSettings(storage: StorageLike, settings: LocalPongSettings): void {
-  try {
-    storage?.setItem(LOCAL_PONG_SETTINGS_KEY, JSON.stringify(settings));
-  } catch {
-    /* session only */
-  }
+  writeLocalJson(storage, LOCAL_PONG_SETTINGS_KEY, settings);
 }
 
 export function readLocalPongRecords(storage: StorageLike): LocalPongRecord[] {
   try {
-    const value: unknown = JSON.parse(storage?.getItem(LOCAL_PONG_RECORDS_KEY) ?? "[]");
+    const value = readLocalJson(storage, LOCAL_PONG_RECORDS_KEY);
     if (!Array.isArray(value)) return [];
     return value
       .filter(
@@ -138,10 +136,6 @@ export function appendLocalPongRecord(
 ): LocalPongRecord[] {
   const stored = readLocalPongRecords(storage);
   const records = [...(stored.length ? stored : sessionRecords), record].slice(-100);
-  try {
-    storage?.setItem(LOCAL_PONG_RECORDS_KEY, JSON.stringify(records));
-  } catch {
-    /* session only */
-  }
+  writeLocalJson(storage, LOCAL_PONG_RECORDS_KEY, records);
   return records;
 }

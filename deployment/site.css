@@ -526,8 +526,23 @@ h1 {
   gap: 6px;
   margin: 10px 0 0;
 }
-.local-controls[hidden] {
+.game-controls[hidden],
+.local-controls[hidden],
+.game-setting[hidden] {
   display: none;
+}
+.local-player-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  flex-basis: 100%;
+}
+.local-player-label {
+  min-width: 70px;
+  color: var(--amber);
+  font-size: 10px;
+  font-weight: 600;
 }
 .local-history {
   margin: 4px 0 0;

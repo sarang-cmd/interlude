@@ -21,7 +21,9 @@ test("built extension excludes web-only modules and both surfaces meet their bud
   expect(web.webOnlyModuleCount).toBeGreaterThanOrEqual(3);
   for (const chunk of extension.chunks) {
     const code = await readFile(`dist/${chunk.file}`, "utf8");
-    expect(code).not.toMatch(/TWO PLAYERS|PLAYER 2|pong-local|p2Up|\.2p/i);
+    expect(code).not.toMatch(
+      /TWO PLAYERS|PLAYER 2|pong-local|p2Up|race\.records|split.screen|\.2p/i,
+    );
   }
   for (const report of [extension, web]) {
     expect(report.javascriptBytes).toBeLessThanOrEqual(report.budgets.total);

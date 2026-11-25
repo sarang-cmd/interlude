@@ -64,7 +64,7 @@
               <p class="eyebrow">01 / FREE PLAY</p>
               <h2 id="arcade-title">Pick a game. Take a break.</h2>
             </div>
-            <p class="heading-note">SOLO <span>/</span> VS CPU <span>/</span> LOCAL PONG</p>
+            <p class="heading-note">SOLO <span>/</span> VS CPU <span>/</span> LOCAL MATCHES</p>
           </div>
           <div class="arcade-layout">
             <div class="machine" aria-label="Playable arcade cabinet">
@@ -135,6 +135,7 @@
                   aria-label="On-screen game controls"
                 ></div>
                 <div id="local-pong-controls" class="local-controls" hidden></div>
+                <div id="local-race-controls" class="local-controls race-controls" hidden></div>
                 <p class="control-hint" id="control-hint">ARROWS STEER · SWIPE ON TOUCH</p>
                 <p class="sr-only" id="game-instructions">
                   Press Start or focus the game screen and use a game key. Press P to pause or
@@ -145,6 +146,10 @@
                 <label class="game-setting" for="game-speed">
                   <span>GAME SPEED</span
                   ><select id="game-speed"></select>
+                </label>
+                <label class="game-setting" for="race-mode" id="race-mode-field" hidden>
+                  <span>GAME MODE</span
+                  ><select id="race-mode"></select>
                 </label>
                 <div id="pong-settings" class="pong-settings" hidden>
                   <label class="game-setting" for="pong-mode">
@@ -172,6 +177,7 @@
                 </div>
               </div>
               <div id="local-pong" class="local-pong" hidden></div>
+              <div id="local-race" class="local-pong" hidden></div>
             </div>
             <aside class="selector" aria-labelledby="selector-title">
               <p class="micro-label">THE GAME LIBRARY / 08</p>
