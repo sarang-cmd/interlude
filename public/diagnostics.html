@@ -203,11 +203,16 @@
                   <div class="metric"><small>ENGINE / CABINET</small><b id="scene">—</b></div>
                   <div class="metric"><small>SIGNAL → FIRST FRAME</small><b id="latency">—</b></div>
                   <div class="metric"><small>EXCLUDING SET DELAY</small><b id="overhead">—</b></div>
+                  <div class="metric">
+                    <small>ADAPTER OBSERVERS / TIMERS</small><b id="activity">—</b>
+                  </div>
+                  <div class="metric"><small>LOOP / MOUNT FRAMES</small><b id="loop">—</b></div>
                 </div>
                 <p class="help">
                   Budget: under 80 ms excluding the configured delay. Recorded at the first painted
                   canvas frame.
                 </p>
+                <p id="reasons" class="help"></p>
                 <div id="signals" class="signal-grid"></div>
                 <p id="mount" class="help"></p>
               </div>

@@ -10,7 +10,10 @@ type Live = AdapterDiagnostics & {
     error: string | null;
     configuredDelayMs: number;
     overheadMs: number | null;
+    loopRunning: boolean;
+    lowRate: boolean;
   };
+  activity: { observers: number; timers: number; scheduledFrames: number };
 };
 const byId = (id: string): HTMLElement => document.getElementById(id)!;
 const tabSelect = byId("tab") as HTMLSelectElement;
@@ -66,6 +69,11 @@ function paint(data: Live): void {
       : `${data.panel.overheadMs} MS / ${data.panel.overheadMs < 80 ? "PASS" : "OVER BUDGET"}`;
   byId("overhead").className =
     data.panel.overheadMs !== null && data.panel.overheadMs >= 80 ? "status-bad" : "";
+  byId("activity").textContent = `${data.activity.observers} / ${data.activity.timers}`;
+  const loop = data.panel.loopRunning ? (data.panel.lowRate ? "30 HZ" : "60 HZ") : "STOPPED";
+  byId("loop").textContent = `${loop} / ${data.activity.scheduledFrames}`;
+  byId("reasons").textContent =
+    `VOTE / ${data.reasons.length ? data.reasons.join(" + ") : "NO ACTIVE VOTES"}`;
   const signals = byId("signals");
   signals.replaceChildren();
   const names: Record<SignalId, string> = {
@@ -88,6 +96,18 @@ function paint(data: Live): void {
       element("p", "", names[key]),
       element("p", "", signal.matchedSelector ?? signal.detail),
     );
+    if (signal.lastChange !== null)
+      card.append(element("p", "", `LAST CHANGE / ${Math.round(signal.lastChange)} MS PAGE CLOCK`));
+    if (key === "d" && data.streamHook.enabled) {
+      const stamp = (time: number | null) => (time === null ? "—" : `${Math.round(time)} MS`);
+      card.append(
+        element(
+          "p",
+          "",
+          `OPEN ${stamp(data.streamHook.lastOpen)} / CLOSE ${stamp(data.streamHook.lastClose)}`,
+        ),
+      );
+    }
     signals.append(card);
   }
   byId("mount").textContent =

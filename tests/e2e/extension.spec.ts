@@ -403,6 +403,9 @@ test("settings and diagnostic selector bench operate inside the built extension"
   const diagnostics = await context.newPage();
   await diagnostics.goto(`chrome-extension://${id}/diagnostics.html`);
   await expect(diagnostics.locator("#phase")).toHaveText(/GENERATING|FINISHING/);
+  await expect(diagnostics.locator("#activity")).toHaveText(/^[0-9]+ \/ [0-9]+$/);
+  await expect(diagnostics.locator("#loop")).toHaveText(/(?:60 HZ|30 HZ|STOPPED) \/ [0-9]+/);
+  await expect(diagnostics.locator("#reasons")).toContainText("A");
   await expect(diagnostics.locator("#selectorRows tr").first()).toBeVisible();
   await diagnostics.locator("#save").click();
   await expect(diagnostics.locator("#editorStatus")).toContainText("APPLIED");
