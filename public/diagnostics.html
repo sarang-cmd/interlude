@@ -148,6 +148,27 @@
       .inset-heading {
         margin-top: 24px !important;
       }
+      .timeline {
+        padding: 0;
+        list-style: none;
+        color: #c5b99f;
+        font-size: 11px;
+      }
+      .timeline li {
+        border-bottom: 1px solid #332716;
+        padding: 5px 0;
+      }
+      body.embedded .topbar,
+      body.embedded .hero,
+      body.embedded .page-footer {
+        display: none;
+      }
+      body.embedded .shell {
+        width: calc(100% - 32px);
+      }
+      body.embedded .diag-layout {
+        padding-top: 10px;
+      }
       @media (max-width: 800px) {
         .diag-layout {
           grid-template-columns: 1fr;
@@ -184,7 +205,7 @@
               Inspect the votes and selector fallbacks. Only structure and timing are reported. No
               conversation content is collected.
             </p>
-            <span class="stamp">CLAUDE / LOCAL INSPECTION</span>
+            <span class="stamp">THREE SITES / LOCAL INSPECTION</span>
           </div>
         </div>
         <div class="diag-layout">
@@ -192,11 +213,11 @@
             <section class="diag-section">
               <div class="diag-top">
                 <h2>01 / SIGNAL</h2>
-                <select id="tab" aria-label="Claude tab">
-                  <option value="">NO CLAUDE TAB</option>
+                <select id="tab" aria-label="Supported site tab">
+                  <option value="">NO SUPPORTED TAB</option>
                 </select>
               </div>
-              <p id="connection" class="empty" role="status">LOOKING FOR A CLAUDE TAB</p>
+              <p id="connection" class="empty" role="status">LOOKING FOR A SUPPORTED TAB</p>
               <div id="live" hidden>
                 <div class="summary">
                   <div class="metric"><small>DETECTOR STATE</small><b id="phase">—</b></div>
@@ -207,6 +228,8 @@
                     <small>ADAPTER OBSERVERS / TIMERS</small><b id="activity">—</b>
                   </div>
                   <div class="metric"><small>LOOP / MOUNT FRAMES</small><b id="loop">—</b></div>
+                  <div class="metric"><small>HOST THEME</small><b id="theme">—</b></div>
+                  <div class="metric"><small>SELECTOR SOURCE</small><b id="source">—</b></div>
                 </div>
                 <p class="help">
                   Budget: under 80 ms excluding the configured delay. Recorded at the first painted
@@ -215,6 +238,8 @@
                 <p id="reasons" class="help"></p>
                 <div id="signals" class="signal-grid"></div>
                 <p id="mount" class="help"></p>
+                <h2 class="inset-heading">RECENT TIMELINE</h2>
+                <ol id="timeline" class="timeline"></ol>
               </div>
             </section>
             <section class="diag-section">
@@ -236,9 +261,10 @@
             <section class="diag-section">
               <h2>03 / CHECK THE PATH</h2>
               <p class="notice">
-                Open a Claude conversation. Send a prompt and watch A and B. If the panel does not
-                appear, inspect the corresponding element in DevTools and add a stable selector
-                below. The inline mount fails closed when no indicator is found.
+                Open a supported conversation. Send a prompt and watch A and B. If the panel does
+                not appear, inspect structure in DevTools and add a stable selector below. Inline
+                placement fails closed when no indicator is found. ChatGPT and Gemini are BETA;
+                their current live interfaces have not been verified.
               </p>
             </section>
           </div>
@@ -246,10 +272,17 @@
             <section class="diag-section">
               <h2>04 / SELECTOR BENCH</h2>
               <p class="help">
-                Ordered CSS candidates. Changes apply to open Claude tabs immediately. Use
-                attributes and roles; never use conversation text.
+                Ordered CSS candidates. Local overrides apply immediately to the selected site. Use
+                attributes and roles; never use conversation text. Local overrides take priority
+                over verified remote candidates.
               </p>
-              <label class="small-label" for="editor">CLAUDE SELECTORS / JSON</label
+              <label class="small-label" for="selectorSite">SITE / SELECTOR BENCH</label>
+              <select id="selectorSite" aria-label="Selector bench site">
+                <option value="claude">CLAUDE</option>
+                <option value="chatgpt">CHATGPT / BETA</option>
+                <option value="gemini">GEMINI / BETA</option>
+              </select>
+              <label class="small-label inset-heading" for="editor">SELECTORS / JSON</label
               ><textarea
                 id="editor"
                 class="editor mono"
@@ -267,12 +300,41 @@
                 never votes.
               </p>
             </section>
+            <section class="diag-section">
+              <h2>05 / REMOTE CHECKS</h2>
+              <p id="remoteStatus" class="help">SIGNED SELECTORS / NOT CHECKED</p>
+              <p id="updateStatus" class="help">RELEASE CHECK / NOT CHECKED</p>
+              <button id="checkServices" type="button">CHECK NOW</button>
+              <p class="help">
+                Respects the 12-hour and 24-hour limits and your Advanced settings. No cookies or
+                custom headers.
+              </p>
+            </section>
+            <section class="diag-section">
+              <h2>06 / SHARE A REPORT</h2>
+              <p class="help">
+                The report excludes chat text, page titles and URLs, account information and
+                selector text. Review it before sharing.
+              </p>
+              <div class="editor-actions">
+                <button id="copyReport" type="button">COPY CLEAN REPORT</button
+                ><a
+                  id="issue"
+                  class="button"
+                  href="https://github.com/sarang-cmd/interlude/issues/new"
+                  target="_blank"
+                  rel="noreferrer"
+                  >OPEN PREFILLED ISSUE ↗</a
+                >
+              </div>
+              <p id="copyStatus" class="editor-status" role="status" aria-live="polite"></p>
+            </section>
           </div>
         </div>
       </main>
       <footer class="page-footer diagnostic-footer">
         <span><strong>INTERLUDE</strong> / SERVICE MANUAL</span
-        ><span>LOCAL STRUCTURE + TIMING ONLY</span><span>REV 0.1</span>
+        ><span>LOCAL STRUCTURE + TIMING ONLY</span><span>REV 0.2</span>
       </footer>
     </div>
     <script type="module" src="diagnostics.js"></script>

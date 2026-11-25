@@ -630,11 +630,19 @@ function App({ initial }: { initial: SettingsDocument }) {
             {status.message}
           </div>
           {!search && page === "Diagnostics" ? (
-            <iframe class="diag-frame" src="diagnostics.html" title="Live diagnostics" />
+            <iframe class="diag-frame" src="diagnostics.html?embedded=1" title="Live diagnostics" />
           ) : !search && page === "Data" ? (
             <DataPane stats={stats} highScores={highScores} refresh={refresh} tell={setStatus} />
           ) : (
             <>
+              {page === "Advanced" && !search && (
+                <p class="empty-state">
+                  Inspect live signals, selector matches and remote-check status.{" "}
+                  <button type="button" onClick={() => setPage("Diagnostics")}>
+                    OPEN DIAGNOSTICS
+                  </button>
+                </p>
+              )}
               {page === "Sites" && !search && (
                 <p class="empty-state">
                   Choose a site profile above to override its power, placement and delay. ChatGPT
