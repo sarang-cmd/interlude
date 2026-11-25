@@ -1,0 +1,26 @@
+name: Bug report
+description: Report a reproducible extension problem without sharing chat content.
+title: "Bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include prompts, responses, page URLs, credentials or account information. Review any diagnostic report before sharing."
+  - type: input
+    id: version
+    attributes:
+      label: Interlude and browser versions
+      placeholder: "Interlude 0.2.0, Chromium 131"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce and expected/actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: Clean diagnostics report (optional)
+      description: "Options → Diagnostics → Copy clean report. Inspect it before pasting."

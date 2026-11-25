@@ -1,0 +1,28 @@
+name: Site adapter or selector problem
+description: Report a structural detection or placement issue.
+title: "Adapter: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Never include chat content, account information, full page URLs, cookies or selectors containing private text."
+  - type: dropdown
+    id: site
+    attributes:
+      label: Site
+      options: [Claude, ChatGPT (BETA), Gemini (BETA)]
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Steps and observed signal/placement behavior
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: Clean diagnostics report
+      description: "Copy from Options → Diagnostics and review before sharing."
+    validations:
+      required: true

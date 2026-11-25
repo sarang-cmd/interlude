@@ -1,101 +1,108 @@
 # Interlude
 
-**Arcade for the wait.** A small, local Chrome extension that puts a cabinet in
-Claude’s conversation while an answer is being generated. The game is inline by
-default; it is not a separate game window. There is no visible control or tab
-on the page between sessions.
+**Arcade for the wait.** Interlude is a Manifest V3 Chrome extension that puts a
+small game in the margins while an AI response is generating. Its restrained
+amber CRT cabinet stays hidden while the site is idle.
 
-> Claude’s DOM is not a public API. The adapter has been tested against local
-> structural fixtures, **not an authenticated live Claude session**. Check the
-> selectors in Diagnostics before relying on it. ChatGPT and Gemini are
-> intentionally inactive interface-only adapters.
+> **Live verification:** Claude, ChatGPT and Gemini selectors were exercised on
+> synthetic fixtures, not authenticated live sessions. ChatGPT and Gemini are
+> explicitly **BETA**. Real sites change; use Diagnostics and the
+> [ten-minute checklist](docs/TEST_PLAN.md) before relying on any adapter.
 
-## Install an unpacked build
+## Install
 
-Requirements: Node.js **20.19 or newer** and Chrome/Chromium with Manifest V3
-support.
+1. Download a release zip and verify it against `SHA256SUMS.txt`, or build it:
+   `npm ci && npm run build` (Node.js **20.19+**).
+2. Extract the zip. In `chrome://extensions`, enable Developer mode, choose
+   **Load unpacked**, and select the extracted folder containing `manifest.json`
+   (or the repository's `dist/` after building).
+3. Reload an existing Claude, ChatGPT or Gemini tab once after installation.
+   Start a conversation and send a prompt taking more than 500 ms. The cabinet
+   appears below the recognized thinking indicator. If no safe inline anchor is
+   found, it stays hidden instead of covering the response.
+4. Click the game, or press **Alt+G** and a game key. **Escape** returns focus to
+   the composer. When a response finishes, the run freezes; resume or close it.
+   Auto-close is on by default with a **10-second** grace period.
 
-```sh
-npm ci
-npm run build
-```
-
-Open `chrome://extensions`, turn on **Developer mode**, choose **Load unpacked**,
-and select this repository’s `dist/` directory. Reload an existing Claude tab
-after installing or rebuilding. Alternatively, unzip the supplied extension
-archive and load its extracted directory.
-
-1. Open Claude and start a conversation. Send a prompt that takes more than the
-   default 500 ms to generate.
-2. The cabinet opens below the thinking/streaming indicator. It stays at READY
-   until you click the game, use an on-screen control, or focus it with Alt+G
-   and press a key. Escape returns focus to the composer.
-3. On completion the game freezes and offers **RESUME** or **CLOSE**. Auto-close
-   is off by default; when enabled, its default grace is 10 seconds. The explicit
-   post-completion/resume state is the only time a cabinet remains after the
-   generation signal ends.
-4. Use the extension toolbar action for power, Settings and Diagnostics. The
-   toolbar popup is a control surface; gameplay is always in the page.
-
-If no cabinet appears, open **Diagnostics**, choose the Claude tab, inspect votes
-A/B/C and the matched selectors, and update the ordered JSON candidates there.
-Inline mode fails closed rather than placing an unknown overlay over an answer.
+The toolbar popup offers **pause for one hour**, **pause until tomorrow**, and
+an options link; the first button becomes **resume now** during a pause. The
+cabinet's gear opens quick controls for game, volume, size and placement.
+**Options** has searchable categories, individual/section resets, a changed-only
+filter, Global/Claude/ChatGPT/Gemini profiles and a playable non-recording
+preview. Site-specific values override global values, then schema defaults.
+Settings apply live; extension installation or replacement itself requires the
+normal one-time tab reload.
 
 ## Cabinets
 
-| Cabinet       | Play                                                                                                               |
-| ------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Snake         | Queued turns, walls or wrap, bonus food and increasing speed.                                                      |
-| Breakout      | Angle shots, multi-hit bricks, power-ups and levels.                                                               |
-| Flapper       | One-button flight through constrained gaps.                                                                        |
-| 2048          | Swipe or slide, stepped tile motion, limited undo and best tile; 90-second clock by default (configurable or off). |
-| Pong          | Beatable AI, escalating rallies and configurable match length.                                                     |
-| Blockfall     | Seven-bag pieces, SRS kicks, lock delay, hold and ghost.                                                           |
-| Rockfall Belt | Inertial flight, wrapping, splitting rocks and shields.                                                            |
-| Dashline      | Hold for jump height; patterns and speed ramp.                                                                     |
+| Game          | Play                                                          |
+| ------------- | ------------------------------------------------------------- |
+| Snake         | Queued turns, optional wrap, bonus food.                      |
+| Breakout      | Angle shots, bricks, power-ups and levels.                    |
+| Flapper       | One-button flight through gaps.                               |
+| 2048          | Slide, merge, undo and best tile; 90-second clock by default. |
+| Pong          | Configurable AI and match length.                             |
+| Blockfall     | Seven-bag pieces, kicks, hold and ghost.                      |
+| Rockfall Belt | Inertial flight, splitting rocks and shields.                 |
+| Dashline      | Tap or hold to vary jump height.                              |
 
-Each game has pointer/touch controls, keyboard support while focused, standard
-gamepad mappings, quick restart and a local personal best. The picker defaults to
-last played and includes a random option. Implementations are separate lazy
-chunks; only the selected game is loaded.
+Each cabinet has configurable enablement, speed, difficulty, mute and key
+bindings. Keyboard input is focus-gated; pointer, touch and standard gamepad
+controls can be switched independently. The game picker supports last played
+and random among enabled games.
 
-## Privacy and permissions
+## Focus Guard and data
 
-The Claude adapter observes **structure and timing**, not message contents. It
-does not read, store, log or transmit conversation text. Scores, preferences,
-selector overrides and overlay position stay in `chrome.storage.local`. There is
-no analytics endpoint. The optional stream-timing hook is off by default; when
-on, it checks stream-reader completion without inspecting returned chunks. It
-is diagnostic only and never votes on generation. The static adapter privacy
-guard runs on every build; like any static guard, it is not a substitute for
-reviewing changes.
+Only active play is counted; paused and hidden-tab time does not count. Daily
+play records and scores are local. Optional budgets, threshold nudges, quiet
+hours, Study Mode and a session summary are available in Options. **Budgets,
+nudges and lockout are off by default.** If a user explicitly enables lockout,
+the cabinet shows `OUT OF COINS. BACK TO WORK.` at the budget and will not open
+until the next local day or lockout is disabled. Multiple active tabs share
+serialized play-time totals. Export/import settings and local records as JSON or
+confirm a complete wipe under **Data**.
 
-The extension requests storage, scripting (for the optional main-world timing
-hook), webNavigation (to tear down on SPA navigation), and site host access. No
-message or response content is sent to the background worker. In order to meet
-the zero-observer/zero-timer idle budget, the Claude adapter arms discovery on
-recognized send/regenerate gestures or detects signals already present at page
-load. A generation started **without either** can be missed; see
-[architecture](docs/ARCHITECTURE.md#idle-detection-tradeoff).
+## Diagnostics and privacy
 
-## Development
+Options → **Diagnostics** shows the selected site's structural signals,
+selector fallback matches, mount, state, recent timeline, host theme, measured
+signal-to-frame time and remote-check status. A clean report and prefilled
+GitHub issue omit chat text, page titles and URLs, selector text and account
+information. Review before sharing. The selector bench accepts structural CSS
+candidates and applies local overrides immediately.
+
+Adapters inspect DOM **structure and timing**, not conversation content. There
+is no analytics. Settings use `chrome.storage.sync` where available with a local
+fallback; scores, statistics, local selector overrides and response-time averages
+stay in local storage. An optional timing-only stream hook is off by default;
+it never reads chunks or votes on generation.
+
+An optional signed selector check is off by default; an optional release check is
+on by default. Both use static credential-free GETs with no application-added
+identifiers or custom headers. Browsers and servers still see ordinary network
+metadata. **The requested default JSON URLs currently serve HTML without the
+required CORS headers**, so these checks fail safely until the separate endpoint
+deployment is fixed. See [privacy](docs/PRIVACY.md) and
+[security/key handling](docs/SECURITY.md).
+
+## Development and release
 
 ```sh
-npm run lint
-npm run format:check
-npm test                 # Vitest, including idle and privacy tests
-npm run build            # privacy guard, strict TypeScript, Vite MV3 output
-npx playwright install --with-deps chromium  # once on a fresh Linux machine
-npm run test:e2e          # built extension, real Chromium, local Claude fixtures
+npm ci
+npm run format:check && npm run lint && npm run typecheck
+npm test                         # Vitest, including fake-clock and privacy tests
+npm run build                    # source and built-extension privacy audits
+npx playwright install --with-deps chromium
+npm run test:e2e                 # real extension, synthetic site fixtures
+npm run package:release -- v0.2.0 # versioned zip, latest zip, SHA-256 file
 ```
 
-The E2E suite routes `https://claude.ai/` to files in `test/fixtures/claude/`;
-it does not connect to a real chat or require credentials. On other platforms,
-`npx playwright install chromium` may be sufficient. Read
-[ARCHITECTURE.md](docs/ARCHITECTURE.md), [ADAPTERS.md](docs/ADAPTERS.md), and
-[DESIGN.md](design/DESIGN.md) before changing behavior. Run the real-profile
-[human verification checklist](docs/TEST_PLAN.md) before using the adapter on
-live Claude.
+The CI workflow runs these checks and publishes the **validated** build to a
+GitHub Release on a matching `vX.Y.Z` tag. A tag must match `package.json` and
+`manifest.json`. Publishing has not been attempted without a configured GitHub
+remote and authorization. See [contributing](CONTRIBUTING.md),
+[architecture](docs/ARCHITECTURE.md), [adapters](docs/ADAPTERS.md),
+[design rules](design/DESIGN.md) and [changelog](CHANGELOG.md).
 
-Code is MIT licensed. The bundled fonts are distributed under SIL OFL 1.1;
-their individual notices are in `public/fonts/licenses/`.
+MIT licensed. Bundled fonts are SIL OFL 1.1; notices are in
+`public/fonts/licenses/` and included in the built extension.

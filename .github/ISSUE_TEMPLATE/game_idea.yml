@@ -1,0 +1,25 @@
+name: Game idea
+description: Propose a small arcade cabinet.
+title: "Game: "
+labels: [enhancement]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Working title
+    validations:
+      required: true
+  - type: textarea
+    id: rules
+    attributes:
+      label: Rules and a typical 20–90 second run
+    validations:
+      required: true
+  - type: textarea
+    id: controls
+    attributes:
+      label: Keyboard, pointer, touch and gamepad controls
+  - type: textarea
+    id: design
+    attributes:
+      label: Fit with the amber CRT design and accessibility
