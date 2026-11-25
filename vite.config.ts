@@ -1,8 +1,21 @@
 import { defineConfig } from "vite";
 import { resolve } from "node:path";
+import { readFileSync } from "node:fs";
 
 export default defineConfig({
   base: "./",
+  plugins: [
+    {
+      name: "include-project-license",
+      generateBundle() {
+        this.emitFile({
+          type: "asset",
+          fileName: "LICENSE",
+          source: readFileSync(resolve(__dirname, "LICENSE"), "utf8"),
+        });
+      },
+    },
+  ],
   build: {
     modulePreload: false,
     outDir: "dist",

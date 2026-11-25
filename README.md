@@ -93,7 +93,9 @@ The E2E suite routes `https://claude.ai/` to files in `test/fixtures/claude/`;
 it does not connect to a real chat or require credentials. On other platforms,
 `npx playwright install chromium` may be sufficient. Read
 [ARCHITECTURE.md](docs/ARCHITECTURE.md), [ADAPTERS.md](docs/ADAPTERS.md), and
-[DESIGN.md](design/DESIGN.md) before changing behavior.
+[DESIGN.md](design/DESIGN.md) before changing behavior. Run the real-profile
+[human verification checklist](docs/TEST_PLAN.md) before using the adapter on
+live Claude.
 
 Code is MIT licensed. The bundled fonts are distributed under SIL OFL 1.1;
 their individual notices are in `public/fonts/licenses/`.
