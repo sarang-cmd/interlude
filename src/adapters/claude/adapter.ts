@@ -87,7 +87,8 @@ export class ClaudeAdapter implements SiteAdapter {
     window.removeEventListener("message", this.onStreamMessage);
     this.machine.reset();
     this.disconnectObservers();
-    this.watchers.clear();
+    // Subscribers belong to the controller; stop/start must not unsubscribe
+    // them when the operator toggles the extension off and on.
   }
 
   /** Called for SPA history changes delivered by the background worker. */

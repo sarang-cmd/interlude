@@ -297,3 +297,79 @@ test("small cabinets downscale in whole source-pixel groups", async () => {
   expect(metrics.logical).toBe(640); expect(metrics.logical / metrics.displayed).toBe(2); expect(metrics.rendering).toBe("pixelated");
   await cdp.detach();
 });
+
+test("P resumes both a manual pause and the completion freeze without pausing again", async () => {
+  await worker.evaluate(() => chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }));
+  await openFixture(); await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]'); await expect(host).toBeVisible();
+  await shadowClick("canvas"); await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+  await page.keyboard.down("p"); await expect(host).toHaveAttribute("data-interlude-scene", "paused");
+  const cdp = await context.newCDPSession(page);
+  const canvas = await shadowNode(cdp, "canvas");
+  const { object } = await cdp.send("DOM.resolveNode", { nodeId: canvas });
+  await cdp.send("Runtime.callFunctionOn", { objectId: object.objectId!, functionDeclaration: "function() { this.dispatchEvent(new KeyboardEvent('keydown', {key:'p',code:'KeyP',repeat:true,bubbles:true,cancelable:true})); }" });
+  await expect(host).toHaveAttribute("data-interlude-scene", "paused");
+  await page.keyboard.up("p"); await page.keyboard.press("p");
+  await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+  await page.waitForTimeout(250); await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+  await page.evaluate(() => (window as unknown as { fixture: { finish(): void } }).fixture.finish());
+  await expect(host).toHaveAttribute("data-interlude-scene", "paused");
+  await page.keyboard.press("p"); await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+  await page.waitForTimeout(250); await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+  await cdp.detach();
+});
+
+test("re-enabling keeps structural remount subscriptions alive", async () => {
+  await worker.evaluate(() => chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }));
+  await openFixture(); await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]'); await expect(host).toBeVisible();
+  const setEnabled = async (enabled: boolean) => worker.evaluate(async (value) => {
+    const current = (await chrome.storage.local.get("interlude.settings"))["interlude.settings"];
+    await chrome.storage.local.set({ "interlude.settings": { ...current, enabled: value } });
+  }, enabled);
+  await setEnabled(false); await expect(host).toBeHidden();
+  await page.evaluate(() => (window as unknown as { fixture: { finish(): void } }).fixture.finish());
+  await setEnabled(true);
+  await page.locator('[data-testid="send-button"]').click(); await expect(host).toBeVisible();
+  await page.evaluate(() => (window as unknown as { fixture: { replace(): void } }).fixture.replace());
+  await expect.poll(() => page.evaluate(() => document.querySelector('[data-testid="thinking-indicator"]')?.nextElementSibling?.getAttribute("data-interlude"))).toBe("panel");
+});
+
+test("back navigation closes the old session rather than presenting a completion prompt", async () => {
+  await worker.evaluate(() => chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }));
+  await openFixture();
+  await page.evaluate(() => history.pushState({}, "", "/chat/next"));
+  await page.waitForTimeout(200);
+  await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]'); await expect(host).toBeVisible();
+  await page.goBack();
+  await expect(host).toBeHidden({ timeout: 3000 });
+  expect((await diagnostic()).state).toBe("idle");
+});
+
+test("changing games during a completion freeze preserves a resumable READY scene", async () => {
+  await worker.evaluate(() => chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }));
+  await openFixture(); await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]'); await expect(host).toBeVisible();
+  await shadowClick("canvas"); await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+  await page.evaluate(() => (window as unknown as { fixture: { finish(): void } }).fixture.finish());
+  await expect(host).toHaveAttribute("data-interlude-scene", "paused");
+  await selectGame("pong"); await expect(host).toHaveAttribute("data-interlude-game", "pong");
+  await expect(host).toHaveAttribute("data-interlude-scene", "paused");
+  expect((await diagnostic()).panel.loopRunning).toBe(false);
+  await shadowClick(".resume"); await expect(host).toHaveAttribute("data-interlude-scene", "ready");
+  expect((await diagnostic()).panel.loopRunning).toBe(true);
+  await shadowClick("canvas"); await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+});
+
+test("a popstate event closes synchronously without mistaking navigation for completion", async () => {
+  await worker.evaluate(() => chrome.storage.local.set({ "interlude.settings": { delayMs: 0, skipBoot: true, muted: true } }));
+  await openFixture(); await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]'); await expect(host).toBeVisible();
+  const visible = await page.evaluate(() => {
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    return document.querySelector('[data-interlude="panel"]')?.getAttribute("data-interlude-visible");
+  });
+  expect(visible).toBe("false");
+  expect((await diagnostic()).state).toBe("idle");
+});

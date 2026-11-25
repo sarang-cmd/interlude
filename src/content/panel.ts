@@ -17,9 +17,9 @@ const CSS = `
 .machine{font-family:'IBM Plex Mono',monospace;background:#0E0B07;color:#DDC796;border:2px solid #7A5600;box-shadow:4px 4px 0 #000;overflow:hidden;width:100%}
 .top{display:flex;align-items:center;gap:10px;min-height:42px;padding:7px 10px;border-bottom:1px solid #7A5600;background:#171209}
 .brand{display:flex;align-items:center;gap:8px;flex:1;min-width:0;color:#FFB000;font:700 12px Silkscreen,monospace;letter-spacing:.04em}
-.mark{display:inline-block;width:14px;height:14px;background:linear-gradient(90deg,#FFB000 0 28%,transparent 28% 38%,#FFB000 38% 66%,transparent 66% 76%,#FFB000 76%);image-rendering:pixelated}
+.mark{display:inline-block;flex:none;width:4px;height:14px;margin-right:10px;background:#FFB000;box-shadow:5px 0 0 #FFB000,10px 0 0 #FFB000;image-rendering:pixelated}
 .tag{font:400 9px 'IBM Plex Mono',monospace;color:#A88A4D;white-space:nowrap;letter-spacing:.06em}
-select{appearance:none;color:#FFD36B;background:#0E0B07;border:1px solid #7A5600;padding:6px 24px 6px 8px;max-width:175px;min-width:112px;font-size:10px;font-weight:600;letter-spacing:.03em;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,#FFB000 50%),linear-gradient(135deg,#FFB000 50%,transparent 50%);background-position:calc(100% - 11px) 50%,calc(100% - 7px) 50%;background-size:4px 4px;background-repeat:no-repeat}
+select{appearance:none;color:#FFD36B;background:#0E0B07;border:1px solid #7A5600;padding:6px 24px 6px 8px;max-width:175px;min-width:112px;font-size:10px;font-weight:600;letter-spacing:.03em;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23FFB000' d='M0 0h10L5 6z'/%3E%3C/svg%3E");background-position:right 8px center;background-size:10px 6px;background-repeat:no-repeat}
 select:focus-visible,button:focus-visible,canvas:focus-visible{outline:2px solid #FFD36B;outline-offset:-2px}
 button{border:1px solid #7A5600;background:#171209;color:#FFD36B;cursor:pointer;font-size:10px;letter-spacing:.04em}
 button:hover{background:#2A2114;border-color:#FFB000}button:active{transform:translate(1px,1px)}
@@ -125,7 +125,13 @@ export class Panel {
     this.canvas.addEventListener("blur", () => this.engine.setFocused(false));
     this.canvas.addEventListener("keydown", (event) => {
       if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); this.events.onEscape(); }
-      else if (event.code === "KeyP" && this.engine.getState() === "paused") { event.preventDefault(); this.events.onResume(); }
+      else if (event.code === "KeyP" && this.engine.getState() === "paused") {
+        event.preventDefault();
+        // Input also listens on the canvas. Do not enqueue the same P as a new
+        // pause after resuming, and do not resume on keyboard auto-repeat.
+        event.stopImmediatePropagation();
+        if (!event.repeat) this.events.onResume();
+      }
     });
     this.engine.attachInput(this.canvas);
     this.top.addEventListener("pointerdown", this.startDrag);

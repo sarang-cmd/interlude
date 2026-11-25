@@ -151,6 +151,7 @@ export class Engine implements GameContext {
   }
 
   setGame(game: ArcadeGame, highScore = 0): void {
+    const preservePause = this.active && this.state === "paused";
     if (this.game) this.game.destroy();
     this.game = game;
     this.rngState = new RNG(randomSeed());
@@ -159,8 +160,12 @@ export class Engine implements GameContext {
     this.recordedBest = false;
     this.hiScore = highScore;
     this.game.init(this);
+    this.input.clearActivity();
     this.scenes.reset("ready");
-    this.options.onStateChange?.("ready");
+    if (preservePause) {
+      this.stateBeforePause = "ready";
+      this.setState("paused", this.pauseReason);
+    } else this.options.onStateChange?.("ready");
     this.input.setPointerPrimary(["flappy", "dashline", "breakout", "rockfall"].includes(game.manifest.id));
     this.bootT = 0;
     if (this.active) this.render(0);
@@ -545,15 +550,17 @@ export class Engine implements GameContext {
       ctx.fillStyle = this.scanPattern;
       ctx.fillRect(0, 0, this.width, this.height);
     }
-    // Vignette
-    const grad = ctx.createRadialGradient(
-      this.width / 2, this.height / 2, this.height * 0.45,
-      this.width / 2, this.height / 2, this.width * 0.72,
-    );
-    grad.addColorStop(0, "rgba(0,0,0,0)");
-    grad.addColorStop(1, "rgba(0,0,0,0.42)");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, this.width, this.height);
+    // Square-edged vignette bands, kept inside the canvas. No gradients.
+    ctx.fillStyle = "rgba(0,0,0,0.12)";
+    ctx.fillRect(0, 0, this.width, 8);
+    ctx.fillRect(0, this.height - 8, this.width, 8);
+    ctx.fillRect(0, 8, 8, this.height - 16);
+    ctx.fillRect(this.width - 8, 8, 8, this.height - 16);
+    ctx.fillStyle = "rgba(0,0,0,0.10)";
+    ctx.fillRect(8, 8, this.width - 16, 8);
+    ctx.fillRect(8, this.height - 16, this.width - 16, 8);
+    ctx.fillRect(8, 16, 8, this.height - 32);
+    ctx.fillRect(this.width - 16, 16, 8, this.height - 32);
     // Faint amber bloom line at top — phosphor character, kept subtle
     ctx.fillStyle = "rgba(255,176,0,0.05)";
     ctx.fillRect(0, 0, this.width, 26);

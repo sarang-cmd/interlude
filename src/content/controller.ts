@@ -63,6 +63,10 @@ export class InterludeController {
     void loadOverlayPositions().then((positions) => this.panel.setPosition(positions[this.adapter.id] ?? null));
     document.addEventListener("keydown", this.onHotkey, true);
     document.addEventListener("visibilitychange", this.onVisibility);
+    // Close synchronously on back/forward and bfcache restoration; background
+    // webNavigation additionally covers pushState/replaceState changes.
+    window.addEventListener("popstate", this.onNavigation);
+    window.addEventListener("pageshow", this.onPageShow);
     if (settings.enabled) {
       this.adapter.start();
       this.adapter.setStreamHook(settings.streamHookEnabled);
@@ -183,6 +187,8 @@ export class InterludeController {
   }
   private cancelClose(): void { if (this.closeTimer !== undefined) clearTimeout(this.closeTimer); this.closeTimer = undefined; }
   private onVisibility = (): void => { if (this.panel.isVisible) this.panel.engine.setTabHidden(document.hidden); };
+  private onNavigation = (): void => this.navigation();
+  private onPageShow = (event: PageTransitionEvent): void => { if (event.persisted) this.navigation(); };
   private onHotkey = (event: KeyboardEvent): void => {
     if (!this.panel.isVisible || event.repeat || !matchesHotkey(event, this.settings.focusHotkey)) return;
     // The shortcut works from a composer, but its native key event is never cancelled there.
@@ -208,5 +214,7 @@ export class InterludeController {
     this.unsubSignal(); this.unsubStructure(); this.adapter.stop(); this.panel.destroy();
     document.removeEventListener("keydown", this.onHotkey, true);
     document.removeEventListener("visibilitychange", this.onVisibility);
+    window.removeEventListener("popstate", this.onNavigation);
+    window.removeEventListener("pageshow", this.onPageShow);
   }
 }

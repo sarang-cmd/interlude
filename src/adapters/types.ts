@@ -67,7 +67,7 @@ export interface SiteAdapter {
   getGeneratingSignal(): GeneratingObservable;
   /**
    * Locate the mount point for a placement. Returns null when the page
-   * structure is not recognised — the panel then falls back to overlay.
+   * structure is not recognised — the panel remains hidden.
    */
   findMountPoint(placement: Placement): MountPointResult | null;
   /** Best-effort theme guess of the host page. */

@@ -127,7 +127,7 @@ export async function saveLastPlayed(gameId: string): Promise<void> {
   await storageSet(LAST_PLAYED_KEY, gameId);
 }
 
-/** Per-game action → KeyboardEvent.code map. UI lands in a later prompt. */
+/** Per-game action → KeyboardEvent.code map, stored separately from defaults. */
 export type Keybindings = Record<string, Record<string, string>>;
 
 export async function loadKeybindings(): Promise<Keybindings> {
