@@ -1,0 +1,213 @@
+{
+  "version": 1,
+  "issuedAt": "2026-11-25T17:02:21.571Z",
+  "sites": {
+    "claude": {
+      "composerArea": [
+        "[data-testid='chat-composer']",
+        "[data-testid='composer']",
+        "form:has([data-cds='Editor'])",
+        "form:has([contenteditable='true'])",
+        "form:has(textarea)",
+        "[class*='composer']:has([contenteditable='true'])",
+        "div:has([data-cds='Editor']):has([data-testid='chat-input-stop'])",
+        "div:has([data-cds='Editor']):has([data-testid='chat-input-send'])"
+      ],
+      "composerInput": [
+        "[data-testid='chat-input']",
+        "[data-cds='Editor'][contenteditable='true']",
+        "[contenteditable='true'][data-placeholder]",
+        "[contenteditable='true'][role='textbox']",
+        "div.ProseMirror[contenteditable='true']",
+        "form textarea"
+      ],
+      "stopControl": [
+        "[data-testid='chat-input-stop']",
+        "[data-testid='stop-button']",
+        "button[aria-label='Stop response']",
+        "button[aria-label='Stop generating']",
+        "button[title='Stop response']"
+      ],
+      "assistantTurn": [
+        "[data-testid='assistant-turn']",
+        "[data-message-author-role='assistant']",
+        "[data-testid='assistant-message']",
+        "[data-cds='AssistantMessage']",
+        "[data-is-streaming]",
+        ".font-claude-response"
+      ],
+      "indicator": [
+        "[data-testid='thinking-indicator']",
+        "[data-testid='streaming-indicator']",
+        "[data-testid='loading-indicator']",
+        "[data-is-streaming='true'] [role='status']",
+        "[aria-label*='Thinking']",
+        "[aria-label*='thinking']",
+        "[aria-label*='Generating']",
+        "[data-state='thinking']",
+        "[data-is-streaming='true']"
+      ],
+      "conversationColumn": [
+        "[data-testid='conversation-column']",
+        "[data-testid='conversation']",
+        "main [role='log']",
+        "main"
+      ],
+      "startTrigger": [
+        "[data-testid='chat-input-send']",
+        "[data-testid='send-button']",
+        "[data-testid='regenerate-button']",
+        "button[aria-label*='Send']",
+        "button[aria-label*='Retry']",
+        "button[aria-label*='Regenerate']",
+        "button[type='submit']"
+      ],
+      "darkTheme": ["html.dark", "html[data-theme='dark']", "[data-theme='dark']"],
+      "inactiveTurnAncestor": [
+        "[hidden]",
+        "[aria-hidden='true']",
+        "[inert]",
+        "[data-state='inactive']",
+        "[class~='hidden']",
+        "[style*='display:none']",
+        "[style*='display: none']",
+        "[style*='visibility:hidden']",
+        "[style*='visibility: hidden']"
+      ],
+      "regenerateTrigger": [
+        "[data-testid='regenerate-button']",
+        "button[aria-label*='Retry']",
+        "button[aria-label*='Regenerate']"
+      ]
+    },
+    "chatgpt": {
+      "composerArea": [
+        "form[data-type='composer']",
+        "form:has(#prompt-textarea)",
+        "form:has([data-testid='prompt-textarea'])",
+        "form:has([data-composer-markdown])",
+        "form:has([contenteditable='true'])"
+      ],
+      "composerInput": [
+        "#prompt-textarea",
+        "[data-testid='prompt-textarea']",
+        "[data-composer-markdown][contenteditable='true']",
+        "div.ProseMirror[contenteditable='true']",
+        "form textarea"
+      ],
+      "stopControl": [
+        "button[data-testid='stop-button']",
+        "button[aria-label='Stop streaming']",
+        "button[aria-label*='Stop answering' i]",
+        "button[aria-label='Stop generating']",
+        "button[aria-label='Stop']",
+        "button[aria-label='停止']"
+      ],
+      "assistantTurn": [
+        "[data-message-author-role='assistant']",
+        "[data-testid^='conversation-turn-']:has([data-message-author-role='assistant'])",
+        "[data-turn='assistant']",
+        "article[data-testid*='assistant']"
+      ],
+      "indicator": [
+        "[data-testid='thinking-indicator']",
+        "[data-testid='streaming-indicator']",
+        "[data-streaming-response-status]",
+        "[data-is-streaming='true'] [role='status']",
+        "[data-is-streaming='true']",
+        "[aria-busy='true']"
+      ],
+      "conversationColumn": ["[data-testid='conversation-column']", "main [role='log']", "main"],
+      "startTrigger": [
+        "[data-testid='send-button']",
+        "button[aria-label*='Send']",
+        "button[aria-label*='Regenerate']",
+        "button[aria-label*='Retry']",
+        "button[type='submit']"
+      ],
+      "regenerateTrigger": [
+        "[data-testid='regenerate-button']",
+        "button[aria-label*='Regenerate']",
+        "button[aria-label*='Retry']"
+      ],
+      "darkTheme": ["html.dark", "html[data-theme='dark']", "[data-theme='dark']"],
+      "inactiveTurnAncestor": [
+        "[hidden]",
+        "[aria-hidden='true']",
+        "[inert]",
+        "[data-state='inactive']",
+        "[class~='hidden']",
+        "[style*='display:none']",
+        "[style*='display: none']",
+        "[style*='visibility:hidden']",
+        "[style*='visibility: hidden']"
+      ]
+    },
+    "gemini": {
+      "composerArea": [
+        "[data-testid='chat-composer']",
+        "input-container",
+        "form:has([contenteditable='true'])",
+        "div.input-area:has([contenteditable='true'])",
+        "form:has(textarea)"
+      ],
+      "composerInput": [
+        "[data-testid='chat-input']",
+        "rich-textarea [contenteditable='true']",
+        "[contenteditable='true'][role='textbox']",
+        "div.ql-editor[contenteditable='true']",
+        "form textarea"
+      ],
+      "stopControl": [
+        "button[data-testid='stop-button']",
+        "button[aria-label='Stop response']",
+        "button[aria-label='Stop generating']",
+        "button[aria-label*='Stop response' i]",
+        "button[aria-label*='Antwort beenden' i]",
+        "button[mattooltip='Stop response']"
+      ],
+      "assistantTurn": [
+        "model-response",
+        "[data-testid='model-response']",
+        "[data-message-author-role='assistant']",
+        ".model-response-text",
+        ".response-container"
+      ],
+      "indicator": [
+        "[data-testid='thinking-indicator']",
+        "[data-testid='streaming-indicator']",
+        ".loading-indicator",
+        ".loading-spinner",
+        "[aria-busy='true']",
+        "[data-is-streaming='true']",
+        "[role='status']"
+      ],
+      "conversationColumn": ["[data-testid='conversation-column']", "infinite-scroller", "main"],
+      "startTrigger": [
+        "[data-testid='send-button']",
+        "button[aria-label*='Send']",
+        "button[aria-label*='Senden']",
+        "button[aria-label*='Regenerate']",
+        "button[type='submit']"
+      ],
+      "regenerateTrigger": [
+        "[data-testid='regenerate-button']",
+        "button[aria-label*='Regenerate']",
+        "button[aria-label*='Retry']",
+        "button[aria-label*='Neu generieren']"
+      ],
+      "darkTheme": ["html.dark", "html[data-theme='dark']", ".dark-theme", "[data-theme='dark']"],
+      "inactiveTurnAncestor": [
+        "[hidden]",
+        "[aria-hidden='true']",
+        "[inert]",
+        "[data-state='inactive']",
+        "[class~='hidden']",
+        "[style*='display:none']",
+        "[style*='display: none']",
+        "[style*='visibility:hidden']",
+        "[style*='visibility: hidden']"
+      ]
+    }
+  }
+}

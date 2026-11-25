@@ -895,7 +895,9 @@ export function validValue(definition: SettingDefinition, value: unknown): value
   if (definition.format === "https") {
     try {
       const url = new URL(value);
-      return url.protocol === "https:" && !url.username && !url.password && !url.hash;
+      return (
+        url.protocol === "https:" && !url.username && !url.password && !url.hash && !url.search
+      );
     } catch {
       return false;
     }

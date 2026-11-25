@@ -1,0 +1,12 @@
+{
+  "headers": [
+    {
+      "source": "/selectors/:path*",
+      "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }]
+    },
+    {
+      "source": "/updates/:path*",
+      "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }]
+    }
+  ]
+}
