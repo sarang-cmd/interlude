@@ -6,8 +6,8 @@ import { JSDOM } from "jsdom";
 
 const root = path.resolve(process.argv[2] ?? "dist");
 const hosts = ["https://claude.ai/*", "https://chatgpt.com/*", "https://gemini.google.com/*"];
-const selectorUrl = "https://interlude.vercel.app/selectors/v1.json";
-const updateUrl = "https://interlude.vercel.app/updates/latest.json";
+const selectorUrl = "https://interlude-sepia.vercel.app/selectors/v1.json";
+const updateUrl = "https://interlude-sepia.vercel.app/updates/latest.json";
 const issueUrl = "https://github.com/sarang-cmd/interlude/issues/new";
 const releasePrefix = "https://github.com/sarang-cmd/interlude/releases/download/v";
 const violations = [];

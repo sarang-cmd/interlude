@@ -1,5 +1,5 @@
 import { fetchStaticJSON, safeNetworkError } from "./transport";
-export const UPDATE_URL = "https://interlude.vercel.app/updates/latest.json";
+export const UPDATE_URL = "https://interlude-sepia.vercel.app/updates/latest.json";
 export const UPDATE_STATUS_KEY = "interlude.updateStatus";
 export const UPDATE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 export interface ReleaseManifest {

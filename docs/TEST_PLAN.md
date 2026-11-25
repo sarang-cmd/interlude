@@ -13,7 +13,7 @@ Times are approximate and assume the accounts are already signed in.
 | 5:00–7:00  | **Gemini (BETA):** repeat the same signal, placement, keyboard and completion checks; verify Gemini diagnostics and a turn/navigation change. Do not assume a selector works if the panel stays hidden.                                                                                                         |
 | 7:00–8:00  | Open the panel gear; change game, volume, width and placement and verify live changes. In Options search for a setting, change a site override, use changed-only and reset it. Play the preview; verify its runs do not alter scores.                                                                           |
 | 8:00–9:00  | Check default auto-close/10 s grace, toolbar pause/resume, and hidden-tab pause in a normal Chrome profile. Optionally enable a 1-minute budget and lock, play until it locks, then disable it. Budgets/lockout are off by default.                                                                             |
-| 9:00–10:00 | Export and re-import a backup, check local stats/score charts, and inspect the clean copied diagnostics report for accidental content before sharing. Check selector/update status: the default remote endpoints currently need separate deployment/CORS.                                                       |
+| 9:00–10:00 | Export and re-import a backup, check local stats/score charts, and inspect the clean copied diagnostics report for accidental content before sharing. Check selector/update status and the CORS-enabled endpoints. The selector feed uses a staging key and remains off by default.                             |
 
 If a live site's markup differs, use the local selector bench with structural
 attributes only. Re-run the affected scenario and record the actual browser
@@ -33,6 +33,6 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
   Study Mode, local midnight, two active tabs and disabling a budget lock.
 - Optionally enable the timing-only stream hook; confirm D is diagnostic only
   and does not change A/B/C votes. Some stream consumption paths are not visible.
-- Confirm a real signed endpoint and release endpoint only after the maintainer
-  deploys CORS-enabled JSON and securely rotates the staging key. Verify failure
-  retains bundled/last-good selectors and no update is downloaded automatically.
+- Verify the CORS-enabled endpoints and confirm that failures retain
+  bundled/last-good selectors and never download updates automatically. Test
+  production selector updates only after the staging key has been rotated offline.

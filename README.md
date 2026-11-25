@@ -82,9 +82,10 @@ it never reads chunks or votes on generation.
 An optional signed selector check is off by default; an optional release check is
 on by default. Both use static credential-free GETs with no application-added
 identifiers or custom headers. Browsers and servers still see ordinary network
-metadata. **The requested default JSON URLs currently serve HTML without the
-required CORS headers**, so these checks fail safely until the separate endpoint
-deployment is fixed. See [privacy](docs/PRIVACY.md) and
+metadata. The static metadata service is hosted at
+`https://interlude-sepia.vercel.app`. **The selector feed is signed with a
+staging key and is not production-ready**; leave it off until the key is rotated
+securely offline. See [privacy](docs/PRIVACY.md) and
 [security/key handling](docs/SECURITY.md).
 
 ## Development and release
@@ -101,8 +102,9 @@ npm run package:release -- v0.2.0 # versioned zip, latest zip, SHA-256 file
 
 The CI workflow runs these checks and publishes the **validated** build to a
 GitHub Release on a matching `vX.Y.Z` tag. A tag must match `package.json` and
-`manifest.json`. Publishing has not been attempted without a configured GitHub
-remote and authorization. See [contributing](CONTRIBUTING.md),
+`manifest.json`. The public repository is
+[github.com/sarang-cmd/interlude](https://github.com/sarang-cmd/interlude).
+See [contributing](CONTRIBUTING.md),
 [architecture](docs/ARCHITECTURE.md), [adapters](docs/ADAPTERS.md),
 [design rules](design/DESIGN.md) and [changelog](CHANGELOG.md).
 

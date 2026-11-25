@@ -190,7 +190,7 @@ test("service checks are credential-free, rate limited, and update the quiet bad
   expect(requests.map((row) => row.url).sort()).toEqual(
     [
       "https://example.org/selectors.json",
-      "https://interlude.vercel.app/updates/latest.json",
+      "https://interlude-sepia.vercel.app/updates/latest.json",
     ].sort(),
   );
   for (const req of requests)

@@ -48,10 +48,10 @@ rejected, response size is limited to 200 KB, and a check times out after eight
 seconds. The server must allow cross-origin requests. A failure does not prevent
 offline gameplay.
 
-| Request                                            | Default | Frequency                                                 | Purpose                                                                                                                                                                                                                       |
-| -------------------------------------------------- | ------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `https://interlude.vercel.app/selectors/v1.json`   | Off     | At most once per 12 hours when enabled                    | Download selector data only, verify its Ed25519 signature and strict schema, and retain the last good file. One static HTTPS URL can be configured instead; query strings, fragments, credentials and redirects are rejected. |
-| `https://interlude.vercel.app/updates/latest.json` | On      | Startup/worker wake if due, and at most once per 24 hours | Compare stable versions and display a quiet notice/badge. It never downloads or installs an update.                                                                                                                           |
+| Request                                                  | Default | Frequency                                                 | Purpose                                                                                                                                                                                                                       |
+| -------------------------------------------------------- | ------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `https://interlude-sepia.vercel.app/selectors/v1.json`   | Off     | At most once per 12 hours when enabled                    | Download selector data only, verify its Ed25519 signature and strict schema, and retain the last good file. One static HTTPS URL can be configured instead; query strings, fragments, credentials and redirects are rejected. |
+| `https://interlude-sepia.vercel.app/updates/latest.json` | On      | Startup/worker wake if due, and at most once per 24 hours | Compare stable versions and display a quiet notice/badge. It never downloads or installs an update.                                                                                                                           |
 
 **No absolute anonymity is implied.** The browser/network necessarily exposes
 an IP address and ordinary HTTP/TLS metadata such as the user agent and possibly
@@ -61,10 +61,11 @@ may itself contain identifying information in its path, so choose it carefully.
 Chrome's own sync service and the AI website's own traffic are separate from
 these two extension checks.
 
-The default endpoints currently return HTML rather than the expected JSON and
-do not expose the needed CORS header. Diagnostics reports the failure; bundled or
-last-verified selectors remain in use. `deployment/` supplies a static example,
-but deploying it is a separate maintainer action; see [SECURITY.md](SECURITY.md).
+The static Vercel project serves these endpoints with cross-origin headers.
+The selector file is signed by a **staging** key: leave remote selectors off
+until a production key is rotated and managed offline. Network or verification
+failures retain bundled or last-verified selectors. Deployment and key handling
+are described in [SECURITY.md](SECURITY.md).
 
 **Only after a user clicks**, Diagnostics can open a prefilled GitHub issue, and
 the update notice can open the official GitHub release-download link. The clean

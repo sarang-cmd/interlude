@@ -6,7 +6,7 @@ import { join } from "node:path";
 
 const hosts = ["https://claude.ai/*", "https://chatgpt.com/*", "https://gemini.google.com/*"];
 const selector = `
-const DEFAULT_SELECTOR = "https://interlude.vercel.app/selectors/v1.json";
+const DEFAULT_SELECTOR = "https://interlude-sepia.vercel.app/selectors/v1.json";
 const SELECTOR_CACHE_KEY = "selector-cache";
 async function fetchStaticJSON(url) {
   const target = new URL(url);
@@ -16,7 +16,7 @@ async function fetchStaticJSON(url) {
 }
 async function runCheck(url) { return fetchStaticJSON(url); }
 `;
-const release = `const UPDATE_URL = "https://interlude.vercel.app/updates/latest.json";
+const release = `const UPDATE_URL = "https://interlude-sepia.vercel.app/updates/latest.json";
 async function runCheck() { return fetchStaticJSON(UPDATE_URL); }
 `;
 function fixture(): string {

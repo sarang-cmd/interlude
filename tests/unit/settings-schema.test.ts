@@ -69,6 +69,17 @@ describe("settings schema and storage", () => {
     ).toEqual({ version: 2, global: {}, sites: { chatgpt: { enabled: false } } });
   });
 
+  it("migrates only the old unowned selector endpoint and preserves custom URLs", () => {
+    const old = "https://interlude.vercel.app/selectors/v1.json";
+    const next = "https://interlude-sepia.vercel.app/selectors/v1.json";
+    expect(
+      migrateSettings({ version: 2, global: { selectorUrl: old }, sites: {} }).global.selectorUrl,
+    ).toBe(next);
+    expect(
+      migrateSettings({ selectorUrl: "https://example.org/selectors.json" }).global.selectorUrl,
+    ).toBe("https://example.org/selectors.json");
+  });
+
   it("resolves site, global, then default, and reset removes an override", async () => {
     fakeStorage();
     await saveSettings({ delayMs: 900, volume: 20 });

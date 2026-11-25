@@ -678,7 +678,7 @@ const BASE = [
     default: false,
     label: "Remote selector updates",
     description:
-      "Fetch a signed selector file at most once every 12 hours; no cookies or identifiers.",
+      "Fetch signed selectors at most every 12 hours. The current key is for staging: leave this off until it is rotated for production.",
     category: "Advanced",
     tags: ["remote", "signature", "privacy"],
     perSite: false,
@@ -686,7 +686,7 @@ const BASE = [
   def({
     id: "selectorUrl",
     type: "string",
-    default: "https://interlude.vercel.app/selectors/v1.json",
+    default: "https://interlude-sepia.vercel.app/selectors/v1.json",
     label: "Selector URL",
     description: "HTTPS JSON endpoint for signed selector data; the endpoint must allow CORS.",
     category: "Advanced",

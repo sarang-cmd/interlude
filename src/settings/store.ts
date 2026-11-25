@@ -48,8 +48,29 @@ let writes: Promise<void> = Promise.resolve();
 
 function cleanValues(input: unknown, perSite: boolean): Record<string, SettingValue> {
   const clean: Record<string, SettingValue> = {};
-  for (const [id, value] of Object.entries(record(input))) {
+  for (const [id, stored] of Object.entries(record(input))) {
     const def = SETTINGS_BY_ID.get(id);
+    let value = stored;
+    if (id === "selectorUrl" && typeof value === "string" && def) {
+      try {
+        const old = new URL(value);
+        // The original placeholder belongs to another site. Migrate only that
+        // exact default; preserve explicitly configured custom endpoints.
+        if (
+          old.protocol === "https:" &&
+          old.hostname === "interlude.vercel.app" &&
+          !old.port &&
+          old.pathname === "/selectors/v1.json" &&
+          !old.username &&
+          !old.password &&
+          !old.search &&
+          !old.hash
+        )
+          value = def.default;
+      } catch {
+        // Invalid URLs are discarded by the schema below.
+      }
+    }
     if (def && (!perSite || def.perSite) && validValue(def, value))
       clean[id] = Array.isArray(value) ? [...value] : value;
   }

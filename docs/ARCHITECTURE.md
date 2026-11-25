@@ -91,8 +91,9 @@ once per 12 hours; release metadata (on by default) at most once per 24 hours.
 Signature, schema, dates and rollback are validated before replacing the last
 good selector cache. The release URL is restricted to the matching official
 GitHub artifact. Alarms and on-wake checks share stored timestamps. There is no
-automatic download. The default URLs currently require a separate static/CORS
-deployment; see [SECURITY.md](SECURITY.md) and [PRIVACY.md](PRIVACY.md).
+automatic download. The static metadata routes are hosted on Vercel with CORS.
+The selector signing key is staging-only and needs offline rotation before
+production use; see [SECURITY.md](SECURITY.md) and [PRIVACY.md](PRIVACY.md).
 
 ## Verification and limitations
 

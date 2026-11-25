@@ -8,9 +8,10 @@ unredacted diagnostic report in a public issue. See also the root
 
 ## Trust boundary and current key
 
-Selector updates are **off by default**. This workspace generated a local
-**staging** Ed25519 private key at `private-keys/selector-signing.pem` and bundled
-the corresponding public key in `src/updates/publicKey.ts`. The private key is
+Selector updates are **off by default**. The initial workspace generated a local
+**staging** Ed25519 private key at `private-keys/selector-signing.pem` (not
+included in a fresh clone) and bundled the corresponding public key in
+`src/updates/publicKey.ts`. The private key is
 ignored by Git and is not part of the extension, source archive, CI artifacts or
 `deployment/`. Treat it as sensitive; transfer it to controlled storage if you
 need to reproduce the staging signature. **Rotate it and establish an offline
@@ -18,13 +19,13 @@ production signing process before using remote updates for a public release.**
 Do not paste the key into chat, commit it, upload it to Vercel, or put it into
 CI logs. Only authorized maintainers should sign reviewed selector changes.
 
-`deployment/selectors/v1.json` is an example signed by the staging key, not a
-claim that the live endpoint has been deployed. The connected Vercel account
-listed no `interlude` project when inspected; the requested URLs served HTML and
-no CORS. No live deployment was changed. An owner must integrate the static
-JSON routes and `Access-Control-Allow-Origin: *` (see `deployment/vercel.json`)
-into the actual project **without replacing existing site content**. Confirm
-both URLs return JSON and the CORS header from a fresh extension installation.
+`deployment/selectors/v1.json` is signed by the staging key and is served by
+the separate project at `https://interlude-sepia.vercel.app`. It is **not a
+production trust root**; selector updates remain off by default. The previously
+configured `interlude.vercel.app` serves another application and was not
+changed. The static routes use `Access-Control-Allow-Origin: *` (see
+`deployment/vercel.json`). Confirm both endpoints return JSON and the CORS
+header from a fresh extension installation after any deployment.
 
 ## Signing and rotation
 
