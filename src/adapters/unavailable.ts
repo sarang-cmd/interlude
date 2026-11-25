@@ -47,6 +47,7 @@ export class InactiveAdapter implements SiteAdapter {
   getPhase(): string {
     return "idle";
   }
+  configure(): void {}
   setStreamHook(_enabled: boolean): void {
     /* inactive */
   }
@@ -83,6 +84,8 @@ export class InactiveAdapter implements SiteAdapter {
       mount: { found: false, placement: "inline", detail: "Adapter not implemented" },
       lastSignalToFrameMs: null,
       streamHook: { enabled: false, active: false, lastOpen: null, lastClose: null },
+      theme: "dark",
+      timeline: [],
       timestamp: Date.now(),
     };
   }

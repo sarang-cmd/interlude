@@ -1,11 +1,20 @@
-import { InactiveAdapter } from "../unavailable";
+import selectors from "./selectors.json";
+import { StructuralAdapter, type StructuralSelectors } from "../structural";
 import type { SitePlugin } from "../types";
-const make = () => new InactiveAdapter("gemini", "Gemini", ["gemini.google.com"]);
-/** Interface only. Gemini detection is intentionally not enabled. */
+export class GeminiAdapter extends StructuralAdapter {
+  constructor(overrides: Partial<StructuralSelectors> = {}) {
+    super(
+      { id: "gemini", displayName: "Gemini", hosts: ["gemini.google.com"], selectors },
+      overrides,
+    );
+  }
+}
 const plugin: SitePlugin = {
   id: "gemini",
-  implemented: false,
-  matches: (url) => make().matches(url),
-  create: make,
+  implemented: true,
+  selectorOverrideKey: "interlude.geminiSelectors",
+  matches: (url) => new GeminiAdapter().matches(url),
+  create: (configuration) =>
+    new GeminiAdapter((configuration ?? {}) as Partial<StructuralSelectors>),
 };
 export default plugin;

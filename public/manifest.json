@@ -3,11 +3,10 @@
   "name": "Interlude",
   "version": "0.1.0",
   "description": "Arcade games in the margins of a response.",
-  "permissions": ["storage", "scripting", "webNavigation"],
+  "permissions": ["storage", "alarms"],
   "host_permissions": [
     "https://claude.ai/*",
     "https://chatgpt.com/*",
-    "https://chat.openai.com/*",
     "https://gemini.google.com/*"
   ],
   "background": {
@@ -21,12 +20,14 @@
   "options_page": "options.html",
   "content_scripts": [
     {
-      "matches": [
-        "https://claude.ai/*",
-        "https://chatgpt.com/*",
-        "https://chat.openai.com/*",
-        "https://gemini.google.com/*"
-      ],
+      "matches": ["https://claude.ai/*", "https://chatgpt.com/*", "https://gemini.google.com/*"],
+      "js": ["page-bridge.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": false
+    },
+    {
+      "matches": ["https://claude.ai/*", "https://chatgpt.com/*", "https://gemini.google.com/*"],
       "js": ["content.js"],
       "run_at": "document_idle",
       "all_frames": false
@@ -35,12 +36,7 @@
   "web_accessible_resources": [
     {
       "resources": ["fonts/*.woff2", "content-entry.js", "chunks/*.js"],
-      "matches": [
-        "https://claude.ai/*",
-        "https://chatgpt.com/*",
-        "https://chat.openai.com/*",
-        "https://gemini.google.com/*"
-      ]
+      "matches": ["https://claude.ai/*", "https://chatgpt.com/*", "https://gemini.google.com/*"]
     }
   ],
   "icons": {

@@ -1,11 +1,17 @@
-import { InactiveAdapter } from "../unavailable";
+import selectors from "./selectors.json";
+import { StructuralAdapter, type StructuralSelectors } from "../structural";
 import type { SitePlugin } from "../types";
-const make = () => new InactiveAdapter("chatgpt", "ChatGPT", ["chatgpt.com", "chat.openai.com"]);
-/** Interface only. ChatGPT detection is intentionally not enabled. */
+export class ChatGPTAdapter extends StructuralAdapter {
+  constructor(overrides: Partial<StructuralSelectors> = {}) {
+    super({ id: "chatgpt", displayName: "ChatGPT", hosts: ["chatgpt.com"], selectors }, overrides);
+  }
+}
 const plugin: SitePlugin = {
   id: "chatgpt",
-  implemented: false,
-  matches: (url) => make().matches(url),
-  create: make,
+  implemented: true,
+  selectorOverrideKey: "interlude.chatgptSelectors",
+  matches: (url) => new ChatGPTAdapter().matches(url),
+  create: (configuration) =>
+    new ChatGPTAdapter((configuration ?? {}) as Partial<StructuralSelectors>),
 };
 export default plugin;

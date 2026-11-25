@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>gemini synthetic fixture</title>
+    <style>
+      body {
+        margin: 0;
+        background: #faf9f5;
+        color: #312b23;
+        font-family: serif;
+      }
+      main {
+        width: min(680px, 95%);
+        margin: 40px auto;
+      }
+      .turn {
+        display: block;
+        min-height: 120px;
+        border-bottom: 1px solid #ccc;
+      }
+      .indicator {
+        display: block;
+        background: #eee;
+        padding: 12px;
+      }
+      form {
+        display: flex;
+        margin-top: 32px;
+        border: 1px solid #777;
+        padding: 10px;
+      }
+      [contenteditable] {
+        flex: 1;
+        min-height: 45px;
+      }
+      button {
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <main data-testid="conversation-column">
+      <model-response class="turn"><div id="answer"></div></model-response>
+      <button type="button" data-testid="regenerate-button" aria-label="Regenerate">
+        Regenerate</button
+      ><input-container
+        ><form data-testid="chat-composer">
+          <div data-testid="chat-input" contenteditable="true" role="textbox"></div>
+          <button data-testid="send-button" type="submit">Send</button>
+        </form></input-container
+      >
+    </main>
+    <script>
+      (() => {
+        const form = document.querySelector("[data-testid='chat-composer']");
+        function turn() {
+          return [...document.querySelectorAll("model-response")].at(-1);
+        }
+        function start() {
+          const indicator = document.createElement("div");
+          indicator.dataset.testid = "thinking-indicator";
+          indicator.className = "indicator";
+          indicator.textContent = "Thinking";
+          turn().prepend(indicator);
+          const stop = document.createElement("button");
+          stop.type = "button";
+          stop.dataset.testid = "stop-button";
+          stop.setAttribute("aria-label", "Stop response");
+          stop.textContent = "Stop";
+          form.append(stop);
+        }
+        function finish() {
+          form.querySelector('[data-testid="stop-button"]')?.remove();
+          turn().querySelector('[data-testid="thinking-indicator"]')?.remove();
+        }
+        function replace() {
+          const next = document.createElement("model-response");
+          const turn = next;
+          next.className = "turn";
+          const indicator = document.createElement("div");
+          indicator.dataset.testid = "thinking-indicator";
+          indicator.className = "indicator";
+          indicator.textContent = "Thinking";
+          next.append(indicator);
+          window.fixture.turn().replaceWith(next);
+        }
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          start();
+        });
+        document
+          .querySelector('[data-testid="regenerate-button"]')
+          .addEventListener("click", start);
+        window.fixture = { start, finish, replace, turn };
+      })();
+    </script>
+  </body>
+</html>

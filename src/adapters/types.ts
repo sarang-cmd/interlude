@@ -50,6 +50,8 @@ export interface AdapterDiagnostics {
     lastOpen: number | null;
     lastClose: number | null;
   };
+  theme: ThemeGuess;
+  timeline: Array<{ phase: string; timestamp: number }>;
   timestamp: number;
 }
 
@@ -89,6 +91,7 @@ export interface SiteAdapter {
   setExcludedHost(host: Element): void;
   getComposerInput(): HTMLElement | null;
   getPhase(): string;
+  configure(config: { signals: string[]; showOnRegenerate: boolean; debugLogging: boolean }): void;
   setStreamHook(enabled: boolean): void;
   navigation(): void;
   activity(): { observers: number; timers: number };

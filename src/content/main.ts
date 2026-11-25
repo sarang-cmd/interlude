@@ -52,6 +52,17 @@ if (plugin) {
       );
     }
   });
+  window.addEventListener("message", (event: MessageEvent<unknown>) => {
+    if (
+      event.source !== window ||
+      event.origin !== location.origin ||
+      !event.data ||
+      typeof event.data !== "object"
+    )
+      return;
+    if ((event.data as { source?: unknown }).source === "interlude-navigation")
+      controller?.navigation();
+  });
   chrome.runtime.onMessage.addListener((message: unknown, _sender, respond) => {
     if (!message || typeof message !== "object") return false;
     const type = (message as { type?: string }).type;

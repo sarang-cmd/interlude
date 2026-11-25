@@ -103,6 +103,7 @@ export class InterludeController {
     // webNavigation additionally covers pushState/replaceState changes.
     window.addEventListener("popstate", this.onNavigation);
     window.addEventListener("pageshow", this.onPageShow);
+    this.adapter.configure(settings);
     if (settings.enabled) {
       this.adapter.start();
       this.adapter.setStreamHook(settings.streamHookEnabled);
@@ -137,6 +138,7 @@ export class InterludeController {
     const old = this.settings;
     this.settings = next;
     this.panel.updateSettings(next);
+    this.adapter.configure(next);
     if (old.enabled !== next.enabled) {
       if (next.enabled) {
         this.adapter.start();

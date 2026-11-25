@@ -12,11 +12,16 @@ export class GenerationMachine {
   private phase: GenerationPhase = "idle";
   private votes: Votes = { a: false, b: false, c: false };
   private timer: Timer | undefined;
+  private requiredVotes = 2;
   constructor(
     private readonly onChange: (snapshot: MachineSnapshot) => void,
     private readonly endDebounceMs = 650,
     private readonly startTimeoutMs = 4000,
   ) {}
+
+  setRequiredVotes(count: number): void {
+    this.requiredVotes = Math.max(1, Math.min(3, Math.round(count)));
+  }
 
   get hasPendingTimer(): boolean {
     return this.timer !== undefined;
@@ -43,7 +48,7 @@ export class GenerationMachine {
   update(votes: Votes): void {
     this.votes = { ...votes };
     const count = Number(votes.a) + Number(votes.b) + Number(votes.c);
-    if (count >= 2) {
+    if (count >= this.requiredVotes) {
       this.clearTimer();
       if (this.phase !== "generating") this.transition("generating");
       else this.onChange(this.snapshot);

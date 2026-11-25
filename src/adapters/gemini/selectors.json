@@ -1,0 +1,66 @@
+{
+  "composerArea": [
+    "[data-testid='chat-composer']",
+    "input-container",
+    "form:has([contenteditable='true'])",
+    "div.input-area:has([contenteditable='true'])",
+    "form:has(textarea)"
+  ],
+  "composerInput": [
+    "[data-testid='chat-input']",
+    "rich-textarea [contenteditable='true']",
+    "[contenteditable='true'][role='textbox']",
+    "div.ql-editor[contenteditable='true']",
+    "form textarea"
+  ],
+  "stopControl": [
+    "button[data-testid='stop-button']",
+    "button[aria-label='Stop response']",
+    "button[aria-label='Stop generating']",
+    "button[aria-label*='Stop response' i]",
+    "button[aria-label*='Antwort beenden' i]",
+    "button[mattooltip='Stop response']"
+  ],
+  "assistantTurn": [
+    "model-response",
+    "[data-testid='model-response']",
+    "[data-message-author-role='assistant']",
+    ".model-response-text",
+    ".response-container"
+  ],
+  "indicator": [
+    "[data-testid='thinking-indicator']",
+    "[data-testid='streaming-indicator']",
+    ".loading-indicator",
+    ".loading-spinner",
+    "[aria-busy='true']",
+    "[data-is-streaming='true']",
+    "[role='status']"
+  ],
+  "conversationColumn": ["[data-testid='conversation-column']", "infinite-scroller", "main"],
+  "startTrigger": [
+    "[data-testid='send-button']",
+    "button[aria-label*='Send']",
+    "button[aria-label*='Senden']",
+    "button[aria-label*='Regenerate']",
+    "button[type='submit']"
+  ],
+  "regenerateTrigger": [
+    "[data-testid='regenerate-button']",
+    "button[aria-label*='Regenerate']",
+    "button[aria-label*='Retry']",
+    "button[aria-label*='Neu generieren']"
+  ],
+  "darkTheme": ["html.dark", "html[data-theme='dark']", ".dark-theme", "[data-theme='dark']"],
+  "inactiveTurnAncestor": [
+    "[hidden]",
+    "[aria-hidden='true']",
+    "[inert]",
+    "[data-state='inactive']",
+    "[class~='hidden']",
+    "[style*='display:none']",
+    "[style*='display: none']",
+    "[style*='visibility:hidden']",
+    "[style*='visibility: hidden']"
+  ]
+}

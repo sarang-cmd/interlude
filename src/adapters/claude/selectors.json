@@ -69,5 +69,10 @@
     "[style*='display: none']",
     "[style*='visibility:hidden']",
     "[style*='visibility: hidden']"
+  ],
+  "regenerateTrigger": [
+    "[data-testid='regenerate-button']",
+    "button[aria-label*='Retry']",
+    "button[aria-label*='Regenerate']"
   ]
 }
