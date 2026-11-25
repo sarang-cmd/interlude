@@ -1,17 +1,10 @@
 /** The catalogue is the only source of setting defaults, validation and UI metadata. */
+import { ACTION_DEFAULTS, GAME_ACTIONS, GAME_IDS, type GameId } from "../games/catalog";
+export { ACTION_DEFAULTS, GAME_ACTIONS, GAME_IDS };
+export type { GameId };
+
 export const SITES = ["claude", "chatgpt", "gemini"] as const;
 export type SiteId = (typeof SITES)[number];
-export const GAME_IDS = [
-  "snake",
-  "breakout",
-  "flappy",
-  "twenty48",
-  "pong",
-  "blockfall",
-  "rockfall",
-  "dashline",
-] as const;
-export type GameId = (typeof GAME_IDS)[number];
 export const CATEGORIES = [
   "Display",
   "Trigger",
@@ -729,25 +722,6 @@ const BASE = [
   }),
 ] as const;
 
-export const GAME_ACTIONS: Record<GameId, readonly string[]> = {
-  snake: ["left", "right", "up", "down", "pause"],
-  breakout: ["left", "right", "primary", "pause"],
-  flappy: ["primary", "pause"],
-  twenty48: ["left", "right", "up", "down", "secondary", "pause"],
-  pong: ["up", "down", "pause"],
-  blockfall: ["left", "right", "up", "down", "primary", "secondary", "pause"],
-  rockfall: ["left", "right", "up", "primary", "pause"],
-  dashline: ["primary", "pause"],
-};
-export const ACTION_DEFAULTS: Record<string, string> = {
-  left: "ArrowLeft",
-  right: "ArrowRight",
-  up: "ArrowUp",
-  down: "ArrowDown",
-  primary: "Space",
-  secondary: "KeyC",
-  pause: "KeyP",
-};
 const names: Record<GameId, string> = {
   snake: "Snake",
   breakout: "Breakout",

@@ -2,6 +2,7 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { Engine } from "../../src/engine/engine";
 import type { ArcadeGame } from "../../src/games/types";
+import { SNAKE_MANIFEST } from "../../src/games/manifest";
 import { DEFAULT_SETTINGS } from "../../src/shared/storage";
 
 afterEach(() => {
@@ -35,6 +36,7 @@ it("completion freezes the current simulation and resumes without reinitializing
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(() => ctx as never);
   const game: ArcadeGame = {
     manifest: {
+      ...SNAKE_MANIFEST,
       id: "fixture",
       name: "FIXTURE",
       description: "",

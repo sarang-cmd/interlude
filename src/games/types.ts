@@ -9,6 +9,16 @@ import type { ParticleSystem } from "../engine/particles";
 import type { InterludeSettings } from "../shared/storage";
 
 export type GameSupport = "keyboard" | "pointer" | "touch" | "gamepad";
+export type GameSurface = "extension" | "web";
+export type GameCategory = "arcade" | "action" | "puzzle" | "board" | "casual";
+
+export interface GameMode {
+  id: string;
+  label: string;
+  description: string;
+  players: number;
+  surfaces: readonly GameSurface[];
+}
 
 export interface GameManifest {
   id: string;
@@ -17,7 +27,16 @@ export interface GameManifest {
   /** One line, e.g. "ARROWS STEER · SPACE = BITE". */
   controls: string;
   defaultDifficulty: string;
-  supports: GameSupport[];
+  /** `supports` is retained for consumers of the original registry. */
+  supports: readonly GameSupport[];
+  inputs: readonly GameSupport[];
+  category: GameCategory;
+  runLength: string;
+  surfaces: readonly GameSurface[];
+  modes: readonly GameMode[];
+  ai: { opponent: boolean; watchable: boolean };
+  stateSaving: boolean;
+  playerOneBindings: Readonly<Record<string, string>>;
 }
 
 /** Everything a game may touch. Engine implements it. */

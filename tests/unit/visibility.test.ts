@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { Engine } from "../../src/engine/engine";
 import { DEFAULT_SETTINGS } from "../../src/shared/storage";
 import type { ArcadeGame } from "../../src/games/types";
+import { SNAKE_MANIFEST } from "../../src/games/manifest";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -32,6 +33,7 @@ it("tab-hidden stops every queued frame and returning resumes only an active cab
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(() => ctx as never);
   const game: ArcadeGame = {
     manifest: {
+      ...SNAKE_MANIFEST,
       id: "fixture",
       name: "FIXTURE",
       description: "",
@@ -82,6 +84,7 @@ it("freezes audio and accepts a retry immediately even during hit-stop", async (
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(() => ctx as never);
   const game: ArcadeGame = {
     manifest: {
+      ...SNAKE_MANIFEST,
       id: "retry",
       name: "RETRY",
       description: "",

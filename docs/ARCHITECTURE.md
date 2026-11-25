@@ -32,6 +32,16 @@ web-accessible extension resources to the three hosts. Fonts and game assets are
 bundled; no network fonts. The options preview uses the same engine but neither
 score nor 2048 best-tile writes are persisted.
 
+## Game catalog and build surfaces
+
+`src/games/manifest.ts` describes the shipped games and their shared modes.
+Player-one binding defaults come from `src/games/catalog.ts`, also used by the
+settings schema. The website loads the web-only mode registry lazily. The
+extension build substitutes `__PLATFORM__` with `extension`, removes the web
+branch, and rejects any chunk containing `src/twoplayer/` or `*.2p.ts` modules.
+The web build requires the registry. Both builds enforce JavaScript budgets and
+emit a bundle report. See [GAME-MODES.md](GAME-MODES.md) for shipped modes.
+
 ## Detection and lifecycle
 
 `idle → starting → generating → finishing → idle` is implemented in

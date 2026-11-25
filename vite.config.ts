@@ -1,10 +1,13 @@
 import { defineConfig } from "vite";
 import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
+import { surfaceGuard } from "./scripts/surface-guard";
 
 export default defineConfig({
   base: "./",
+  define: { __PLATFORM__: JSON.stringify("extension") },
   plugins: [
+    surfaceGuard("extension"),
     {
       name: "include-project-license",
       generateBundle() {

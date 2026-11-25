@@ -1,6 +1,12 @@
 import { Engine, type EngineState } from "../src/engine/engine";
 import type { GameAction } from "../src/engine/input";
-import { DEFAULT_GAME_ID, GAME_MANIFESTS, getManifest, loadGame } from "../src/games/manifest";
+import {
+  availableModes,
+  DEFAULT_GAME_ID,
+  GAME_MANIFESTS,
+  getManifest,
+  loadGame,
+} from "../src/games/manifest";
 import type { GameManifest } from "../src/games/types";
 import { defaults } from "../src/settings/schema";
 import { readWebScores, saveWebScore } from "../src/web/scores";
@@ -212,8 +218,9 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
   stateLabel.textContent = "LOADING";
   selectButtons(id);
   try {
-    const game = await loadGame(id);
+    const [game, modes] = await Promise.all([loadGame(id), availableModes(id)]);
     if (sequence !== requestNumber) return;
+    if (!modes.length) throw new Error("No mode available");
     selectedGame = id;
     const index = GAME_MANIFESTS.findIndex((entry) => entry.id === id);
     numberLabel.textContent = `GAME ${String(index + 1).padStart(2, "0")} / 08`;
