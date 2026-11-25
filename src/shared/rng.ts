@@ -10,6 +10,10 @@ export class RNG {
     this.state = (seed >>> 0) || 0x9e3779b9;
   }
 
+  /** Snapshot for reversible simulations such as 2048 undo. */
+  getState(): number { return this.state; }
+  setState(state: number): void { this.state = state; }
+
   /** Uniform float in [0, 1). */
   next(): number {
     let t = (this.state += 0x6d2b79f5);
