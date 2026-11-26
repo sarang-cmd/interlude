@@ -5,13 +5,13 @@ const SITE = "http://127.0.0.1:4173";
 const games = [
   { id: "snake", name: "SNAKE", control: "Steer up" },
   { id: "breakout", name: "BREAKOUT", control: "Launch" },
-  { id: "flappy", name: "FLAPPER", control: "Flap" },
+  { id: "flappy", name: "FLAPPY-STYLE FLYER", control: "Flap" },
   { id: "twenty48", name: "2048", control: "Slide left" },
   { id: "pong", name: "PONG", control: "Move up" },
   { id: "blockfall", name: "BLOCKFALL", control: "Rotate" },
   { id: "rockfall", name: "ROCKFALL BELT", control: "Fire" },
-  { id: "dashline", name: "DASHLINE", control: "Jump or hold to jump higher" },
-  { id: "tictactoe", name: "TIC-TAC-TOE", control: "Select left" },
+  { id: "dashline", name: "ENDLESS RUNNER", control: "Jump or hold to jump higher" },
+  { id: "tictactoe", name: "NOUGHTS AND CROSSES", control: "Select left" },
 ] as const;
 
 test("all nine games load, start, and respond to their on-screen controls", async ({ page }) => {
@@ -165,7 +165,7 @@ test("a completed run saves a website-only high score across reloads", async ({ 
     Math.random = () => 0.2;
   });
   await page.goto(SITE);
-  await page.getByRole("button", { name: "Select DASHLINE" }).click();
+  await page.getByRole("button", { name: "Select ENDLESS RUNNER" }).click();
   await page.getByRole("button", { name: "START GAME" }).click();
   await expect(page.locator('#game-canvas[data-game="dashline"]')).toHaveAttribute(
     "data-scene",
@@ -178,7 +178,7 @@ test("a completed run saves a website-only high score across reloads", async ({ 
   }, WEB_SCORES_KEY);
   expect(recorded).toBeGreaterThan(0);
   await page.reload();
-  await page.getByRole("button", { name: "Select DASHLINE" }).click();
+  await page.getByRole("button", { name: "Select ENDLESS RUNNER" }).click();
   await expect(page.locator("#game-high-score")).toHaveText(String(recorded).padStart(6, "0"));
 });
 
@@ -187,7 +187,7 @@ test("a running game freezes offscreen and continues when scrolled back into vie
 }) => {
   await page.setViewportSize({ width: 1200, height: 900 });
   await page.goto(SITE);
-  await page.getByRole("button", { name: "Select DASHLINE" }).click();
+  await page.getByRole("button", { name: "Select ENDLESS RUNNER" }).click();
   await page.getByRole("button", { name: "START GAME" }).click();
   const canvas = page.locator("#game-canvas");
   await expect(canvas).toHaveAttribute("data-scene", "playing");
@@ -222,7 +222,7 @@ test.describe("touch screen", () => {
     page,
   }) => {
     await page.goto(SITE);
-    await page.getByRole("button", { name: "Select FLAPPER" }).tap();
+    await page.getByRole("button", { name: "Select FLAPPY-STYLE FLYER" }).tap();
     const canvas = page.locator("#game-canvas");
     await expect(canvas).toHaveAttribute("data-game", "flappy");
     await expect(canvas).toHaveAttribute("data-scene", "ready");

@@ -56,7 +56,7 @@ test.afterEach(async () => {
   temporaryExtension = undefined;
 });
 
-test("extension Tic-Tac-Toe uses a real local worker even with restrictive host CSP", async () => {
+test("extension NOUGHTS AND CROSSES uses a real local worker even with restrictive host CSP", async () => {
   const extension = path.resolve("dist");
   context = await chromium.launchPersistentContext("", {
     channel: "chromium",
@@ -122,7 +122,7 @@ test("extension Tic-Tac-Toe uses a real local worker even with restrictive host 
   await callOn(cdp, ".gear", "function() { this.click(); }");
   await callOn(
     cdp,
-    '[aria-label="Tic-Tac-Toe watch mode"]',
+    '[aria-label="NOUGHTS AND CROSSES watch mode"]',
     "function(value) { this.value=value; this.dispatchEvent(new Event('change',{bubbles:true})); }",
     ["true"],
   );

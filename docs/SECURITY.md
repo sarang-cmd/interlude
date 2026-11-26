@@ -29,7 +29,7 @@ header from a fresh extension installation after any deployment.
 
 ## Local game worker boundary
 
-The Tic-Tac-Toe search worker and its host are packaged with the extension. The
+The NOUGHTS AND CROSSES search worker and its host are packaged with the extension. The
 host page accepts only a single `MessagePort` from its immediate supported chat
 origin (or an extension-owned options preview), and accepts only a bounded
 three-in-a-row task. It exposes no generic script execution, browser storage or

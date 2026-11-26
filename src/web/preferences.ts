@@ -12,6 +12,7 @@ export interface WebPreferences {
   pongFirstTo: number;
   tictactoeDifficulty: AIDifficulty;
   tictactoeWatch: boolean;
+  tictactoeSize: "3" | "4" | "5";
 }
 
 export function readWebPreferences(storage: Storage | null): WebPreferences {
@@ -23,6 +24,7 @@ export function readWebPreferences(storage: Storage | null): WebPreferences {
     pongFirstTo: 5,
     tictactoeDifficulty: "regular",
     tictactoeWatch: false,
+    tictactoeSize: "3",
   };
   try {
     const value: unknown = JSON.parse(storage?.getItem(WEB_PREFERENCES_KEY) ?? "{}");
@@ -32,6 +34,8 @@ export function readWebPreferences(storage: Storage | null): WebPreferences {
     if (isAIDifficulty(data.tictactoeDifficulty))
       defaults.tictactoeDifficulty = data.tictactoeDifficulty;
     if (typeof data.tictactoeWatch === "boolean") defaults.tictactoeWatch = data.tictactoeWatch;
+    if (data.tictactoeSize === "3" || data.tictactoeSize === "4" || data.tictactoeSize === "5")
+      defaults.tictactoeSize = data.tictactoeSize;
     if (typeof data.pongAdaptive === "boolean") defaults.pongAdaptive = data.pongAdaptive;
     if (typeof data.pongWatch === "boolean") defaults.pongWatch = data.pongWatch;
     if (

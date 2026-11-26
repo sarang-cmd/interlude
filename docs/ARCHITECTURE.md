@@ -39,7 +39,7 @@ The unreleased popup imports `src/popup/arcade.ts` only after **Play a game**.
 That extension-owned document uses the same lazy registry, engine, key settings,
 local scores and worker bridge as the site cabinet; it never embeds the public
 website. It uses the global profile, filters disabled games, and exposes the
-Pong and Tic-Tac-Toe CPU controls. Back or `pagehide` destroys the engine and
+Pong and NOUGHTS AND CROSSES CPU controls. Back or `pagehide` destroys the engine and
 cancels pending AI work. A hidden popup stops its loop and play-time accounting.
 
 A popup-local Focus Guard reads a consistent settings/stats/pause snapshot
@@ -66,7 +66,7 @@ including emitted worker JavaScript assets, and emit a bundle report. See
 
 ## Local AI search
 
-Tic-Tac-Toe starts a dedicated worker only on a CPU turn. A website worker is
+NOUGHTS AND CROSSES starts a dedicated worker only on a CPU turn. A website worker is
 loaded from a same-origin static asset. A Chrome content script cannot directly
 construct a `chrome-extension://` worker from the chat page's origin; the
 extension instead opens a short-lived, extension-origin worker-host iframe in

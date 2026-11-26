@@ -1,15 +1,25 @@
-import { THREE_LINES, type Cell, type ThreePosition } from "../../ai/three-in-row";
+import {
+  noughtsLines,
+  noughtsSize,
+  type Cell,
+  type NoughtsSize,
+  type ThreePosition,
+} from "../../ai/three-in-row";
 
 export type Mark = Exclude<Cell, 0>;
 export type ThreeOutcome = "playing" | "draw" | "x" | "o";
 
-/** A single match. X goes first. Invalid moves never change the turn. */
+/** One match. X goes first; the two larger boards require four in a row. */
 export class TicTacToeLogic {
-  private cells: Cell[] = Array<Cell>(9).fill(0);
+  private cells: Cell[];
   private current: Mark = 1;
   private outcomeValue: ThreeOutcome = "playing";
   private winning: readonly number[] | null = null;
 
+  constructor(readonly size: NoughtsSize = 3) {
+    if (![3, 4, 5].includes(size)) throw new Error("Invalid board size");
+    this.cells = Array<Cell>(size * size).fill(0);
+  }
   get position(): ThreePosition {
     return { cells: [...this.cells], turn: this.current };
   }
@@ -29,18 +39,13 @@ export class TicTacToeLogic {
       this.outcomeValue !== "playing" ||
       !Number.isInteger(index) ||
       index < 0 ||
-      index >= 9 ||
+      index >= this.cells.length ||
       this.cells[index] !== 0
     )
       return false;
     this.cells[index] = this.current;
-    for (const line of THREE_LINES) {
-      const [a, b, c] = line;
-      if (
-        this.cells[a] === this.current &&
-        this.cells[b] === this.current &&
-        this.cells[c] === this.current
-      ) {
+    for (const line of noughtsLines(this.size)) {
+      if (line.every((cell) => this.cells[cell] === this.current)) {
         this.winning = line;
         this.outcomeValue = this.current === 1 ? "x" : "o";
         return true;
@@ -56,17 +61,24 @@ export class TicTacToeLogic {
 export function tacticalFallback(position: ThreePosition): number | null {
   const legal = position.cells.flatMap((cell, index) => (cell === 0 ? [index] : []));
   if (!legal.length) return null;
+  const size = noughtsSize(position.cells);
   const wins = (candidate: number, mark: Mark): boolean =>
-    THREE_LINES.some(
+    noughtsLines(size).some(
       (line) =>
         line.some((index) => index === candidate) &&
         line.every((index) => index === candidate || position.cells[index] === mark),
     );
+  const middle = (size - 1) / 2;
+  const nearest = [...legal].sort((a, b) => {
+    const distance = (index: number): number =>
+      Math.abs(Math.floor(index / size) - middle) + Math.abs((index % size) - middle);
+    return distance(a) - distance(b) || a - b;
+  });
   return (
     legal.find((move) => wins(move, position.turn)) ??
     legal.find((move) => wins(move, position.turn === 1 ? -1 : 1)) ??
-    (legal.includes(4) ? 4 : undefined) ??
-    legal.find((move) => [0, 2, 6, 8].includes(move)) ??
-    legal[0]!
+    (size === 3 && legal.includes(4) ? 4 : undefined) ??
+    (size === 3 ? legal.find((move) => [0, 2, 6, 8].includes(move)) : undefined) ??
+    nearest[0]!
   );
 }

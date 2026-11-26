@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AI_LEVELS, AI_PROFILES } from "../../src/ai/difficulty";
 import {
   isThreeSearchTask,
+  noughtsLines,
   solveThree,
   threeRules,
   type ThreeSearchTask,
@@ -86,6 +87,47 @@ describe("Tic-Tac-Toe rules", () => {
     expect(tacticalFallback({ cells: [1, 1, 0, -1, 0, 0, 0, 0, 0], turn: -1 })).toBe(2);
     expect(tacticalFallback({ cells: [1, 0, 0, 0, 0, 0, 0, 0, 0], turn: -1 })).toBe(4);
     expect(tacticalFallback({ cells: [1, -1, 1, 1, -1, -1, -1, 1, 1], turn: -1 })).toBeNull();
+  });
+
+  it("requires four marks on 4×4 and 5×5 and recognizes every straight line", () => {
+    for (const [size, moves, expectedLine] of [
+      [4, [0, 4, 1, 5, 2, 6, 3], [0, 1, 2, 3]],
+      [5, [1, 0, 7, 2, 13, 3, 19], [1, 7, 13, 19]],
+    ] as const) {
+      const board = new TicTacToeLogic(size);
+      for (const index of moves.slice(0, -1)) expect(board.move(index)).toBe(true);
+      expect(board.outcome).toBe("playing");
+      expect(board.move(moves.at(-1)!)).toBe(true);
+      expect(board.outcome).toBe("x");
+      expect(board.winningLine).toEqual(expectedLine);
+      expect(board.move(size * size)).toBe(false);
+      const rules = threeRules(1);
+      for (const line of noughtsLines(size)) {
+        const cells = Array<-1 | 0 | 1>(size * size).fill(0);
+        for (const index of line.slice(0, 3)) cells[index] = 1;
+        expect(rules.terminal({ cells, turn: -1 })).toBeNull();
+        cells[line[3]!] = 1;
+        expect(rules.terminal({ cells, turn: -1 })).toBe(1);
+      }
+    }
+    expect(noughtsLines(4)).toHaveLength(10);
+    expect(noughtsLines(5)).toHaveLength(28);
+  });
+
+  it("validates and searches larger boards within the budget and blocks immediate wins", () => {
+    for (const size of [4, 5] as const) {
+      const cells = Array<-1 | 0 | 1>(size * size).fill(0);
+      cells[0] = cells[1] = cells[2] = 1;
+      cells[size] = cells[size + 2] = -1;
+      const request = { ...task({ cells, turn: -1 }), depth: 4 };
+      expect(isThreeSearchTask(request)).toBe(true);
+      const result = solveThree(request);
+      expect(result.complete).toBe(true);
+      expect(result.move).toBe(3);
+      expect(result.nodes).toBeLessThanOrEqual(100_000);
+      expect(tacticalFallback(request.position)).toBe(3);
+      expect(() => threeRules(-1).apply(request.position, cells.length)).toThrow("Illegal move");
+    }
   });
 
   it("rejects unbounded or malformed worker tasks", () => {
@@ -221,6 +263,34 @@ describe("Tic-Tac-Toe cabinet", () => {
     expect(game.recordsAllowed).toBe(false);
     game.init(context);
     expect(game.recordsAllowed).toBe(true);
+    game.destroy();
+  });
+
+  it("resets and aborts a search when the board size changes", async () => {
+    const search = vi.fn(
+      (
+        _task: ThreeSearchTask,
+        _canvas: HTMLCanvasElement,
+        _timeout?: number,
+        _signal?: AbortSignal,
+      ) => new Promise<SearchResult<number>>(() => {}),
+    );
+    const { game, input, context } = setup(search);
+    tap(input, "primary");
+    game.fixedUpdate(0.02);
+    game.fixedUpdate(0.02);
+    const pending = search.mock.calls[0]![3]!;
+    context.settings.tictactoeSize = "5";
+    game.settingsChanged();
+    expect(pending.aborted).toBe(true);
+    expect(announcement(context)).toContain("Board size changed");
+    expect(announcement(context)).toContain("row 5: empty, empty, empty, empty, empty");
+    expect(announcement(context)).toContain("Selected row 3, column 3");
+    tap(input, "primary");
+    game.fixedUpdate(0.02);
+    game.fixedUpdate(0.02);
+    expect(search.mock.calls[1]![0].position.cells).toHaveLength(25);
+    expect(search.mock.calls[1]![0].depth).toBe(4);
     game.destroy();
   });
 

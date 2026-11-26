@@ -5,8 +5,8 @@
 - Add a playable toolbar popup with lazy-loaded enabled cabinets, local scores,
   CPU controls and the same global pause and Focus Guard restrictions. Closing
   the popup ends the run; it does not save game state.
-- Add Tic-Tac-Toe on both surfaces with five CPU levels, CPU watch and a
-  website-only shared-board hot-seat mode. A bounded local worker performs
+- Add NOUGHTS AND CROSSES on both surfaces with 3×3, 4×4 and 5×5 boards,
+  five CPU levels, CPU watch and a website-only shared-board hot-seat mode. A bounded local worker performs
   search; watch and hot-seat matches do not write solo scores.
 - Add website-only local Pong, split-screen races for the other seven original
   cabinets, and shared-board 2048 co-op. Add Pong CPU tiers, optional adaptive

@@ -101,6 +101,8 @@ class PopupArcade {
   private readonly aiOptions: HTMLElement;
   private readonly cpuLevel: HTMLSelectElement;
   private readonly cpuMode: HTMLSelectElement;
+  private readonly boardOptions: HTMLElement;
+  private readonly boardSize: HTMLSelectElement;
   private readonly back: HTMLButtonElement;
   private readonly events = new AbortController();
   private engine: Engine | null = null;
@@ -144,6 +146,8 @@ class PopupArcade {
     this.aiOptions = element(root, "#ai-options");
     this.cpuLevel = element(root, "#cpu-level");
     this.cpuMode = element(root, "#cpu-mode");
+    this.boardOptions = element(root, "#board-options");
+    this.boardSize = element(root, "#board-size");
     this.back = element(root, "#back");
 
     this.canvas.dataset.scene = "loading";
@@ -173,6 +177,16 @@ class PopupArcade {
     });
     this.cpuLevel.addEventListener("change", () => this.changeCpuLevel(), { signal });
     this.cpuMode.addEventListener("change", () => this.changeCpuMode(), { signal });
+    this.boardSize.addEventListener(
+      "change",
+      () => {
+        if (["3", "4", "5"].includes(this.boardSize.value)) {
+          this.changeSetting({ tictactoeSize: this.boardSize.value });
+          void this.chooseGame("tictactoe");
+        }
+      },
+      { signal },
+    );
     this.play.addEventListener("click", () => this.playPressed(), { signal });
     this.reset.addEventListener("click", () => void this.chooseGame(this.currentGame), { signal });
     // Focus before the input listener sees the first canvas pointer event.
@@ -346,6 +360,7 @@ class PopupArcade {
     this.name.textContent = "NO CABINET";
     this.controls.replaceChildren();
     this.aiOptions.hidden = true;
+    this.boardOptions.hidden = true;
     this.renderPicker();
     this.reconcile();
   }
@@ -373,6 +388,8 @@ class PopupArcade {
     const isPong = this.currentGame === "pong";
     const isTic = this.currentGame === "tictactoe";
     this.aiOptions.hidden = !isPong && !isTic;
+    this.boardOptions.hidden = !isTic;
+    this.boardSize.value = this.settings.tictactoeSize;
     if (isPong || isTic) {
       this.cpuLevel.value = isPong
         ? this.settings.pongDifficulty

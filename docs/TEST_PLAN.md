@@ -23,7 +23,7 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
 ## Extended checks (beyond ten minutes)
 
 - Open the actual Chrome toolbar popup (not just its URL in a tab). Try every
-  enabled game, keyboard remaps, touch controls, Pong/Tic-Tac-Toe CPU levels and
+  enabled game, keyboard remaps, touch controls, Pong/NOUGHTS AND CROSSES CPU levels and
   watch mode. Verify disabled games, global pause, quiet/study schedules, budget
   lockout, scores and that Back or closing destroys the run. Automated popup
   tests open its extension URL in a tab and synthesize document hiding; they do
@@ -38,7 +38,7 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
   co-op, alternate moves, try undo, and finish a round. Repeat with two gamepads
   and narrow touch controls. A synthetic mobile CDP test holds two simultaneous
   touch points on the 2048 race; physical-device testing is still worthwhile.
-  For Tic-Tac-Toe, try all CPU levels, watch a match,
+  For NOUGHTS AND CROSSES, try 3×3, 4×4 and 5×5, all CPU levels, watch a match,
   and play the website hot-seat board with shared controls and touch. Verify
   pause/fallback and that watch and hot-seat results do not change solo scores.
 - Play all nine branch games on keyboard, pointer/touch and a standard focused

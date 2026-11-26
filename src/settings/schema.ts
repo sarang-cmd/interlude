@@ -53,15 +53,15 @@ const placementOptions = opts(
 const gameOptions = opts(
   ["last", "Last played"],
   ["random", "Random"],
-  ["snake", "Snake"],
-  ["breakout", "Breakout"],
-  ["flappy", "Flapper"],
+  ["snake", "SNAKE"],
+  ["breakout", "BREAKOUT"],
+  ["flappy", "FLAPPY-STYLE FLYER"],
   ["twenty48", "2048"],
-  ["pong", "Pong"],
-  ["blockfall", "Blockfall"],
-  ["rockfall", "Rockfall Belt"],
-  ["dashline", "Dashline"],
-  ["tictactoe", "Tic-Tac-Toe"],
+  ["pong", "PONG"],
+  ["blockfall", "BLOCKFALL"],
+  ["rockfall", "ROCKFALL BELT"],
+  ["dashline", "ENDLESS RUNNER"],
+  ["tictactoe", "NOUGHTS AND CROSSES"],
 );
 
 const BASE = [
@@ -359,7 +359,7 @@ const BASE = [
     id: "tictactoeDifficulty",
     type: "enum",
     default: "regular",
-    label: "Tic-Tac-Toe / AI level",
+    label: "NOUGHTS AND CROSSES / AI level",
     description: "Search strength and error rate of the machine.",
     category: "Games",
     tags: ["tictactoe", "ai", "difficulty"],
@@ -373,10 +373,26 @@ const BASE = [
     ),
   }),
   def({
+    id: "tictactoeSize",
+    type: "enum",
+    default: "3",
+    label: "NOUGHTS AND CROSSES / board size",
+    description:
+      "3×3 needs three in a row. 4×4 and 5×5 need four; changing size starts a new match.",
+    category: "Games",
+    tags: ["tictactoe", "board", "size"],
+    perSite: true,
+    options: opts(
+      ["3", "3×3 / three in a row"],
+      ["4", "4×4 / four in a row"],
+      ["5", "5×5 / four in a row"],
+    ),
+  }),
+  def({
     id: "tictactoeWatch",
     type: "boolean",
     default: false,
-    label: "Tic-Tac-Toe / watch CPU match",
+    label: "NOUGHTS AND CROSSES / watch CPU match",
     description: "Watch two CPU opponents. Watch matches never save records.",
     category: "Games",
     tags: ["tictactoe", "ai", "watch", "bot"],
@@ -778,15 +794,15 @@ const BASE = [
 ] as const;
 
 const names: Record<GameId, string> = {
-  snake: "Snake",
-  breakout: "Breakout",
-  flappy: "Flapper",
+  snake: "SNAKE",
+  breakout: "BREAKOUT",
+  flappy: "FLAPPY-STYLE FLYER",
   twenty48: "2048",
-  pong: "Pong",
-  blockfall: "Blockfall",
-  rockfall: "Rockfall Belt",
-  dashline: "Dashline",
-  tictactoe: "Tic-Tac-Toe",
+  pong: "PONG",
+  blockfall: "BLOCKFALL",
+  rockfall: "ROCKFALL BELT",
+  dashline: "ENDLESS RUNNER",
+  tictactoe: "NOUGHTS AND CROSSES",
 };
 const generated: SettingDefinition[] = GAME_IDS.flatMap((game) => [
   {

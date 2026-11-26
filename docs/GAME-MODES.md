@@ -5,17 +5,17 @@ The website uses the same game code and loads local match modes from web-only
 modules. A mode appears only after implementation. Local matches use one device
 and never use networking.
 
-| Game          | Extension         | Website                        | Save a run |
-| ------------- | ----------------- | ------------------------------ | ---------- |
-| Snake         | Solo              | Solo, split-screen race        | No         |
-| Breakout      | Solo              | Solo, split-screen race        | No         |
-| Flapper       | Solo              | Solo, split-screen race        | No         |
-| 2048          | Solo              | Solo, race, shared-board co-op | No         |
-| Pong          | vs CPU, watch CPU | vs CPU, watch CPU, local match | No         |
-| Blockfall     | Solo              | Solo, split-screen race        | No         |
-| Rockfall Belt | Solo              | Solo, split-screen race        | No         |
-| Dashline      | Solo              | Solo, split-screen race        | No         |
-| Tic-Tac-Toe   | vs CPU, watch CPU | vs CPU, watch CPU, hot-seat    | No         |
+| Game                | Extension         | Website                        | Save a run |
+| ------------------- | ----------------- | ------------------------------ | ---------- |
+| Snake               | Solo              | Solo, split-screen race        | No         |
+| Breakout            | Solo              | Solo, split-screen race        | No         |
+| FLAPPY-STYLE FLYER  | Solo              | Solo, split-screen race        | No         |
+| 2048                | Solo              | Solo, race, shared-board co-op | No         |
+| Pong                | vs CPU, watch CPU | vs CPU, watch CPU, local match | No         |
+| Blockfall           | Solo              | Solo, split-screen race        | No         |
+| Rockfall Belt       | Solo              | Solo, split-screen race        | No         |
+| ENDLESS RUNNER      | Solo              | Solo, split-screen race        | No         |
+| NOUGHTS AND CROSSES | vs CPU, watch CPU | vs CPU, watch CPU, hot-seat    | No         |
 
 Scores persist separately on each surface. The existing 2048 undo is not a saved
 run. The shared manifest lists default player-one keys, inputs, categories and
@@ -27,7 +27,7 @@ binding defaults.
 The extension popup can open each enabled extension cabinet directly, without a
 chat response in progress. Only the selected game is loaded. It uses global
 settings and key remaps, while site-specific overrides remain on their sites.
-Pong and Tic-Tac-Toe expose CPU level and play/watch controls in the popup;
+Pong and NOUGHTS AND CROSSES expose CPU level and play/watch controls in the popup;
 changing them updates the global settings. Website-only local matches do not
 appear there. Human runs use ordinary extension-local high scores; CPU watch
 runs do not. Active popup play contributes to the same local Focus Guard totals
@@ -48,20 +48,23 @@ All eight original games now have a website-only local mode. Unknown or
 unavailable modes are rejected. These changes are local to this branch and are
 not deployed to the public site.
 
-## Tic-Tac-Toe
+## NOUGHTS AND CROSSES
 
-X begins. On both surfaces, play X against the CPU's O or watch two CPUs. On the
-website, two people can take turns on the same board using the same keyboard,
+X begins. Choose 3×3 (three in a row) or 4×4 or 5×5 (four in a row); the
+larger sizes include diagonals and sliding four-cell segments. Changing size
+starts a fresh match. On both surfaces, play X against the CPU's O or watch two
+CPUs. On the website, two people can take turns on the same board using the same keyboard,
 controller or on-screen controls; a pointer or touch can select a square
 directly. The hot-seat match uses one shared control mapping: it has no separate
 player names, series scoreboard, local match history or per-player remaps.
 It is not a split-screen race. It never changes solo high scores.
 
 The CPU has Rookie, Easy, Regular, Hard and Veteran tiers, each with a bounded
-minimax search depth and seeded error rate. With a functioning worker, Veteran
-searches every remaining move and never deliberately makes a mistake. A unit
-test explores every opponent reply against the deterministic Veteran on both
-sides. If the worker is blocked, fails or times out, a small tactical fallback
+minimax search depth and seeded error rate. On 3×3 with a functioning worker,
+Veteran searches every remaining move and never deliberately makes a mistake. A
+unit test explores every opponent reply against the deterministic 3×3 Veteran on
+both sides. The larger boards use shallower bounded searches and are not
+claimed to be unbeatable. If the worker is blocked, fails or times out, a small tactical fallback
 first attempts an immediate win or block and otherwise chooses a legal square.
 The canvas shows `CPU: BASIC` and the accessible status says `using fallback`;
 that fallback is not guaranteed unbeatable. Watch or partly watched runs never
@@ -70,14 +73,14 @@ empty square, a draw scores 200 and a loss scores zero. The best score is local
 to the surface, not a ranking across difficulty levels.
 
 Arrow keys move the highlighted square and Space places a mark. The board's
-live accessibility status describes each move, the selected cell and the three
-rows; an occupied cell does not advance the turn. P pauses. Match state is not
-saved across reloads. The webpage persists CPU level and watch preference in
+live accessibility status describes each move, the selected cell and every
+row; an occupied cell does not advance the turn. P pauses. Match state is not
+saved across reloads. The webpage persists board size, CPU level and watch preference in
 localStorage; the extension uses its normal validated settings store.
 
 ### CPU simulation
 
-Run `npx tsx scripts/simulate-tictactoe.ts` for 300 seeded games per tier: a
+Run `npx tsx scripts/simulate-tictactoe.ts` for 300 seeded 3×3 games per tier: a
 random X against CPU O. This is one artificial opponent, not a human playtest.
 Veteran's safe, deterministic tie-breaking leads to more draws rather than
 maximizing wins against random mistakes.
@@ -92,7 +95,7 @@ maximizing wins against random mistakes.
 
 ## Split-screen races
 
-Snake, Breakout, Flapper, 2048, Blockfall, Rockfall Belt and Dashline offer
+Snake, Breakout, FLAPPY-STYLE FLYER, 2048, Blockfall, Rockfall Belt and ENDLESS RUNNER offer
 competitive races. The engine runs two independent instances of the existing
 solo game at once, not a second arcade or a shared-board co-op mode. Both boards
 receive the same seed at the start of a round. Player actions affect later
@@ -162,7 +165,7 @@ speeds per game. Extension settings also accept other multiples of five within
 below the normal fixed-step size. Site preferences remain in localStorage.
 
 The reusable AI library includes seeded error and reaction helpers, bounded
-minimax, Monte Carlo playouts and a terminating worker client. Tic-Tac-Toe uses
+minimax, Monte Carlo playouts and a terminating worker client. NOUGHTS AND CROSSES uses
 the local three-in-a-row worker; Pong uses the reaction and adaptive helpers
 directly and does not start a worker. See [ARCHITECTURE.md](ARCHITECTURE.md)
 for the extension-origin worker bridge and cancellation behavior.

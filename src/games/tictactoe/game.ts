@@ -2,16 +2,18 @@ import { TOKENS } from "../../../design/tokens";
 import { AI_PROFILES, isAIDifficulty, type AIDifficulty } from "../../ai/difficulty";
 import { searchThree } from "../../ai/search-client";
 import type { SearchResult } from "../../ai/search";
-import type { ThreeSearchTask } from "../../ai/three-in-row";
+import type { NoughtsSize, ThreeSearchTask } from "../../ai/three-in-row";
 import { TICTACTOE_MANIFEST } from "../manifest";
 import { drawText } from "../shared";
 import type { ArcadeGame, GameContext } from "../types";
 import { tacticalFallback, TicTacToeLogic, type Mark } from "./logic";
 
-const CELL = 86;
-const BOARD = 3 * CELL;
-const X = (640 - BOARD) / 2;
 const Y = 49;
+function metrics(size: NoughtsSize): { cell: number; board: number; x: number } {
+  const cell = Math.floor(258 / size);
+  const board = size * cell;
+  return { cell, board, x: Math.floor((640 - board) / 2) };
+}
 type Search = (
   task: ThreeSearchTask,
   canvas: HTMLCanvasElement,
@@ -67,8 +69,9 @@ export class TicTacToeGame implements ArcadeGame {
   init(ctx: GameContext): void {
     this.suspend();
     this.g = ctx;
-    this.logic = new TicTacToeLogic();
-    this.cursor = 4;
+    this.logic = new TicTacToeLogic(this.sizeSetting());
+    const middle = Math.floor(this.logic.size / 2);
+    this.cursor = middle * this.logic.size + middle;
     this.ended = false;
     this.score = 0;
     this.currentDifficulty = this.level();
@@ -91,6 +94,14 @@ export class TicTacToeGame implements ArcadeGame {
   }
   settingsChanged(): void {
     if (!this.g) return;
+    if (this.sizeSetting() !== this.logic.size) {
+      const wasAutomated = this.automatedRun;
+      this.init(this.g);
+      this.automatedRun ||= wasAutomated;
+      this.lastMessage = "Board size changed. A new match started.";
+      this.announce();
+      return;
+    }
     const level = this.level();
     const watch = this.watching;
     if (watch) this.automatedRun = true;
@@ -99,6 +110,10 @@ export class TicTacToeGame implements ArcadeGame {
     this.currentWatch = watch;
     this.updateReadyHint();
     this.announce();
+  }
+  private sizeSetting(): NoughtsSize {
+    const value = this.g.settings.tictactoeSize;
+    return value === "4" ? 4 : value === "5" ? 5 : 3;
   }
   private level(): AIDifficulty {
     return isAIDifficulty(this.g.settings.tictactoeDifficulty)
@@ -136,24 +151,26 @@ export class TicTacToeGame implements ArcadeGame {
       return;
     }
     let changed = false;
+    const size = this.logic.size;
+    const { cell, board, x } = metrics(size);
     for (const direction of directions) {
-      const row = Math.floor(this.cursor / 3);
-      const column = this.cursor % 3;
+      const row = Math.floor(this.cursor / size);
+      const column = this.cursor % size;
       const nextRow = Math.max(
         0,
-        Math.min(2, row + (direction === "down" ? 1 : direction === "up" ? -1 : 0)),
+        Math.min(size - 1, row + (direction === "down" ? 1 : direction === "up" ? -1 : 0)),
       );
       const nextColumn = Math.max(
         0,
-        Math.min(2, column + (direction === "right" ? 1 : direction === "left" ? -1 : 0)),
+        Math.min(size - 1, column + (direction === "right" ? 1 : direction === "left" ? -1 : 0)),
       );
-      const next = nextRow * 3 + nextColumn;
+      const next = nextRow * size + nextColumn;
       changed ||= next !== this.cursor;
       this.cursor = next;
     }
     for (const tap of taps) {
-      if (tap.x < X || tap.x >= X + BOARD || tap.y < Y || tap.y >= Y + BOARD) continue;
-      this.cursor = Math.floor((tap.y - Y) / CELL) * 3 + Math.floor((tap.x - X) / CELL);
+      if (tap.x < x || tap.x >= x + board || tap.y < Y || tap.y >= Y + board) continue;
+      this.cursor = Math.floor((tap.y - Y) / cell) * size + Math.floor((tap.x - x) / cell);
       if (this.play(this.cursor)) return;
       this.lastMessage = "That square is occupied.";
       changed = true;
@@ -174,7 +191,12 @@ export class TicTacToeGame implements ArcadeGame {
       kind: "three-in-row",
       position,
       method: "minimax",
-      depth: profile.searchDepth,
+      // Larger positions have a much wider branching factor. Keep work bounded
+      // instead of pretending a partial search is a full-depth result.
+      depth: Math.min(
+        profile.searchDepth,
+        this.logic.size === 3 ? 9 : this.logic.size === 4 ? 5 : 4,
+      ),
       maxNodes: 100_000,
       simulations: profile.simulations,
       seed: Math.floor(this.g.rng.next() * 0x100000000),
@@ -203,8 +225,8 @@ export class TicTacToeGame implements ArcadeGame {
   private play(index: number, source?: Decision["source"]): boolean {
     const side = this.logic.position.turn;
     if (!this.logic.move(index)) return false;
-    const row = Math.floor(index / 3) + 1;
-    const column = (index % 3) + 1;
+    const row = Math.floor(index / this.logic.size) + 1;
+    const column = (index % this.logic.size) + 1;
     if (source) this.lastCpuSource = source;
     this.lastMessage = `${this.sideName(side)} played row ${row}, column ${column}${source ? ` using ${source}` : ""}.`;
     this.g.sound.play("blip");
@@ -224,17 +246,21 @@ export class TicTacToeGame implements ArcadeGame {
     const position = this.logic.position;
     const cell = (index: number): string =>
       position.cells[index] === 1 ? "X" : position.cells[index] === -1 ? "O" : "empty";
-    const board = [0, 1, 2]
-      .map((row) => `row ${row + 1}: ${[0, 1, 2].map((col) => cell(row * 3 + col)).join(", ")}`)
+    const size = this.logic.size;
+    const indices = Array.from({ length: size }, (_, index) => index);
+    const board = indices
+      .map((row) => `row ${row + 1}: ${indices.map((col) => cell(row * size + col)).join(", ")}`)
       .join("; ");
     const turn = this.ended
       ? (this.resultLabel ?? "Game over")
       : `${this.sideName(position.turn)} turn`;
     const selected =
       !this.ended && !this.isCpuTurn(position.turn)
-        ? ` Selected row ${Math.floor(this.cursor / 3) + 1}, column ${(this.cursor % 3) + 1}, ${cell(this.cursor)}.`
+        ? ` Selected row ${Math.floor(this.cursor / size) + 1}, column ${(this.cursor % size) + 1}, ${cell(this.cursor)}.`
         : "";
-    this.g.announce?.(`Tic-Tac-Toe. ${this.lastMessage} ${turn}.${selected} Board: ${board}.`);
+    this.g.announce?.(
+      `NOUGHTS AND CROSSES. ${this.lastMessage} ${turn}.${selected} Board: ${board}.`,
+    );
   }
 
   render(_alpha: number): void {
@@ -243,23 +269,36 @@ export class TicTacToeGame implements ArcadeGame {
     ctx.fillRect(0, 0, this.g.width, this.g.height);
     const position = this.logic.position;
     const winning = this.logic.winningLine ?? [];
-    for (let index = 0; index < 9; index++) {
-      const row = Math.floor(index / 3),
-        column = index % 3;
-      const x = X + column * CELL,
-        y = Y + row * CELL;
+    const size = this.logic.size;
+    drawText(ctx, `${size}×${size} / ${size === 3 ? 3 : 4} IN A ROW`, 320, 39, {
+      font: '10px "IBM Plex Mono", monospace',
+      color: TOKENS.phosphorDim,
+      align: "center",
+    });
+    const { cell, x: boardX } = metrics(size);
+    for (let index = 0; index < size * size; index++) {
+      const row = Math.floor(index / size),
+        column = index % size;
+      const x = boardX + column * cell,
+        y = Y + row * cell;
       const selected = !this.ended && !this.isCpuTurn(position.turn) && index === this.cursor;
       ctx.fillStyle = winning.includes(index) ? "#4A350C" : selected ? "#30210A" : "#171209";
-      ctx.fillRect(x + 3, y + 3, CELL - 6, CELL - 6);
+      ctx.fillRect(x + 3, y + 3, cell - 6, cell - 6);
       ctx.strokeStyle = selected ? TOKENS.phosphorHot : TOKENS.phosphorDim;
       ctx.lineWidth = selected ? 2 : 1;
-      ctx.strokeRect(x + 3.5, y + 3.5, CELL - 7, CELL - 7);
+      ctx.strokeRect(x + 3.5, y + 3.5, cell - 7, cell - 7);
       if (position.cells[index]) {
-        drawText(ctx, position.cells[index] === 1 ? "X" : "O", x + CELL / 2, y + 61, {
-          font: "48px Silkscreen, monospace",
-          color: position.cells[index] === 1 ? TOKENS.phosphorHot : TOKENS.phosphor,
-          align: "center",
-        });
+        drawText(
+          ctx,
+          position.cells[index] === 1 ? "X" : "O",
+          x + cell / 2,
+          y + Math.round(cell * 0.71),
+          {
+            font: `${Math.floor(cell * 0.56)}px Silkscreen, monospace`,
+            color: position.cells[index] === 1 ? TOKENS.phosphorHot : TOKENS.phosphor,
+            align: "center",
+          },
+        );
       }
     }
     for (const [side, x] of [

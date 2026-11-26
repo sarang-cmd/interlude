@@ -559,3 +559,31 @@ test("the compact cabinet remains reachable in a 320-pixel viewport", async () =
   await page.getByRole("button", { name: "Hard drop" }).click();
   await page.screenshot({ path: "test-results/popup-320.png" });
 });
+
+test("popup supports and persists larger NOUGHTS AND CROSSES boards", async () => {
+  await settings({ game: "tictactoe" });
+  await page.goto(`${extensionOrigin}/popup.html`);
+  await openArcade();
+  const size = page.getByLabel("NOUGHTS AND CROSSES board size");
+  await size.selectOption("5");
+  await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "ready");
+  await page.getByRole("button", { name: "START GAME" }).click();
+  await page.keyboard.press("Space");
+  await expect(page.locator("#game-announcement")).toContainText("CPU / O played", {
+    timeout: 7000,
+  });
+  await expect(page.locator("#game-announcement")).toContainText("row 5:");
+  await expect
+    .poll(() =>
+      worker.evaluate(async () => {
+        const doc = (await chrome.storage.sync.get("interlude.settings.v2"))[
+          "interlude.settings.v2"
+        ];
+        return doc.global.tictactoeSize;
+      }),
+    )
+    .toBe("5");
+  await page.reload();
+  await openArcade();
+  await expect(size).toHaveValue("5");
+});

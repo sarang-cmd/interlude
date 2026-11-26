@@ -37,11 +37,11 @@ test("all seven original solo cabinets offer a real split-screen local race", as
   for (const [id, name] of [
     ["snake", "SNAKE"],
     ["breakout", "BREAKOUT"],
-    ["flappy", "FLAPPER"],
+    ["flappy", "FLAPPY-STYLE FLYER"],
     ["twenty48", "2048"],
     ["blockfall", "BLOCKFALL"],
     ["rockfall", "ROCKFALL BELT"],
-    ["dashline", "DASHLINE"],
+    ["dashline", "ENDLESS RUNNER"],
   ]) {
     await selectRace(page, id!, name!);
     await expect(page.locator("#local-race-controls")).toBeVisible();

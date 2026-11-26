@@ -19,8 +19,9 @@ five Pong CPU levels, adaptive difficulty, watch mode and website-only local
 matches. Pong uses two paddles. The other seven original cabinets use
 split-screen races with seeded starts, remappable keys, touch controls and a
 series scoreboard. Race boards are independent. 2048 also has shared-board
-co-op with alternating turns. This branch adds a ninth game, Tic-Tac-Toe, with
-five CPU levels, watch mode and a website-only shared-control hot-seat match.
+co-op with alternating turns. This branch adds a ninth game, NOUGHTS AND CROSSES, with
+3×3, 4×4 and 5×5 boards, five CPU levels, watch mode and a website-only
+shared-control hot-seat match.
 These additions are not deployed yet. Watch and local matches do not change
 solo records. Speed controls cover 25% to 400%.
 
@@ -59,17 +60,17 @@ normal one-time tab reload.
 
 ## Cabinets
 
-| Game          | Play                                                          |
-| ------------- | ------------------------------------------------------------- |
-| Snake         | Queued turns, optional wrap, bonus food.                      |
-| Breakout      | Angle shots, bricks, power-ups and levels.                    |
-| Flapper       | One-button flight through gaps.                               |
-| 2048          | Slide, merge, undo and best tile; 90-second clock by default. |
-| Pong          | Configurable AI and match length.                             |
-| Blockfall     | Seven-bag pieces, kicks, hold and ghost.                      |
-| Rockfall Belt | Inertial flight, splitting rocks and shields.                 |
-| Dashline      | Tap or hold to vary jump height.                              |
-| Tic-Tac-Toe   | Three in a row against the CPU; hot-seat on the website.      |
+| Game                | Play                                                          |
+| ------------------- | ------------------------------------------------------------- |
+| Snake               | Queued turns, optional wrap, bonus food.                      |
+| Breakout            | Angle shots, bricks, power-ups and levels.                    |
+| FLAPPY-STYLE FLYER  | One-button flight through gaps.                               |
+| 2048                | Slide, merge, undo and best tile; 90-second clock by default. |
+| Pong                | Configurable AI and match length.                             |
+| Blockfall           | Seven-bag pieces, kicks, hold and ghost.                      |
+| Rockfall Belt       | Inertial flight, splitting rocks and shields.                 |
+| ENDLESS RUNNER      | Tap or hold to vary jump height.                              |
+| NOUGHTS AND CROSSES | Three board sizes against CPU; hot-seat on the website.       |
 
 Each cabinet has configurable enablement, speed, difficulty, mute and key
 bindings. Keyboard input is focus-gated; pointer, touch and standard gamepad

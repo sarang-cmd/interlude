@@ -155,6 +155,7 @@ export class Panel {
   private readonly quickTic = node("div", "quick-tic");
   private readonly quickTicAI = node("select");
   private readonly quickTicWatch = node("select");
+  private readonly quickTicSize = node("select");
   private readonly daily = node("span", "daily");
   private readonly notice = node("div", "notice");
   private readonly announcement = node("div", "announcement");
@@ -284,11 +285,11 @@ export class Panel {
       option.value = level;
       this.quickTicAI.append(option);
     }
-    this.quickTicAI.setAttribute("aria-label", "Tic-Tac-Toe CPU level");
+    this.quickTicAI.setAttribute("aria-label", "NOUGHTS AND CROSSES CPU level");
     this.quickTicAI.addEventListener("change", () =>
       this.events.onQuickChange({ tictactoeDifficulty: this.quickTicAI.value }),
     );
-    row("TIC-TAC-TOE CPU", this.quickTicAI, this.quickTic);
+    row("NOUGHTS AND CROSSES CPU", this.quickTicAI, this.quickTic);
     for (const [value, label] of [
       ["false", "PLAY VS CPU"],
       ["true", "WATCH CPU"],
@@ -297,11 +298,25 @@ export class Panel {
       option.value = value!;
       this.quickTicWatch.append(option);
     }
-    this.quickTicWatch.setAttribute("aria-label", "Tic-Tac-Toe watch mode");
+    this.quickTicWatch.setAttribute("aria-label", "NOUGHTS AND CROSSES watch mode");
     this.quickTicWatch.addEventListener("change", () =>
       this.events.onQuickChange({ tictactoeWatch: this.quickTicWatch.value === "true" }),
     );
-    row("TIC-TAC-TOE MODE", this.quickTicWatch, this.quickTic);
+    row("NOUGHTS AND CROSSES MODE", this.quickTicWatch, this.quickTic);
+    for (const [value, label] of [
+      ["3", "3×3 / THREE"],
+      ["4", "4×4 / FOUR"],
+      ["5", "5×5 / FOUR"],
+    ]) {
+      const option = node("option", "", label);
+      option.value = value!;
+      this.quickTicSize.append(option);
+    }
+    this.quickTicSize.setAttribute("aria-label", "NOUGHTS AND CROSSES board size");
+    this.quickTicSize.addEventListener("change", () =>
+      this.events.onQuickChange({ tictactoeSize: this.quickTicSize.value }),
+    );
+    row("BOARD SIZE", this.quickTicSize, this.quickTic);
     this.quickTic.hidden = true;
     this.drawer.append(this.quickTic);
     this.quickVolume.type = "range";
@@ -540,6 +555,7 @@ export class Panel {
     this.quickPongAdaptive.value = String(this.settings.pongAdaptive);
     this.quickTicAI.value = this.settings.tictactoeDifficulty;
     this.quickTicWatch.value = String(this.settings.tictactoeWatch);
+    this.quickTicSize.value = this.settings.tictactoeSize;
   }
   updateSettings(settings: InterludeSettings): void {
     this.settings = settings;

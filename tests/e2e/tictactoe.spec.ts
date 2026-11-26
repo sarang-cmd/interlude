@@ -5,7 +5,7 @@ const SITE = "http://127.0.0.1:4173";
 
 async function choose(page: Page): Promise<void> {
   await page.goto(SITE);
-  await page.getByRole("button", { name: "Select TIC-TAC-TOE" }).click();
+  await page.getByRole("button", { name: "Select NOUGHTS AND CROSSES" }).click();
   await expect(page.locator("#game-canvas")).toHaveAttribute("data-game", "tictactoe");
   await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "ready");
 }
@@ -57,7 +57,7 @@ test("website CPU uses its real local worker and remembers the chosen difficulty
   await page.keyboard.press("p");
   await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "playing");
   await page.reload();
-  await page.getByRole("button", { name: "Select TIC-TAC-TOE" }).click();
+  await page.getByRole("button", { name: "Select NOUGHTS AND CROSSES" }).click();
   await expect(page.locator("#tictactoe-ai")).toHaveValue("veteran");
   expect(errors).toEqual([]);
 });
@@ -88,7 +88,7 @@ test("two Veteran CPUs finish a watch match without touching human scores", asyn
     await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "{}"), WEB_SCORES_KEY),
   ).toEqual({ tictactoe: 777 });
   await page.reload();
-  await page.getByRole("button", { name: "Select TIC-TAC-TOE" }).click();
+  await page.getByRole("button", { name: "Select NOUGHTS AND CROSSES" }).click();
   await expect(page.locator("#race-mode")).toHaveValue("watch");
   await expect(page.locator("#tictactoe-ai")).toHaveValue("veteran");
 });
@@ -191,5 +191,45 @@ test.describe("same-device mobile hot-seat", () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       320,
     );
+  });
+});
+
+test("larger boards work with web hot-seat, persist the size, and need four marks", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await choose(page);
+  await page.locator("#race-mode").selectOption("local");
+  await page.locator("#tictactoe-size").selectOption("4");
+  await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "ready");
+  await expect(page.locator("#tictactoe-size-field")).toBeVisible();
+  await page.getByRole("button", { name: "START GAME" }).click();
+  const canvas = page.locator("#game-canvas");
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error("Canvas missing");
+  for (const index of [0, 4, 1, 5, 2, 6, 3]) {
+    await page.mouse.click(
+      box.x + ((192 + ((index % 4) + 0.5) * 64) / 640) * box.width,
+      box.y + ((49 + (Math.floor(index / 4) + 0.5) * 64) / 360) * box.height,
+    );
+    if (index === 2) await expect(canvas).toHaveAttribute("data-scene", "playing");
+    await expect(page.locator("#game-announcement")).toContainText(
+      `played row ${Math.floor(index / 4) + 1}, column ${(index % 4) + 1}`,
+    );
+  }
+  await expect(canvas).toHaveAttribute("data-scene", "gameover");
+  await expect(page.locator("#game-announcement")).toContainText("PLAYER 1 / X WINS");
+  await page.reload();
+  await page.getByRole("button", { name: "Select NOUGHTS AND CROSSES" }).click();
+  await expect(page.locator("#tictactoe-size")).toHaveValue("4");
+  await page.locator("#tictactoe-size").selectOption("5");
+  await expect(canvas).toHaveAttribute("data-scene", "ready");
+  await page.getByRole("button", { name: "START GAME" }).click();
+  await page.keyboard.press("Space");
+  await expect(page.locator("#game-announcement")).toContainText(
+    "row 5: empty, empty, empty, empty, empty",
+  );
+  await expect(page.locator("#game-announcement")).toContainText("CPU / O played", {
+    timeout: 7000,
   });
 });

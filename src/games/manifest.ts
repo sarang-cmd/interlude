@@ -59,7 +59,7 @@ export const BREAKOUT_MANIFEST: GameManifest = {
 export const FLAPPY_MANIFEST: GameManifest = {
   ...common,
   id: "flappy",
-  name: "FLAPPER",
+  name: "FLAPPY-STYLE FLYER",
   description: "One button. Thread the pipes.",
   controls: "SPACE / TAP / CLICK · FLAP",
   defaultDifficulty: "standard",
@@ -129,7 +129,7 @@ export const ROCKFALL_MANIFEST: GameManifest = {
 export const DASHLINE_MANIFEST: GameManifest = {
   ...common,
   id: "dashline",
-  name: "DASHLINE",
+  name: "ENDLESS RUNNER",
   description: "One button. Hold longer, jump higher. The belt never stops.",
   controls: "SPACE / TAP · JUMP (HOLD = HIGHER)",
   defaultDifficulty: "standard",
@@ -143,8 +143,8 @@ export const DASHLINE_MANIFEST: GameManifest = {
 export const TICTACTOE_MANIFEST: GameManifest = {
   ...common,
   id: "tictactoe",
-  name: "TIC-TAC-TOE",
-  description: "Three in a row. Choose a square and outsmart the machine.",
+  name: "NOUGHTS AND CROSSES",
+  description: "Three in a row on 3×3, or four in a row on 4×4 and 5×5.",
   controls: "ARROWS SELECT · SPACE MARK · TAP A SQUARE",
   defaultDifficulty: "regular",
   category: "board",

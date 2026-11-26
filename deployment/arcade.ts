@@ -46,6 +46,8 @@ const speedSelect = element<HTMLSelectElement>("#game-speed");
 const pongSettings = element<HTMLElement>("#pong-settings");
 const ticSettings = element<HTMLElement>("#tictactoe-settings");
 const ticAI = element<HTMLSelectElement>("#tictactoe-ai");
+const ticSize = element<HTMLSelectElement>("#tictactoe-size");
+const ticSizeField = element<HTMLElement>("#tictactoe-size-field");
 const pongMode = element<HTMLSelectElement>("#pong-mode");
 const pongAI = element<HTMLSelectElement>("#pong-ai");
 const pongTarget = element<HTMLSelectElement>("#pong-target");
@@ -127,6 +129,7 @@ let settings: InterludeSettings = {
   pongFirstTo: preferences.pongFirstTo,
   tictactoeDifficulty: preferences.tictactoeDifficulty,
   tictactoeWatch: preferences.tictactoeWatch,
+  tictactoeSize: preferences.tictactoeSize,
 };
 for (const [game, speed] of Object.entries(preferences.speeds)) {
   settings[`game.${game}.speed`] = speed;
@@ -338,6 +341,7 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
               : `${manifest.controls} · P PAUSES`;
     pongSettings.hidden = id !== "pong";
     ticSettings.hidden = id !== "tictactoe" || hotseat;
+    ticSizeField.hidden = id !== "tictactoe";
     raceModeField.hidden = id === "pong" || !modes.some((choice) => choice.players === 2);
     if (id !== "pong") {
       raceModes = modes;
@@ -451,6 +455,13 @@ for (const target of PONG_TARGETS) addOption(pongTarget, String(target), String(
 pongMode.value = preferences.pongWatch ? "watch" : "cpu";
 pongAI.value = preferences.pongDifficulty;
 ticAI.value = preferences.tictactoeDifficulty;
+for (const [value, label] of [
+  ["3", "3×3 / THREE IN A ROW"],
+  ["4", "4×4 / FOUR IN A ROW"],
+  ["5", "5×5 / FOUR IN A ROW"],
+] as const)
+  addOption(ticSize, value, label);
+ticSize.value = preferences.tictactoeSize;
 pongTarget.value = String(preferences.pongFirstTo);
 pongAdaptive.checked = preferences.pongAdaptive;
 
@@ -478,6 +489,14 @@ pongMode.addEventListener("change", () => {
   changeSettings({ pongWatch: preferences.pongWatch });
   saveWebPreferences(storage, preferences);
   void chooseGame("pong");
+});
+ticSize.addEventListener("change", () => {
+  const size = ticSize.value;
+  if (size !== "3" && size !== "4" && size !== "5") return;
+  preferences.tictactoeSize = size;
+  changeSettings({ tictactoeSize: size });
+  saveWebPreferences(storage, preferences);
+  void chooseGame("tictactoe");
 });
 ticAI.addEventListener("change", () => {
   if (!isAIDifficulty(ticAI.value)) return;
