@@ -41,8 +41,8 @@ must contain no two-player code. Requested web-only modes include FLEET hot
 seat with a privacy screen; CODEBREAK with one player setting the code; LETTERS
 with one player entering a word in a hidden input; QUICK DRAW two-player duel;
 ECHO turn-based sequence extension; SWEEP, SLIDE and POP races; and PAIRS
-turn-based two-player. The public arcade currently runs an older build; none of
-the unreleased local work should be represented as deployed.
+turn-based two-player. Source, deployed website and published extension versions
+can differ; check the live site and release before making deployment claims.
 
 ## Implementation status
 
@@ -50,6 +50,7 @@ All 24 titles and the requested modes are implemented and tested locally.
 NOUGHTS AND CROSSES has all three requested sizes; DROP FOUR uses 7×6 and FLIP
 DISC 8×8. The first seven new games have CPU play on both surfaces; local
 matches and co-op remain website-only, with privacy screens for the relevant
-hand-offs. DARK ROOM is solo. The expansion is unreleased and has not been
-pushed or deployed; the public arcade and published extension are older builds.
-This document records scope and local implementation, not a shipped release.
+hand-offs. DARK ROOM is solo. The published v0.2.0 extension release is the
+older eight-game build; the 24-game extension requires a source build until a
+newer release is published. This document records scope and implementation, not
+proof of any particular website deployment.

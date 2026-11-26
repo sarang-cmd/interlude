@@ -7,20 +7,21 @@ amber CRT cabinet stays hidden while the site is idle.
 ## Play in your browser
 
 Visit [interlude-sepia.vercel.app](https://interlude-sepia.vercel.app/#arcade) to
-play all eight games without installing anything. Choose a game and press
+play in your browser without installing anything. Choose a game and press
 **Start**, then use the keyboard, the on-screen touch controls, a mouse, or a
 standard gamepad. Press **P** to pause or resume; sound starts muted. The
 arcade freezes while it is out of view. Website high scores are stored in that
 browser, separately from extension scores; if storage is blocked they last only
 for the current page session. The web arcade does not connect to your chats.
 Install the extension below if you want the cabinet to appear inside a chat.
-The public site currently runs the earlier eight-game build. This unreleased
-branch implements the full 24-game roster on both the website and extension.
-The first seven new board games have five CPU difficulty levels. Website-only
-modes include shared-board games, private hand-offs, races, a QUICK DRAW duel,
-and 2048 co-op. LETTERS has general, study and session-only custom word lists.
-Watch and local matches do not change solo records. These additions have **not
-been deployed or released**. Speed controls cover 25% to 400%.
+The source includes the full 24-game roster on the website and extension. The
+first seven new board games have five CPU difficulty levels. Website-only modes
+include shared-board games, private hand-offs, races, a QUICK DRAW duel, and
+2048 co-op. LETTERS has general, study and session-only custom word lists.
+Watch and local matches do not change solo records. The published v0.2.0
+extension release contains the earlier eight-game build; build from source for
+the 24-game extension until a newer release is published. Speed controls cover
+25% to 400%.
 
 > Claude, ChatGPT and Gemini use structural signals. ChatGPT and Gemini are
 > **BETA**. Automated site checks use synthetic pages rather than signed-in

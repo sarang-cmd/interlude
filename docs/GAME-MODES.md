@@ -61,9 +61,9 @@ emits `bundle-report.json` with JavaScript byte counts and budget limits. The
 website build must include the local-mode registry, so the separation check does
 not pass solely because both builds dropped the registry.
 
-All eight original games now have a website-only local mode. Unknown or
-unavailable modes are rejected. These changes are local to this branch and are
-not deployed to the public site.
+All eight original games have a website-only local mode. Unknown or unavailable
+modes are rejected. The deployed site and published extension release may lag
+behind the source; check their versions separately.
 
 ## NOUGHTS AND CROSSES
 

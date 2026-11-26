@@ -14,6 +14,10 @@ test("the playable landing page remains usable on desktop and mobile without ext
   await page.evaluate(() => document.fonts.ready);
   await expect(page.locator('#game-canvas[data-scene="ready"]')).toBeVisible();
   await expect(page.getByRole("heading", { name: /A little arcade/ })).toBeVisible();
+  await expect(page.locator(".lede")).toContainText("Twenty-four small games");
+  await expect(
+    page.getByText(/published extension release contains the original eight games/i),
+  ).toBeVisible();
   await expect(page.getByRole("link", { name: /VIEW RELEASE/ })).toHaveAttribute(
     "href",
     "https://github.com/sarang-cmd/interlude/releases/latest",
