@@ -20,6 +20,7 @@ and never use networking.
 | FLIP DISC           | vs CPU            | vs CPU, hot-seat               | No         |
 | DRAFTS              | vs CPU            | vs CPU, hot-seat               | No         |
 | DOTS AND BOXES      | vs CPU            | vs CPU, hot-seat               | No         |
+| FLEET               | vs CPU            | vs CPU, private hot-seat       | No         |
 
 Scores persist separately on each surface. The existing 2048 undo is not a saved
 run. The shared manifest lists default player-one keys, inputs, categories and
@@ -32,7 +33,8 @@ The extension popup can open each enabled extension cabinet directly, without a
 chat response in progress. Only the selected game is loaded. It uses global
 settings and key remaps, while site-specific overrides remain on their sites.
 Pong and NOUGHTS AND CROSSES expose CPU level and play/watch controls in the popup;
-DROP FOUR, FLIP DISC, DRAFTS and DOTS AND BOXES expose a shared CPU-level control. Changing them updates
+DROP FOUR, FLIP DISC, DRAFTS, DOTS AND BOXES and FLEET expose a shared
+CPU-level control. Changing them updates
 the global settings. Website-only local matches do not
 appear there. Human runs use ordinary extension-local high scores; CPU watch
 runs do not. Active popup play contributes to the same local Focus Guard totals
@@ -151,6 +153,29 @@ accounts for the extra turn after a capture. A simple legal-edge policy is used
 if the worker fails; the canvas says `CPU: BASIC` when that happens. A solo
 win scores 1,000 plus 50 per box, a draw scores 300 and a loss scores 10 per
 box. Scores remain local and a match is not restored after reload.
+
+## FLEET
+
+Each side receives five automatically placed, non-overlapping ships (lengths 5,
+4, 3, 3 and 2) on a 10×10 board. Ships may touch. Aim at the target grid with
+arrows and Space or tap/click a square. A repeated shot does not consume a turn;
+players alternate until one fleet is sunk. The attacking grid reveals only
+shots already taken. The status describes the player's own ships and the known
+target grid, never unrevealed opposing positions.
+
+The CPU uses the shared five board difficulty tiers and a small bounded local
+policy, not the search worker. It receives only previously revealed shot
+outcomes: it cannot inspect unshot ship positions. A win scores 2,500 minus 10
+per shot (minimum 100); a loss scores zero.
+
+Website hot-seat starts with a full privacy screen for player 1. After each shot
+the board is immediately hidden and the device is passed to the next player,
+who presses Space or taps to reveal their own fleet and attack grid. Pausing or
+hiding the tab re-covers the current board. The hand-off screen reports only
+whether the preceding shot missed, hit or sank a ship, not board positions.
+It is a visual hand-off aid, not protection against someone watching or
+inspecting browser memory. Fleets and match state are not saved; local matches
+never write solo records.
 
 ## Split-screen races
 

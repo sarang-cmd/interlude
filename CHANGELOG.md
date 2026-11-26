@@ -5,6 +5,8 @@
 - Add a playable toolbar popup with lazy-loaded enabled cabinets, local scores,
   CPU controls and the same global pause and Focus Guard restrictions. Closing
   the popup ends the run; it does not save game state.
+- Add FLEET against an information-only CPU on both surfaces and a website-only
+  hot-seat match with a privacy screen between turns.
 - Add DROP FOUR, FLIP DISC, DRAFTS and DOTS AND BOXES on both surfaces with shared five-level CPU
   difficulty and website-only shared-board matches. Searches run locally in a
   bounded worker; local matches do not change solo scores.

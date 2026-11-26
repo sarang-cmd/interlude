@@ -30,6 +30,7 @@ test("new board games use local CPU workers and share a persisted difficulty", a
     ["FLIP DISC", "flipdisc", 304, 129],
     ["DOTS AND BOXES", "dotsboxes", 230, 60],
     ["DRAFTS", "drafts", 272, 225],
+    ["FLEET", "fleet", 366, 68],
   ] as const) {
     await select(page, name, id);
     await expect(page.locator("#board-ai option")).toHaveCount(5);
@@ -43,10 +44,17 @@ test("new board games use local CPU workers and share a persisted difficulty", a
       await boardTap(page, 240, 193);
     }
     await expect(page.locator("#game-announcement")).toContainText(
-      id === "dotsboxes" ? "CPU drew" : id === "drafts" ? "CPU moved" : "CPU played",
+      id === "dotsboxes"
+        ? "CPU drew"
+        : id === "drafts"
+          ? "CPU moved"
+          : id === "fleet"
+            ? "CPU fired"
+            : "CPU played",
       { timeout: 7000 },
     );
-    await expect(page.locator("#game-announcement")).toContainText("using search");
+    if (id !== "fleet")
+      await expect(page.locator("#game-announcement")).toContainText("using search");
     await page.keyboard.press("p");
     await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "paused");
   }
@@ -170,6 +178,52 @@ test.describe("shared board on a small touch screen", () => {
       "PLAYER 2 / O moved from row 3, column 2 to row 4, column 1",
     );
     expect(workers).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      320,
+    );
+  });
+
+  test("FLEET covers private boards between turns and when paused", async ({ page }) => {
+    await page.addInitScript(
+      (key) => localStorage.setItem(key, JSON.stringify({ fleet: 987 })),
+      WEB_SCORES_KEY,
+    );
+    const workers: string[] = [];
+    page.on("worker", (worker) => workers.push(worker.url()));
+    await page.goto(SITE);
+    await select(page, "FLEET", "fleet");
+    await page.locator("#race-mode").selectOption("local");
+    await expect(page.locator("#game-description")).toContainText("privacy screen");
+    await page.getByRole("button", { name: "START GAME" }).click();
+    const announcement = page.locator("#game-announcement"),
+      canvas = page.locator("#game-canvas");
+    await expect(announcement).toContainText("privacy screen");
+    await expect(announcement).toContainText("PLAYER 1");
+    await expect(announcement).not.toContainText("ship squares");
+    const covered = await canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL());
+    await page.getByRole("button", { name: "Fire at target" }).click();
+    await expect(announcement).toContainText("PLAYER 1 turn");
+    await expect(announcement).toContainText("Your ship squares");
+    const revealed = await canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL());
+    expect(revealed).not.toBe(covered);
+    await page.getByRole("button", { name: "Fire at target" }).click();
+    await expect(announcement).toContainText("Pass the device to PLAYER 2");
+    await expect(announcement).not.toContainText("ship squares");
+    await expect(announcement).not.toContainText("Target board");
+    await page.getByRole("button", { name: "Fire at target" }).click();
+    await expect(announcement).toContainText("PLAYER 2 turn");
+    await expect(announcement).toContainText("Your ship squares");
+    await page.keyboard.press("p");
+    await expect(canvas).toHaveAttribute("data-scene", "paused");
+    await expect(announcement).toContainText("privacy screen");
+    await expect(announcement).not.toContainText("ship squares");
+    await page.keyboard.press("p");
+    await expect(canvas).toHaveAttribute("data-scene", "playing");
+    await expect(announcement).toContainText("privacy screen");
+    expect(workers).toEqual([]);
+    expect(
+      await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "{}"), WEB_SCORES_KEY),
+    ).toEqual({ fleet: 987 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       320,
     );

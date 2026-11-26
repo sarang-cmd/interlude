@@ -22,9 +22,10 @@ series scoreboard. Race boards are independent. 2048 also has shared-board
 co-op with alternating turns. This branch adds a ninth game, NOUGHTS AND CROSSES, with
 3×3, 4×4 and 5×5 boards, five CPU levels, watch mode and a website-only
 shared-control hot-seat match.
-This branch also adds DROP FOUR, FLIP DISC, DRAFTS and DOTS AND BOXES against
-the CPU, with local shared-board play on the website. These additions are not
-deployed yet. The remaining eleven requested games are not implemented. Watch and local matches
+This branch also adds DROP FOUR, FLIP DISC, DRAFTS, DOTS AND BOXES and FLEET
+against the CPU, with local play on the website. FLEET's hot-seat mode uses a
+privacy screen. These additions are not deployed yet. The remaining ten
+requested games are not implemented. Watch and local matches
 do not change solo records. Speed controls cover 25% to 400%.
 
 > Claude, ChatGPT and Gemini use structural signals. ChatGPT and Gemini are
@@ -77,6 +78,7 @@ normal one-time tab reload.
 | FLIP DISC           | Eight-by-eight disc-flipping against CPU; website hot-seat.   |
 | DRAFTS              | Draughts with captures and kings; website hot-seat.           |
 | DOTS AND BOXES      | Draw edges and complete boxes; website hot-seat.              |
+| FLEET               | Find a hidden fleet; private website hot-seat.                |
 
 Each cabinet has configurable enablement, speed, difficulty, mute and key
 bindings. Keyboard input is focus-gated; pointer, touch and standard gamepad

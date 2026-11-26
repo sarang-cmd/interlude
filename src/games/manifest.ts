@@ -209,6 +209,20 @@ export const DOTS_BOXES_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("dotsboxes"),
 };
 
+export const FLEET_MANIFEST: GameManifest = {
+  ...common,
+  id: "fleet",
+  name: "FLEET",
+  description: "Find and sink the hidden fleet before yours is sunk.",
+  controls: "ARROWS AIM · SPACE FIRE · TAP TARGET GRID",
+  defaultDifficulty: "regular",
+  category: "board",
+  runLength: "5 to 12 minutes",
+  modes: [CPU],
+  ai: { opponent: true, watchable: false },
+  playerOneBindings: playerOneBindings("fleet"),
+};
+
 export const GAME_MANIFESTS: readonly GameManifest[] = [
   SNAKE_MANIFEST,
   BREAKOUT_MANIFEST,
@@ -223,6 +237,7 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   FLIP_DISC_MANIFEST,
   DRAFTS_MANIFEST,
   DOTS_BOXES_MANIFEST,
+  FLEET_MANIFEST,
 ];
 
 export const DEFAULT_GAME_ID = "snake";
@@ -264,6 +279,7 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
   flipdisc: async () => new (await import("./flipdisc/game")).FlipDiscGame(),
   drafts: async () => new (await import("./drafts/game")).DraftsGame(),
   dotsboxes: async () => new (await import("./dotsboxes/game")).DotsBoxesGame(),
+  fleet: async () => new (await import("./fleet/game")).FleetGame(),
 };
 
 /** Lazy-load a game. A mode must be implemented on this build's surface. */

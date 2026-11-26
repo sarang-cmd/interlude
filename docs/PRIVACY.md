@@ -76,6 +76,11 @@ or remote AI services are used.
 
 ## Extension-initiated network requests
 
+FLEET's CPU receives only revealed shot outcomes, not unshot ship locations.
+Website hot-seat hides the boards behind a hand-off screen, and does not store
+fleet layouts or match state. The screen is not a security boundary against
+someone observing the device or inspecting its memory.
+
 There are exactly two automatic JSON check purposes; both are GETs, at most once
 per stated interval, without request body, cookies, authorization credentials,
 referrer, application-added identifiers or custom headers. Redirects are

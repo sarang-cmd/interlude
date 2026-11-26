@@ -36,7 +36,7 @@ const TICTACTOE_LOCAL: GameMode = {
 
 export function localModesFor(gameId: string): readonly GameMode[] {
   if (gameId === "pong") return [PONG_LOCAL];
-  if (["tictactoe", "dropfour", "flipdisc", "drafts", "dotsboxes"].includes(gameId))
+  if (["tictactoe", "dropfour", "flipdisc", "drafts", "dotsboxes", "fleet"].includes(gameId))
     return [TICTACTOE_LOCAL];
   if (gameId === "twenty48") return [RACE_LOCAL, COOP_2048];
   return isRaceGame(gameId) ? [RACE_LOCAL] : [];
@@ -58,6 +58,8 @@ export async function loadLocalGame(gameId: string, modeId: string): Promise<Arc
       return new (await import("../games/grid-duel/grid.2p")).LocalGridGame("flip-disc");
     case "drafts":
       return new (await import("../games/drafts/drafts.2p")).LocalDraftsGame();
+    case "fleet":
+      return new (await import("../games/fleet/fleet.2p")).FleetLocalGame();
     case "dotsboxes":
       return new (await import("../games/dotsboxes/dotsboxes.2p")).DotsBoxesLocalGame();
     case "snake":

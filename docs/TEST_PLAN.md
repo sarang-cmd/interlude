@@ -45,8 +45,10 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
   forced passes, in both CPU and website hot-seat modes. Check CPU failure,
   pause, touch and local-score isolation. For DOTS AND BOXES check a capture,
   the resulting extra turn, a double-box capture and the final tally. For
-  DRAFTS check mandatory captures, multiple jumps and crowning.
-- Play all thirteen branch games on keyboard, pointer/touch and a standard focused
+  DRAFTS check mandatory captures, multiple jumps and crowning. In FLEET,
+  verify the next player sees only the privacy screen after a shot and after
+  pause or tab hiding, and that repeated shots do not advance the turn.
+- Play all fourteen branch games on keyboard, pointer/touch and a standard focused
   gamepad; check game-specific rules, remaps/conflicts, sounds, preview and
   records. Assess human difficulty and run length; simulation tests do not prove
   game feel.

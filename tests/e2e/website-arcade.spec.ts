@@ -16,6 +16,7 @@ const games = [
   { id: "flipdisc", name: "FLIP DISC", control: "Select left" },
   { id: "drafts", name: "DRAFTS", control: "Select left" },
   { id: "dotsboxes", name: "DOTS AND BOXES", control: "Select right" },
+  { id: "fleet", name: "FLEET", control: "Select right" },
 ] as const;
 
 test("all games load, start, and respond to their on-screen controls", async ({ page }) => {

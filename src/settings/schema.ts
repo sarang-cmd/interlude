@@ -66,6 +66,7 @@ const gameOptions = opts(
   ["flipdisc", "FLIP DISC"],
   ["drafts", "DRAFTS"],
   ["dotsboxes", "DOTS AND BOXES"],
+  ["fleet", "FLEET"],
 );
 
 const BASE = [
@@ -364,7 +365,7 @@ const BASE = [
     type: "enum",
     default: "regular",
     label: "Board games / AI level",
-    description: "Shared CPU strength for DROP FOUR, FLIP DISC, DRAFTS and DOTS AND BOXES.",
+    description: "Shared CPU strength for DROP FOUR, FLIP DISC, DRAFTS, DOTS AND BOXES and FLEET.",
     category: "Games",
     tags: ["board", "ai", "difficulty"],
     perSite: true,
@@ -828,6 +829,7 @@ const names: Record<GameId, string> = {
   flipdisc: "FLIP DISC",
   drafts: "DRAFTS",
   dotsboxes: "DOTS AND BOXES",
+  fleet: "FLEET",
 };
 const generated: SettingDefinition[] = GAME_IDS.flatMap((game) => [
   {

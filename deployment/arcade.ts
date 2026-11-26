@@ -128,6 +128,13 @@ const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> =
     ["→", "right", "Select right"],
     ["SELECT", "primary", "Select piece or destination"],
   ],
+  fleet: [
+    ["←", "left", "Select left"],
+    ["↑", "up", "Select up"],
+    ["↓", "down", "Select down"],
+    ["→", "right", "Select right"],
+    ["FIRE", "primary", "Fire at target"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],
@@ -325,7 +332,8 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     const mode = id === "pong" ? pongModeId : (raceModeByGame[id] ?? manifest.modes[0]!.id);
     const local = id === "pong" && mode === "local";
     const hotseat =
-      ["tictactoe", "dropfour", "flipdisc", "drafts", "dotsboxes"].includes(id) && mode === "local";
+      ["tictactoe", "dropfour", "flipdisc", "drafts", "dotsboxes", "fleet"].includes(id) &&
+      mode === "local";
     const splitRace = id !== "pong" && !hotseat && mode === "local";
     const watching = (id === "pong" || id === "tictactoe") && mode === "watch";
     const sharedCoop = id === "twenty48" && mode === "coop";
@@ -354,7 +362,9 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     numberLabel.textContent = `GAME ${String(index + 1).padStart(2, "0")} / ${String(GAME_MANIFESTS.length).padStart(2, "0")}`;
     nameLabel.textContent = manifest.name;
     descriptionLabel.textContent = hotseat
-      ? "Two people share a board and take turns. Solo scores are not changed."
+      ? id === "fleet"
+        ? "Pass the device behind a privacy screen between turns. Fleets are placed automatically."
+        : "Two people share a board and take turns. Solo scores are not changed."
       : id === "tictactoe" && watching
         ? "Watch two CPU opponents play. Solo scores are not changed."
         : manifest.description;
@@ -365,13 +375,16 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
         : sharedCoop
           ? "SHARED BOARD · TAKE TURNS · P PAUSES"
           : hotseat
-            ? "SHARED CONTROLS · TAKE TURNS · P PAUSES"
+            ? id === "fleet"
+              ? "PASS DEVICE · SPACE REVEALS · P PAUSES"
+              : "SHARED CONTROLS · TAKE TURNS · P PAUSES"
             : watching
               ? "WATCH CPU · P PAUSES · ESC RELEASES FOCUS"
               : `${manifest.controls} · P PAUSES`;
     pongSettings.hidden = id !== "pong";
     ticSettings.hidden = id !== "tictactoe" || hotseat;
-    boardAIField.hidden = !["dropfour", "flipdisc", "drafts", "dotsboxes"].includes(id) || hotseat;
+    boardAIField.hidden =
+      !["dropfour", "flipdisc", "drafts", "dotsboxes", "fleet"].includes(id) || hotseat;
     ticSizeField.hidden = id !== "tictactoe";
     raceModeField.hidden = id === "pong" || !modes.some((choice) => choice.players === 2);
     if (id !== "pong") {
