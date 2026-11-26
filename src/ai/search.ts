@@ -6,6 +6,8 @@ export interface SearchRules<State, Move> {
   apply(state: State, move: Move): State;
   terminal(state: State): number | null;
   evaluate(state: State): number;
+  /** Needed when a rule grants another move rather than alternating turns. */
+  maximizing?(state: State): boolean;
 }
 export interface SearchResult<Move> {
   move: Move | null;
@@ -48,7 +50,9 @@ export function minimax<State, Move>(
     if (!moves.length) return rules.evaluate(node);
     let best = maximizing ? -Infinity : Infinity;
     for (const move of moves) {
-      const score = visit(rules.apply(node, move), left - 1, !maximizing, alpha, beta);
+      const child = rules.apply(node, move);
+      const nextMaximizing = rules.maximizing ? rules.maximizing(child) : !maximizing;
+      const score = visit(child, left - 1, nextMaximizing, alpha, beta);
       best = maximizing ? Math.max(best, score) : Math.min(best, score);
       if (maximizing) alpha = Math.max(alpha, best);
       else beta = Math.min(beta, best);
@@ -65,7 +69,9 @@ export function minimax<State, Move>(
   let bestScore = -Infinity;
   let alpha = -Infinity;
   for (const move of moves) {
-    const score = visit(rules.apply(state, move), depth - 1, false, alpha, Infinity);
+    const child = rules.apply(state, move);
+    const nextMaximizing = rules.maximizing ? rules.maximizing(child) : false;
+    const score = visit(child, depth - 1, nextMaximizing, alpha, Infinity);
     if (score > bestScore) {
       bestScore = score;
       bestMove = move;

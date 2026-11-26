@@ -30,13 +30,17 @@ test("both new boards use real local CPU workers and share a persisted difficult
   for (const [name, id, x, y] of [
     ["DROP FOUR", "dropfour", 320, 220],
     ["FLIP DISC", "flipdisc", 304, 129],
+    ["DOTS AND BOXES", "dotsboxes", 230, 60],
   ] as const) {
     await select(page, name, id);
     await expect(page.locator("#board-ai option")).toHaveCount(5);
     await page.locator("#board-ai").selectOption("veteran");
     await page.getByRole("button", { name: "START GAME" }).click();
     await boardTap(page, x, y);
-    await expect(page.locator("#game-announcement")).toContainText("CPU played", { timeout: 7000 });
+    await expect(page.locator("#game-announcement")).toContainText(
+      id === "dotsboxes" ? "CPU drew" : "CPU played",
+      { timeout: 7000 },
+    );
     await expect(page.locator("#game-announcement")).toContainText("using search");
     await page.keyboard.press("p");
     await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "paused");
@@ -99,6 +103,37 @@ test.describe("shared board on a small touch screen", () => {
       "PLAYER 2 / O played row 3, column 3",
     );
     await expect(page.locator("#game-announcement")).toContainText("X 3, O 3");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      320,
+    );
+  });
+
+  test("DOTS AND BOXES awards a box and an extra turn with touch", async ({ page }) => {
+    const workers: string[] = [];
+    page.on("worker", (worker) => workers.push(worker.url()));
+    await page.goto(SITE);
+    await select(page, "DOTS AND BOXES", "dotsboxes");
+    await page.locator("#race-mode").selectOption("local");
+    await expect(page.locator("#board-ai-field")).toBeHidden();
+    await page.getByRole("button", { name: "START GAME" }).click();
+    const moves = [
+      [230, 60, "horizontal edge, row 1, column 1"],
+      [290, 60, "horizontal edge, row 1, column 2"],
+      [230, 120, "horizontal edge, row 2, column 1"],
+      [350, 60, "horizontal edge, row 1, column 3"],
+      [200, 90, "vertical edge, row 1, column 1"],
+      [410, 60, "horizontal edge, row 1, column 4"],
+      [260, 90, "vertical edge, row 1, column 2"],
+    ] as const;
+    for (const [x, y, label] of moves) {
+      await boardTap(page, x, y, true);
+      await expect(page.locator("#game-announcement")).toContainText(`drew ${label}`);
+    }
+    await expect(page.locator("#game-announcement")).toContainText(
+      "Completed 1 box and plays again",
+    );
+    await expect(page.locator("#game-announcement")).toContainText("PLAYER 1 / X turn");
+    expect(workers).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       320,
     );

@@ -114,6 +114,13 @@ const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> =
     ["→", "right", "Select right"],
     ["PLACE", "primary", "Place disc"],
   ],
+  dotsboxes: [
+    ["←", "left", "Select left"],
+    ["↑", "up", "Select up"],
+    ["↓", "down", "Select down"],
+    ["→", "right", "Select right"],
+    ["DRAW", "primary", "Draw edge"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],
@@ -310,7 +317,8 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
   try {
     const mode = id === "pong" ? pongModeId : (raceModeByGame[id] ?? manifest.modes[0]!.id);
     const local = id === "pong" && mode === "local";
-    const hotseat = ["tictactoe", "dropfour", "flipdisc"].includes(id) && mode === "local";
+    const hotseat =
+      ["tictactoe", "dropfour", "flipdisc", "dotsboxes"].includes(id) && mode === "local";
     const splitRace = id !== "pong" && !hotseat && mode === "local";
     const watching = (id === "pong" || id === "tictactoe") && mode === "watch";
     const sharedCoop = id === "twenty48" && mode === "coop";
@@ -356,7 +364,7 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
               : `${manifest.controls} · P PAUSES`;
     pongSettings.hidden = id !== "pong";
     ticSettings.hidden = id !== "tictactoe" || hotseat;
-    boardAIField.hidden = !["dropfour", "flipdisc"].includes(id) || hotseat;
+    boardAIField.hidden = !["dropfour", "flipdisc", "dotsboxes"].includes(id) || hotseat;
     ticSizeField.hidden = id !== "tictactoe";
     raceModeField.hidden = id === "pong" || !modes.some((choice) => choice.players === 2);
     if (id !== "pong") {

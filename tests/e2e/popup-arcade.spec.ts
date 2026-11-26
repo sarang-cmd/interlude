@@ -596,14 +596,17 @@ test("popup board cabinets use the shared CPU setting and packaged worker", asyn
   await openArcade();
   await page.getByLabel("CPU level").selectOption("veteran");
   await expect(page.getByLabel("CPU mode")).toBeHidden();
-  for (const id of ["dropfour", "flipdisc"]) {
+  for (const id of ["dropfour", "flipdisc", "dotsboxes"]) {
     await page.getByLabel("Choose game").selectOption(id);
     await expect(page.locator("#game-canvas")).toHaveAttribute("data-game", id);
     await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "ready");
     await expect(page.getByLabel("CPU level")).toHaveValue("veteran");
     await page.getByRole("button", { name: "START GAME" }).click();
     await page.keyboard.press("Space");
-    await expect(page.locator("#game-announcement")).toContainText("CPU played", { timeout: 7000 });
+    await expect(page.locator("#game-announcement")).toContainText(
+      id === "dotsboxes" ? "CPU drew" : "CPU played",
+      { timeout: 7000 },
+    );
     await expect(page.locator("#game-announcement")).toContainText("using search");
   }
   expect(workers.filter((url) => /^chrome-extension:\/\//.test(url)).length).toBeGreaterThanOrEqual(

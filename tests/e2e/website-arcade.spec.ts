@@ -14,6 +14,7 @@ const games = [
   { id: "tictactoe", name: "NOUGHTS AND CROSSES", control: "Select left" },
   { id: "dropfour", name: "DROP FOUR", control: "Select left" },
   { id: "flipdisc", name: "FLIP DISC", control: "Select left" },
+  { id: "dotsboxes", name: "DOTS AND BOXES", control: "Select right" },
 ] as const;
 
 test("all games load, start, and respond to their on-screen controls", async ({ page }) => {

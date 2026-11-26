@@ -63,6 +63,13 @@ const CONTROLS: Record<string, readonly Control[]> = {
     ["→", "right", "Select right"],
     ["PLACE", "primary", "Place disc"],
   ],
+  dotsboxes: [
+    ["←", "left", "Select left"],
+    ["↑", "up", "Select up"],
+    ["↓", "down", "Select down"],
+    ["→", "right", "Select right"],
+    ["DRAW", "primary", "Draw edge"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],
@@ -401,7 +408,7 @@ class PopupArcade {
     if (!this.settings) return;
     const isPong = this.currentGame === "pong";
     const isTic = this.currentGame === "tictactoe";
-    const isBoard = ["dropfour", "flipdisc"].includes(this.currentGame);
+    const isBoard = ["dropfour", "flipdisc", "dotsboxes"].includes(this.currentGame);
     this.aiOptions.hidden = !isPong && !isTic && !isBoard;
     this.cpuModeField.hidden = isBoard;
     this.boardOptions.hidden = !isTic;
@@ -430,7 +437,7 @@ class PopupArcade {
         ? "pongDifficulty"
         : this.currentGame === "tictactoe"
           ? "tictactoeDifficulty"
-          : ["dropfour", "flipdisc"].includes(this.currentGame)
+          : ["dropfour", "flipdisc", "dotsboxes"].includes(this.currentGame)
             ? "boardDifficulty"
             : "";
     if (key) this.changeSetting({ [key]: this.cpuLevel.value });

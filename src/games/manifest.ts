@@ -181,6 +181,20 @@ export const FLIP_DISC_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("flipdisc"),
 };
 
+export const DOTS_BOXES_MANIFEST: GameManifest = {
+  ...common,
+  id: "dotsboxes",
+  name: "DOTS AND BOXES",
+  description: "Draw edges, complete boxes and earn another turn. Most boxes wins.",
+  controls: "ARROWS SELECT EDGE · SPACE DRAW · TAP AN EDGE",
+  defaultDifficulty: "regular",
+  category: "board",
+  runLength: "3 to 8 minutes",
+  modes: [CPU],
+  ai: { opponent: true, watchable: false },
+  playerOneBindings: playerOneBindings("dotsboxes"),
+};
+
 export const GAME_MANIFESTS: readonly GameManifest[] = [
   SNAKE_MANIFEST,
   BREAKOUT_MANIFEST,
@@ -193,6 +207,7 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   TICTACTOE_MANIFEST,
   DROP_FOUR_MANIFEST,
   FLIP_DISC_MANIFEST,
+  DOTS_BOXES_MANIFEST,
 ];
 
 export const DEFAULT_GAME_ID = "snake";
@@ -232,6 +247,7 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
     new (await import("./tictactoe/game")).TicTacToeGame(mode ? mode === "watch" : undefined),
   dropfour: async () => new (await import("./dropfour/game")).DropFourGame(),
   flipdisc: async () => new (await import("./flipdisc/game")).FlipDiscGame(),
+  dotsboxes: async () => new (await import("./dotsboxes/game")).DotsBoxesGame(),
 };
 
 /** Lazy-load a game. A mode must be implemented on this build's surface. */

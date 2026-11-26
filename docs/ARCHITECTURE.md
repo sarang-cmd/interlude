@@ -66,7 +66,7 @@ including emitted worker JavaScript assets, and emit a bundle report. See
 
 ## Local AI search
 
-NOUGHTS AND CROSSES, DROP FOUR and FLIP DISC start a dedicated worker only on a CPU turn. A website worker is
+NOUGHTS AND CROSSES, DROP FOUR, FLIP DISC and DOTS AND BOXES start a dedicated worker only on a CPU turn. A website worker is
 loaded from a same-origin static asset. A Chrome content script cannot directly
 construct a `chrome-extension://` worker from the chat page's origin; the
 extension instead opens a short-lived, extension-origin worker-host iframe in

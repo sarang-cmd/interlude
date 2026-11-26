@@ -11,6 +11,7 @@ export const GAME_IDS = [
   "tictactoe",
   "dropfour",
   "flipdisc",
+  "dotsboxes",
 ] as const;
 export type GameId = (typeof GAME_IDS)[number];
 export const SPEED_CHOICES = [25, 50, 75, 100, 125, 150, 200, 300, 400] as const;
@@ -27,6 +28,7 @@ export const GAME_ACTIONS: Record<GameId, readonly string[]> = {
   tictactoe: ["left", "right", "up", "down", "primary", "pause"],
   dropfour: ["left", "right", "primary", "pause"],
   flipdisc: ["left", "right", "up", "down", "primary", "pause"],
+  dotsboxes: ["left", "right", "up", "down", "primary", "pause"],
 };
 export const ACTION_DEFAULTS: Record<string, string> = {
   left: "ArrowLeft",

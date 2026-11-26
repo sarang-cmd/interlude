@@ -43,8 +43,9 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
   pause/fallback and that watch and hot-seat results do not change solo scores.
 - Exercise DROP FOUR gravity and a four-in-a-row win, and FLIP DISC captures and
   forced passes, in both CPU and website hot-seat modes. Check CPU failure,
-  pause, touch and local-score isolation.
-- Play all eleven branch games on keyboard, pointer/touch and a standard focused
+  pause, touch and local-score isolation. For DOTS AND BOXES check a capture,
+  the resulting extra turn, a double-box capture and the final tally.
+- Play all twelve branch games on keyboard, pointer/touch and a standard focused
   gamepad; check game-specific rules, remaps/conflicts, sounds, preview and
   records. Assess human difficulty and run length; simulation tests do not prove
   game feel.
