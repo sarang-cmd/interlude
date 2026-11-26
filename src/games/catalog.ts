@@ -16,7 +16,9 @@ export const GAME_IDS = [
   "fleet",
   "handsignals",
   "sweep",
+  "pairs",
   "slide",
+  "echo",
   "pop",
 ] as const;
 export type GameId = (typeof GAME_IDS)[number];
@@ -39,7 +41,9 @@ export const GAME_ACTIONS: Record<GameId, readonly string[]> = {
   fleet: ["left", "right", "up", "down", "primary", "pause"],
   handsignals: ["left", "right", "primary", "pause"],
   sweep: ["left", "right", "up", "down", "primary", "secondary", "pause"],
+  pairs: ["left", "right", "up", "down", "primary", "pause"],
   slide: ["left", "right", "up", "down", "pause"],
+  echo: ["left", "right", "up", "down", "pause"],
   pop: ["left", "right", "up", "down", "primary", "pause"],
 };
 export const ACTION_DEFAULTS: Record<string, string> = {

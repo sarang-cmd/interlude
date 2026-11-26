@@ -163,6 +163,19 @@ const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> =
     ["→", "right", "Aim right"],
     ["POP", "primary", "Pop target"],
   ],
+  pairs: [
+    ["←", "left", "Select left"],
+    ["↑", "up", "Select up"],
+    ["↓", "down", "Select down"],
+    ["→", "right", "Select right"],
+    ["FLIP", "primary", "Flip card"],
+  ],
+  echo: [
+    ["↑", "up", "Echo up"],
+    ["→", "right", "Echo right"],
+    ["↓", "down", "Echo down"],
+    ["←", "left", "Echo left"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],
@@ -361,9 +374,17 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     const mode = id === "pong" ? pongModeId : (raceModeByGame[id] ?? manifest.modes[0]!.id);
     const local = id === "pong" && mode === "local";
     const hotseat =
-      ["tictactoe", "dropfour", "flipdisc", "drafts", "dotsboxes", "fleet", "handsignals"].includes(
-        id,
-      ) && mode === "local";
+      [
+        "tictactoe",
+        "dropfour",
+        "flipdisc",
+        "drafts",
+        "dotsboxes",
+        "fleet",
+        "handsignals",
+        "pairs",
+        "echo",
+      ].includes(id) && mode === "local";
     const splitRace = id !== "pong" && !hotseat && mode === "local";
     const watching = (id === "pong" || id === "tictactoe") && mode === "watch";
     const sharedCoop = id === "twenty48" && mode === "coop";
@@ -396,7 +417,11 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
         ? "Pass the device behind a privacy screen between turns. Fleets are placed automatically."
         : id === "handsignals"
           ? "Pass the device and choose in secret. Choices are revealed after both players choose."
-          : "Two people share a board and take turns. Solo scores are not changed."
+          : id === "echo"
+            ? "Take turns repeating the sequence and adding one signal. The first mistake loses."
+            : id === "pairs"
+              ? "Take turns finding pairs. A match earns another turn."
+              : "Two people share a board and take turns. Solo scores are not changed."
       : id === "tictactoe" && watching
         ? "Watch two CPU opponents play. Solo scores are not changed."
         : manifest.description;

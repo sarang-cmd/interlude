@@ -24,8 +24,9 @@ co-op with alternating turns. This branch adds a ninth game, NOUGHTS AND CROSSES
 shared-control hot-seat match.
 This branch also adds DROP FOUR, FLIP DISC, DRAFTS, DOTS AND BOXES, FLEET and HAND SIGNALS
 against the CPU, with local play on the website. SWEEP, SLIDE and POP have
-solo play and website-only races. FLEET's hot-seat mode uses a
-privacy screen. These additions are not deployed yet. The remaining six
+solo play and website-only races. PAIRS and ECHO have solo play and
+website-only turn-based modes. FLEET's hot-seat mode uses a
+privacy screen. These additions are not deployed yet. The remaining four
 requested games are not implemented. Watch and local matches
 do not change solo records. Speed controls cover 25% to 400%.
 
@@ -82,6 +83,8 @@ normal one-time tab reload.
 | FLEET               | Find a hidden fleet; private website hot-seat.                |
 | HAND SIGNALS        | Three or five signals; secret website hand-offs.              |
 | SWEEP               | Clear a minefield; website split-screen race.                 |
+| PAIRS               | Match cards; website turn-based play.                         |
+| ECHO                | Repeat a growing sequence; website turn-based challenge.      |
 | SLIDE               | Solve a sliding-tile puzzle; website split-screen race.       |
 | POP                 | Pop timed targets; website split-screen race.                 |
 

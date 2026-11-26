@@ -5,6 +5,7 @@
 - Add a playable toolbar popup with lazy-loaded enabled cabinets, local scores,
   CPU controls and the same global pause and Focus Guard restrictions. Closing
   the popup ends the run; it does not save game state.
+- Add PAIRS and ECHO, including website-only turn-based modes.
 - Add SWEEP, SLIDE and POP with solo play on both surfaces and seeded
   split-screen races on the website.
 - Add HAND SIGNALS with optional Lizard Spock, a CPU that commits before each

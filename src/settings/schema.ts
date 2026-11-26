@@ -69,7 +69,9 @@ const gameOptions = opts(
   ["fleet", "FLEET"],
   ["handsignals", "HAND SIGNALS"],
   ["sweep", "SWEEP"],
+  ["pairs", "PAIRS"],
   ["slide", "SLIDE"],
+  ["echo", "ECHO"],
   ["pop", "POP"],
 );
 
@@ -847,7 +849,9 @@ const names: Record<GameId, string> = {
   fleet: "FLEET",
   handsignals: "HAND SIGNALS",
   sweep: "SWEEP",
+  pairs: "PAIRS",
   slide: "SLIDE",
+  echo: "ECHO",
   pop: "POP",
 };
 const generated: SettingDefinition[] = GAME_IDS.flatMap((game) => [

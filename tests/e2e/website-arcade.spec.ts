@@ -19,7 +19,9 @@ const games = [
   { id: "fleet", name: "FLEET", control: "Select right" },
   { id: "handsignals", name: "HAND SIGNALS", control: "Select right" },
   { id: "sweep", name: "SWEEP", control: "Select left" },
+  { id: "pairs", name: "PAIRS", control: "Select right" },
   { id: "slide", name: "SLIDE", control: "Move gap left" },
+  { id: "echo", name: "ECHO", control: "Echo up" },
   { id: "pop", name: "POP", control: "Aim left" },
 ] as const;
 

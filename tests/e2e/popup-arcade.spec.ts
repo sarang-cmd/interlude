@@ -667,3 +667,23 @@ test("HAND SIGNALS optional rules are available and saved in the popup", async (
   await openArcade();
   await expect(page.getByLabel("HAND SIGNALS rules")).toHaveValue("extended");
 });
+
+test("PAIRS and ECHO play locally in the extension popup", async () => {
+  await settings({ game: "pairs" });
+  await page.goto(`${extensionOrigin}/popup.html`);
+  await openArcade();
+  await page.getByRole("button", { name: "START GAME" }).click();
+  await page.getByRole("button", { name: "Flip card", exact: true }).click();
+  await expect(page.locator("#game-announcement")).toContainText("Choose another card");
+  await page.getByLabel("Choose game").selectOption("echo");
+  await expect(page.locator("#game-canvas")).toHaveAttribute("data-game", "echo");
+  await page.getByRole("button", { name: "START GAME" }).click();
+  await expect(page.locator("#game-announcement")).toContainText("Watch", { timeout: 3000 });
+  const message = await page.locator("#game-announcement").textContent();
+  const name = /Watch (UP|RIGHT|DOWN|LEFT)/.exec(message ?? "")?.[1];
+  expect(name).toBeTruthy();
+  await expect(page.locator("#game-announcement")).toContainText("Your turn", { timeout: 3000 });
+  await page.getByRole("button", { name: `Echo ${name!.toLowerCase()}`, exact: true }).click();
+  await expect(page.locator("#game-announcement")).toContainText("Completed 1 rounds");
+  expect(await page.locator("#arcade").textContent()).not.toMatch(/two.players|player 2/i);
+});

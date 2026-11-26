@@ -154,6 +154,19 @@ const CONTROL_SETS: Record<string, Array<[string, GameAction]>> = {
     ["→", "right"],
     ["POP", "primary"],
   ],
+  pairs: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+    ["FLIP", "primary"],
+  ],
+  echo: [
+    ["↑", "up"],
+    ["→", "right"],
+    ["↓", "down"],
+    ["←", "left"],
+  ],
   tictactoe: [
     ["←", "left"],
     ["↑", "up"],

@@ -23,6 +23,8 @@ and never use networking.
 | FLEET               | vs CPU            | vs CPU, private hot-seat       | No         |
 | HAND SIGNALS        | vs CPU            | vs CPU, secret hand-off        | No         |
 | SWEEP               | Solo              | Solo, split-screen race        | No         |
+| PAIRS               | Solo              | Solo, turn-based match         | No         |
+| ECHO                | Solo              | Solo, sequence-extension match | No         |
 | SLIDE               | Solo              | Solo, split-screen race        | No         |
 | POP                 | Solo              | Solo, split-screen race        | No         |
 
@@ -196,6 +198,21 @@ hand-off screen. The signals are revealed only after both have chosen. Pausing
 or hiding while choosing returns to the screen. As with FLEET, this is a visual
 hand-off aid, not a defense against a person watching or inspecting memory. No
 match state is saved and local matches never write solo records.
+
+## PAIRS and ECHO
+
+PAIRS has eight shuffled pairs on a 4×4 board. Flip two cards using arrows and
+Space, or tap them. Matching cards remain visible; an incorrect pair briefly
+shows before turning back over. The website's two-player game awards one point
+and another turn for a match; a mismatch passes the turn. The most pairs wins.
+
+In solo ECHO, watch the four labelled pads flash, then repeat them using the
+corresponding arrow keys or by tapping. A new signal is added after each correct
+round; the first incorrect signal ends the run. The website's local version
+starts with player 1 adding a signal. Each subsequent player repeats the entire
+sequence and then adds one signal for the other player to remember. A mistake
+loses; reaching 64 signals ends in a draw. Both local modes use shared controls
+and never write solo records.
 
 ## SWEEP, SLIDE and POP
 

@@ -110,6 +110,19 @@ const CONTROLS: Record<string, readonly Control[]> = {
     ["→", "right", "Aim right"],
     ["POP", "primary", "Pop target"],
   ],
+  pairs: [
+    ["←", "left", "Select left"],
+    ["↑", "up", "Select up"],
+    ["↓", "down", "Select down"],
+    ["→", "right", "Select right"],
+    ["FLIP", "primary", "Flip card"],
+  ],
+  echo: [
+    ["↑", "up", "Echo up"],
+    ["→", "right", "Echo right"],
+    ["↓", "down", "Echo down"],
+    ["←", "left", "Echo left"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],

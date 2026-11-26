@@ -277,6 +277,33 @@ export const POP_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("pop"),
 };
 
+export const PAIRS_MANIFEST: GameManifest = {
+  ...common,
+  id: "pairs",
+  name: "PAIRS",
+  description: "Turn over cards and match all eight pairs.",
+  controls: "ARROWS SELECT · SPACE OR TAP FLIPS",
+  defaultDifficulty: "standard",
+  category: "puzzle",
+  runLength: "2 to 5 minutes",
+  modes: [SOLO],
+  ai: { opponent: false, watchable: false },
+  playerOneBindings: playerOneBindings("pairs"),
+};
+export const ECHO_MANIFEST: GameManifest = {
+  ...common,
+  id: "echo",
+  name: "ECHO",
+  description: "Watch a growing sequence, then repeat it.",
+  controls: "ARROWS OR TAP · REPEAT THE SEQUENCE",
+  defaultDifficulty: "standard",
+  category: "casual",
+  runLength: "1 to 5 minutes",
+  modes: [SOLO],
+  ai: { opponent: false, watchable: false },
+  playerOneBindings: playerOneBindings("echo"),
+};
+
 export const GAME_MANIFESTS: readonly GameManifest[] = [
   SNAKE_MANIFEST,
   BREAKOUT_MANIFEST,
@@ -294,7 +321,9 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   FLEET_MANIFEST,
   HAND_SIGNALS_MANIFEST,
   SWEEP_MANIFEST,
+  PAIRS_MANIFEST,
   SLIDE_MANIFEST,
+  ECHO_MANIFEST,
   POP_MANIFEST,
 ];
 
@@ -340,7 +369,9 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
   fleet: async () => new (await import("./fleet/game")).FleetGame(),
   handsignals: async () => new (await import("./handsignals/game")).HandSignalsGame(),
   sweep: async () => new (await import("./sweep/game")).SweepGame(),
+  pairs: async () => new (await import("./pairs/game")).PairsGame(),
   slide: async () => new (await import("./slide/game")).SlideGame(),
+  echo: async () => new (await import("./echo/game")).EchoGame(),
   pop: async () => new (await import("./pop/game")).PopGame(),
 };
 
