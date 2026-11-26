@@ -23,6 +23,7 @@ const games = [
   { id: "darkroom", name: "DARK ROOM", control: "Move down" },
   { id: "slide", name: "SLIDE", control: "Move gap left" },
   { id: "echo", name: "ECHO", control: "Echo up" },
+  { id: "codebreak", name: "CODEBREAK", control: "Increase digit" },
   { id: "pop", name: "POP", control: "Aim left" },
 ] as const;
 

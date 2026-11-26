@@ -318,6 +318,20 @@ export const DARK_ROOM_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("darkroom"),
 };
 
+export const CODEBREAK_MANIFEST: GameManifest = {
+  ...common,
+  id: "codebreak",
+  name: "CODEBREAK",
+  description: "Crack a four-digit code using exact and misplaced clues.",
+  controls: "ARROWS CHANGE DIGITS · SPACE SUBMIT · TAP CYCLES",
+  defaultDifficulty: "standard",
+  category: "puzzle",
+  runLength: "3 to 8 minutes",
+  modes: [SOLO],
+  ai: { opponent: false, watchable: false },
+  playerOneBindings: playerOneBindings("codebreak"),
+};
+
 export const GAME_MANIFESTS: readonly GameManifest[] = [
   SNAKE_MANIFEST,
   BREAKOUT_MANIFEST,
@@ -339,6 +353,7 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   DARK_ROOM_MANIFEST,
   SLIDE_MANIFEST,
   ECHO_MANIFEST,
+  CODEBREAK_MANIFEST,
   POP_MANIFEST,
 ];
 
@@ -388,6 +403,7 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
   darkroom: async () => new (await import("./darkroom/game")).DarkRoomGame(),
   slide: async () => new (await import("./slide/game")).SlideGame(),
   echo: async () => new (await import("./echo/game")).EchoGame(),
+  codebreak: async () => new (await import("./codebreak/game")).CodebreakGame(),
   pop: async () => new (await import("./pop/game")).PopGame(),
 };
 

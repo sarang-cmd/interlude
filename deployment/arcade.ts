@@ -11,6 +11,7 @@ import type { GameManifest, GameMode } from "../src/games/types";
 import type { PongLocalGame } from "../src/games/pong/pong.2p";
 import type { SplitRaceGame } from "../src/twoplayer/split-race";
 import type { Coop2048Game } from "../src/games/2048/coop.2p";
+import type { SecretGame } from "../src/twoplayer/secret-ui";
 import { defaults, type InterludeSettings, type SettingValue } from "../src/settings/schema";
 import { isAIDifficulty } from "../src/ai/difficulty";
 import {
@@ -182,6 +183,13 @@ const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> =
     ["↓", "down", "Move down"],
     ["→", "right", "Move right"],
   ],
+  codebreak: [
+    ["←", "left", "Select digit left"],
+    ["↑", "up", "Increase digit"],
+    ["↓", "down", "Decrease digit"],
+    ["→", "right", "Select digit right"],
+    ["SUBMIT", "primary", "Submit code guess"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],
@@ -226,6 +234,7 @@ const raceModeByGame: Record<string, string> = {
 };
 let raceModes: readonly GameMode[] = [];
 let removeLocalUI: (() => void) | null = null;
+let refreshLocalUI: (() => void) | null = null;
 let requestNumber = 0;
 let canvasVisible = true;
 let loaded = false;
@@ -246,6 +255,7 @@ function setScene(state: EngineState): void {
     paused: "RESUME",
     gameover: "PLAY AGAIN",
   }[state];
+  refreshLocalUI?.();
 }
 
 // Preview mode keeps extension-specific writes out of the website. Its callback
@@ -368,6 +378,7 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
   loaded = false;
   removeLocalUI?.();
   removeLocalUI = null;
+  refreshLocalUI = null;
   engine.stop();
   playButton.disabled = true;
   resetButton.disabled = true;
@@ -390,8 +401,10 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
         "handsignals",
         "pairs",
         "echo",
+        "codebreak",
       ].includes(id) && mode === "local";
     const splitRace = id !== "pong" && !hotseat && mode === "local";
+    const secretMode = id === "codebreak" && mode === "local";
     const watching = (id === "pong" || id === "tictactoe") && mode === "watch";
     const sharedCoop = id === "twenty48" && mode === "coop";
     const localUI =
@@ -404,12 +417,17 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
       __PLATFORM__ === "web" && sharedCoop
         ? import("../src/twoplayer/coop-ui")
         : Promise.resolve(null);
-    const [game, modes, localModule, raceModule, coopModule] = await Promise.all([
+    const secretUI =
+      __PLATFORM__ === "web" && secretMode
+        ? import("../src/twoplayer/secret-ui")
+        : Promise.resolve(null);
+    const [game, modes, localModule, raceModule, coopModule, secretModule] = await Promise.all([
       loadGame(id, mode),
       availableModes(id),
       localUI,
       raceUI,
       coopUI,
+      secretUI,
     ]);
     if (sequence !== requestNumber) return;
     if (!modes.length || (mode && !modes.some((item) => item.id === mode)))
@@ -423,11 +441,13 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
         ? "Pass the device behind a privacy screen between turns. Fleets are placed automatically."
         : id === "handsignals"
           ? "Pass the device and choose in secret. Choices are revealed after both players choose."
-          : id === "echo"
-            ? "Take turns repeating the sequence and adding one signal. The first mistake loses."
-            : id === "pairs"
-              ? "Take turns finding pairs. A match earns another turn."
-              : "Two people share a board and take turns. Solo scores are not changed."
+          : id === "codebreak"
+            ? "One player sets a hidden code; the other tries to crack it."
+            : id === "echo"
+              ? "Take turns repeating the sequence and adding one signal. The first mistake loses."
+              : id === "pairs"
+                ? "Take turns finding pairs. A match earns another turn."
+                : "Two people share a board and take turns. Solo scores are not changed."
       : id === "tictactoe" && watching
         ? "Watch two CPU opponents play. Solo scores are not changed."
         : manifest.description;
@@ -438,7 +458,7 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
         : sharedCoop
           ? "SHARED BOARD · TAKE TURNS · P PAUSES"
           : hotseat
-            ? id === "fleet" || id === "handsignals"
+            ? id === "fleet" || id === "handsignals" || id === "codebreak"
               ? "PASS DEVICE · SPACE REVEALS · P PAUSES"
               : "SHARED CONTROLS · TAKE TURNS · P PAUSES"
             : watching
@@ -494,6 +514,19 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
         focusGame: () => focusGame(false),
         acceptsInput: () => loaded && engine.getState() !== "paused",
       });
+    } else if (secretMode && secretModule) {
+      const mounted = secretModule.mountSecretInput({
+        root: localRace,
+        game: game as unknown as SecretGame,
+        kind: "code",
+        state: () => engine.getState(),
+        focusGame: () => focusGame(false),
+      });
+      refreshLocalUI = mounted.refresh;
+      removeLocalUI = () => {
+        refreshLocalUI = null;
+        mounted.destroy();
+      };
     } else if (sharedCoop && coopModule) {
       removeLocalUI = coopModule.mountCoop2048({
         root: localRace,

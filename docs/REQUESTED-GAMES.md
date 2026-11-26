@@ -47,9 +47,9 @@ the unreleased local work should be represented as deployed.
 ## Implementation status
 
 The eight existing cabinets, NOUGHTS AND CROSSES, DROP FOUR, FLIP DISC, DRAFTS,
-DOTS AND BOXES, FLEET, HAND SIGNALS, SWEEP, PAIRS, DARK ROOM, SLIDE, ECHO and POP are implemented locally. NOUGHTS AND CROSSES has all
+DOTS AND BOXES, FLEET, HAND SIGNALS, SWEEP, PAIRS, DARK ROOM, SLIDE, ECHO, CODEBREAK and POP are implemented locally. NOUGHTS AND CROSSES has all
 three requested sizes; DROP FOUR uses 7×6 and FLIP DISC 8×8. Each has a
 website-only hot-seat mode, and FLEET uses a privacy screen at hand-off. The
-remaining 3 new titles and their requested modes are not yet implemented or
+remaining 2 new titles and their requested modes are not yet implemented or
 deployed. This document is a scope record, not a claim that unfinished work has
 shipped.

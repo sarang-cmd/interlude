@@ -25,8 +25,8 @@ shared-control hot-seat match.
 This branch also adds DROP FOUR, FLIP DISC, DRAFTS, DOTS AND BOXES, FLEET and HAND SIGNALS
 against the CPU, with local play on the website. SWEEP, SLIDE and POP have
 solo play and website-only races. PAIRS and ECHO have solo play and
-website-only turn-based modes. DARK ROOM is a solo maze. FLEET's hot-seat mode uses a
-privacy screen. These additions are not deployed yet. The remaining three
+website-only turn-based modes. DARK ROOM is a solo maze; CODEBREAK has a website-only secret-setter mode. FLEET's hot-seat mode uses a
+privacy screen. These additions are not deployed yet. The remaining two
 requested games are not implemented. Watch and local matches
 do not change solo records. Speed controls cover 25% to 400%.
 
@@ -86,6 +86,7 @@ normal one-time tab reload.
 | PAIRS               | Match cards; website turn-based play.                         |
 | DARK ROOM           | Find a key and escape a dark maze.                            |
 | ECHO                | Repeat a growing sequence; website turn-based challenge.      |
+| CODEBREAK           | Crack a code; website secret-setter mode.                     |
 | SLIDE               | Solve a sliding-tile puzzle; website split-screen race.       |
 | POP                 | Pop timed targets; website split-screen race.                 |
 

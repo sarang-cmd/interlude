@@ -26,6 +26,7 @@ and never use networking.
 | PAIRS               | Solo              | Solo, turn-based match         | No         |
 | DARK ROOM           | Solo              | Solo                           | No         |
 | ECHO                | Solo              | Solo, sequence-extension match | No         |
+| CODEBREAK           | Solo              | Solo, secret-setter match      | No         |
 | SLIDE               | Solo              | Solo, split-screen race        | No         |
 | POP                 | Solo              | Solo, split-screen race        | No         |
 
@@ -199,6 +200,21 @@ hand-off screen. The signals are revealed only after both have chosen. Pausing
 or hiding while choosing returns to the screen. As with FLEET, this is a visual
 hand-off aid, not a defense against a person watching or inspecting memory. No
 match state is saved and local matches never write solo records.
+
+## CODEBREAK
+
+Guess a four-digit code made from digits 1–6, with repeats allowed. Arrows select
+and change digits, tapping a digit cycles it, and Space submits. Each of ten
+attempts reports how many digits are exact matches and how many more are
+present in the wrong position, counting repeated digits only once each. In solo
+mode the code is chosen locally at random.
+
+On the website a second mode lets one player set the code in a password-style
+input after pressing Start, then pass the device behind a hand-off screen for
+the other player to guess. The input is cleared after submission and when the
+tab is hidden. The code and guesses are not stored or sent anywhere, and the
+match never changes solo records. The hand-off screen is a visual aid, not a
+security boundary against someone watching or inspecting browser memory.
 
 ## DARK ROOM
 

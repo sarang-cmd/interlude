@@ -129,6 +129,13 @@ const CONTROLS: Record<string, readonly Control[]> = {
     ["↓", "down", "Move down"],
     ["→", "right", "Move right"],
   ],
+  codebreak: [
+    ["←", "left", "Select digit left"],
+    ["↑", "up", "Increase digit"],
+    ["↓", "down", "Decrease digit"],
+    ["→", "right", "Select digit right"],
+    ["SUBMIT", "primary", "Submit code guess"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],

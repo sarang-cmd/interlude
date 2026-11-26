@@ -76,6 +76,11 @@ or remote AI services are used.
 
 ## Extension-initiated network requests
 
+CODEBREAK's website secret-setter input is password-masked, is cleared on
+submission and tab hiding, and remains in match memory only; it is never
+persisted or transmitted. This is not a security boundary against someone
+watching or inspecting browser memory.
+
 FLEET's CPU receives only revealed shot outcomes, not unshot ship locations.
 Website hot-seat hides the boards behind a hand-off screen, and does not store
 fleet layouts or match state. The screen is not a security boundary against

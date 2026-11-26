@@ -20,6 +20,7 @@ export const GAME_IDS = [
   "darkroom",
   "slide",
   "echo",
+  "codebreak",
   "pop",
 ] as const;
 export type GameId = (typeof GAME_IDS)[number];
@@ -46,6 +47,7 @@ export const GAME_ACTIONS: Record<GameId, readonly string[]> = {
   darkroom: ["left", "right", "up", "down", "pause"],
   slide: ["left", "right", "up", "down", "pause"],
   echo: ["left", "right", "up", "down", "pause"],
+  codebreak: ["left", "right", "up", "down", "primary", "pause"],
   pop: ["left", "right", "up", "down", "primary", "pause"],
 };
 export const ACTION_DEFAULTS: Record<string, string> = {

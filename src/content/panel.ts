@@ -173,6 +173,13 @@ const CONTROL_SETS: Record<string, Array<[string, GameAction]>> = {
     ["↓", "down"],
     ["→", "right"],
   ],
+  codebreak: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+    ["SUBMIT", "primary"],
+  ],
   tictactoe: [
     ["←", "left"],
     ["↑", "up"],

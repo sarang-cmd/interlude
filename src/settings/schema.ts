@@ -73,6 +73,7 @@ const gameOptions = opts(
   ["darkroom", "DARK ROOM"],
   ["slide", "SLIDE"],
   ["echo", "ECHO"],
+  ["codebreak", "CODEBREAK"],
   ["pop", "POP"],
 );
 
@@ -854,6 +855,7 @@ const names: Record<GameId, string> = {
   darkroom: "DARK ROOM",
   slide: "SLIDE",
   echo: "ECHO",
+  codebreak: "CODEBREAK",
   pop: "POP",
 };
 const generated: SettingDefinition[] = GAME_IDS.flatMap((game) => [

@@ -465,7 +465,8 @@ h1 {
 }
 .game-setting select,
 .game-setting input[type="text"],
-.game-setting input[type="number"] {
+.game-setting input[type="number"],
+.game-setting input[type="password"] {
   max-width: 100%;
   min-height: 36px;
   padding: 5px 8px;
