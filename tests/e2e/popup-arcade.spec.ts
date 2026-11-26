@@ -310,6 +310,9 @@ test("study and quiet schedules block popup play, including live changes", async
   await settings({ studyMode: false });
   await expect(page.locator("#gate")).toBeHidden();
   await page.getByRole("button", { name: "START GAME" }).click();
+  // Starting is processed on the next animation frame; make the live-change
+  // assertion only after a run is actually active, including on slow CI hosts.
+  await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "playing");
   await settings({ quietHours: true, quietDays: everyDay, quietStart: "00:00", quietEnd: "00:00" });
   await expect(page.locator("#gate")).toContainText("QUIET HOURS");
   await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "paused");
@@ -673,16 +676,30 @@ test("PAIRS and ECHO play locally in the extension popup", async () => {
   await page.goto(`${extensionOrigin}/popup.html`);
   await openArcade();
   await page.getByRole("button", { name: "START GAME" }).click();
+  await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "playing");
   await page.getByRole("button", { name: "Flip card", exact: true }).click();
   await expect(page.locator("#game-announcement")).toContainText("Choose another card");
   await page.getByLabel("Choose game").selectOption("echo");
   await expect(page.locator("#game-canvas")).toHaveAttribute("data-game", "echo");
+  const announcement = page.locator("#game-announcement");
+  // Capture the first actual direction, not the preceding generic "Watch"
+  // instruction, even if the brief cue has disappeared before the next read.
+  await announcement.evaluate((node: HTMLElement) => {
+    const observer = new MutationObserver(() => {
+      const direction = /Watch (UP|RIGHT|DOWN|LEFT)\./.exec(node.textContent ?? "")?.[1];
+      if (direction) {
+        node.dataset.firstEcho = direction;
+        observer.disconnect();
+      }
+    });
+    observer.observe(node, { childList: true, characterData: true, subtree: true });
+  });
   await page.getByRole("button", { name: "START GAME" }).click();
-  await expect(page.locator("#game-announcement")).toContainText("Watch", { timeout: 3000 });
-  const message = await page.locator("#game-announcement").textContent();
-  const name = /Watch (UP|RIGHT|DOWN|LEFT)/.exec(message ?? "")?.[1];
-  expect(name).toBeTruthy();
-  await expect(page.locator("#game-announcement")).toContainText("Your turn", { timeout: 3000 });
+  await expect(announcement).toHaveAttribute("data-first-echo", /^(UP|RIGHT|DOWN|LEFT)$/, {
+    timeout: 3000,
+  });
+  const name = await announcement.getAttribute("data-first-echo");
+  await expect(announcement).toContainText("Your turn", { timeout: 3000 });
   await page.getByRole("button", { name: `Echo ${name!.toLowerCase()}`, exact: true }).click();
   await expect(page.locator("#game-announcement")).toContainText("Completed 1 rounds");
   expect(await page.locator("#arcade").textContent()).not.toMatch(/two.players|player 2/i);
