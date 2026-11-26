@@ -167,6 +167,12 @@ const CONTROL_SETS: Record<string, Array<[string, GameAction]>> = {
     ["↓", "down"],
     ["←", "left"],
   ],
+  darkroom: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+  ],
   tictactoe: [
     ["←", "left"],
     ["↑", "up"],

@@ -49,7 +49,7 @@ describe("game metadata and surface modes", () => {
     expect(localModesFor("pong").map((mode) => mode.id)).toEqual(["local"]);
     for (const id of GAME_IDS) {
       expect(localModesFor(id).map((mode) => mode.id)).toEqual(
-        id === "twenty48" ? ["local", "coop"] : ["local"],
+        id === "twenty48" ? ["local", "coop"] : id === "darkroom" ? [] : ["local"],
       );
       await expect(loadGame(id, "local")).rejects.toThrow("Mode unavailable");
     }

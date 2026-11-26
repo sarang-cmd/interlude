@@ -176,6 +176,12 @@ const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> =
     ["↓", "down", "Echo down"],
     ["←", "left", "Echo left"],
   ],
+  darkroom: [
+    ["←", "left", "Move left"],
+    ["↑", "up", "Move up"],
+    ["↓", "down", "Move down"],
+    ["→", "right", "Move right"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],

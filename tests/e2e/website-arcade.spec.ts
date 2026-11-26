@@ -20,6 +20,7 @@ const games = [
   { id: "handsignals", name: "HAND SIGNALS", control: "Select right" },
   { id: "sweep", name: "SWEEP", control: "Select left" },
   { id: "pairs", name: "PAIRS", control: "Select right" },
+  { id: "darkroom", name: "DARK ROOM", control: "Move down" },
   { id: "slide", name: "SLIDE", control: "Move gap left" },
   { id: "echo", name: "ECHO", control: "Echo up" },
   { id: "pop", name: "POP", control: "Aim left" },
@@ -45,6 +46,9 @@ test("all games load, start, and respond to their on-screen controls", async ({ 
     await expect(canvas).toHaveAttribute("data-scene", "playing");
     const before = await canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL());
     await page.getByRole("button", { name: game.control, exact: true }).click();
+    if (game.id === "darkroom") {
+      await page.getByRole("button", { name: "Move right", exact: true }).click();
+    }
     if (game.id === "slide") {
       await page.getByRole("button", { name: "Move gap right", exact: true }).click();
       await page.getByRole("button", { name: "Move gap up", exact: true }).click();

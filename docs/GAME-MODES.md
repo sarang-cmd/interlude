@@ -24,6 +24,7 @@ and never use networking.
 | HAND SIGNALS        | vs CPU            | vs CPU, secret hand-off        | No         |
 | SWEEP               | Solo              | Solo, split-screen race        | No         |
 | PAIRS               | Solo              | Solo, turn-based match         | No         |
+| DARK ROOM           | Solo              | Solo                           | No         |
 | ECHO                | Solo              | Solo, sequence-extension match | No         |
 | SLIDE               | Solo              | Solo, split-screen race        | No         |
 | POP                 | Solo              | Solo, split-screen race        | No         |
@@ -198,6 +199,14 @@ hand-off screen. The signals are revealed only after both have chosen. Pausing
 or hiding while choosing returns to the screen. As with FLEET, this is a visual
 hand-off aid, not a defense against a person watching or inspecting memory. No
 match state is saved and local matches never write solo records.
+
+## DARK ROOM
+
+Explore a procedurally generated maze with arrows, swipes, or by tapping an
+adjacent square. The visible area is limited, but explored corridors remain
+dimly visible. Find the key before returning to the exit. The maze is generated
+locally, and the live status describes nearby passages without revealing the
+unseen layout. There is no saved run or local multiplayer mode.
 
 ## PAIRS and ECHO
 

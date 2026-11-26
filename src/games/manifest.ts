@@ -304,6 +304,20 @@ export const ECHO_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("echo"),
 };
 
+export const DARK_ROOM_MANIFEST: GameManifest = {
+  ...common,
+  id: "darkroom",
+  name: "DARK ROOM",
+  description: "Explore a dark maze, find a key and escape.",
+  controls: "ARROWS EXPLORE · SWIPE OR TAP NEIGHBOR",
+  defaultDifficulty: "standard",
+  category: "puzzle",
+  runLength: "3 to 8 minutes",
+  modes: [SOLO],
+  ai: { opponent: false, watchable: false },
+  playerOneBindings: playerOneBindings("darkroom"),
+};
+
 export const GAME_MANIFESTS: readonly GameManifest[] = [
   SNAKE_MANIFEST,
   BREAKOUT_MANIFEST,
@@ -322,6 +336,7 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   HAND_SIGNALS_MANIFEST,
   SWEEP_MANIFEST,
   PAIRS_MANIFEST,
+  DARK_ROOM_MANIFEST,
   SLIDE_MANIFEST,
   ECHO_MANIFEST,
   POP_MANIFEST,
@@ -370,6 +385,7 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
   handsignals: async () => new (await import("./handsignals/game")).HandSignalsGame(),
   sweep: async () => new (await import("./sweep/game")).SweepGame(),
   pairs: async () => new (await import("./pairs/game")).PairsGame(),
+  darkroom: async () => new (await import("./darkroom/game")).DarkRoomGame(),
   slide: async () => new (await import("./slide/game")).SlideGame(),
   echo: async () => new (await import("./echo/game")).EchoGame(),
   pop: async () => new (await import("./pop/game")).PopGame(),
