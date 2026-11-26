@@ -18,6 +18,9 @@ const games = [
   { id: "dotsboxes", name: "DOTS AND BOXES", control: "Select right" },
   { id: "fleet", name: "FLEET", control: "Select right" },
   { id: "handsignals", name: "HAND SIGNALS", control: "Select right" },
+  { id: "sweep", name: "SWEEP", control: "Select left" },
+  { id: "slide", name: "SLIDE", control: "Move gap left" },
+  { id: "pop", name: "POP", control: "Aim left" },
 ] as const;
 
 test("all games load, start, and respond to their on-screen controls", async ({ page }) => {
@@ -40,6 +43,10 @@ test("all games load, start, and respond to their on-screen controls", async ({ 
     await expect(canvas).toHaveAttribute("data-scene", "playing");
     const before = await canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL());
     await page.getByRole("button", { name: game.control, exact: true }).click();
+    if (game.id === "slide") {
+      await page.getByRole("button", { name: "Move gap right", exact: true }).click();
+      await page.getByRole("button", { name: "Move gap up", exact: true }).click();
+    }
     if (game.id === "twenty48") {
       // Either direction may be blocked by the initial random tiles, but both cannot be.
       await page.getByRole("button", { name: "Slide down", exact: true }).click();

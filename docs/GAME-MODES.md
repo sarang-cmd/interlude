@@ -22,6 +22,9 @@ and never use networking.
 | DOTS AND BOXES      | vs CPU            | vs CPU, hot-seat               | No         |
 | FLEET               | vs CPU            | vs CPU, private hot-seat       | No         |
 | HAND SIGNALS        | vs CPU            | vs CPU, secret hand-off        | No         |
+| SWEEP               | Solo              | Solo, split-screen race        | No         |
+| SLIDE               | Solo              | Solo, split-screen race        | No         |
+| POP                 | Solo              | Solo, split-screen race        | No         |
 
 Scores persist separately on each surface. The existing 2048 undo is not a saved
 run. The shared manifest lists default player-one keys, inputs, categories and
@@ -193,6 +196,27 @@ hand-off screen. The signals are revealed only after both have chosen. Pausing
 or hiding while choosing returns to the screen. As with FLEET, this is a visual
 hand-off aid, not a defense against a person watching or inspecting memory. No
 match state is saved and local matches never write solo records.
+
+## SWEEP, SLIDE and POP
+
+SWEEP is a 9×9 minefield with ten mines. The first opening and its neighbors
+are always safe; empty areas open automatically. Arrow keys move the cursor,
+Space opens, C flags, and tapping opens a square. Clear all safe squares to win;
+flags are optional. Each safe square is worth 10 points and a clear adds 1,000.
+
+SLIDE is a solvable 4×4 sliding puzzle with tiles 1–15 and one gap. Arrow keys
+move the gap; tapping a neighboring tile swaps it with the gap. Progress points
+reflect total tile distance from the solved arrangement; completion awards a
+larger bonus, reduced by the number of moves.
+
+POP is a 45-game-second target game: move the cursor and press Space, or tap a
+lit target. A hit is worth 100 points and a miss costs 10, never below zero.
+Targets move periodically; the accessible status gives their positions.
+
+On the website all three have independent seeded split-screen races with
+separate controls, handicaps and local records. Each side starts with the same
+seed; different first selections in SWEEP or different play in POP can cause
+boards to diverge. These races do not change solo scores.
 
 ## Split-screen races
 

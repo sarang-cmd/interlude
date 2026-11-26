@@ -11,6 +11,9 @@ export const RACE_GAMES = [
   "blockfall",
   "rockfall",
   "dashline",
+  "sweep",
+  "slide",
+  "pop",
 ] as const satisfies readonly GameId[];
 export type RaceGameId = (typeof RACE_GAMES)[number];
 export type RaceAction = Exclude<GameAction, "confirm" | "pause">;
@@ -57,6 +60,27 @@ const ACTIONS: Record<RaceGameId, ReadonlyArray<[RaceAction, string]>> = {
     ["primary", "fire"],
   ],
   dashline: [["primary", "jump"]],
+  sweep: [
+    ["left", "select left"],
+    ["right", "select right"],
+    ["up", "select up"],
+    ["down", "select down"],
+    ["primary", "open"],
+    ["secondary", "flag"],
+  ],
+  slide: [
+    ["left", "move gap left"],
+    ["right", "move gap right"],
+    ["up", "move gap up"],
+    ["down", "move gap down"],
+  ],
+  pop: [
+    ["left", "aim left"],
+    ["right", "aim right"],
+    ["up", "aim up"],
+    ["down", "aim down"],
+    ["primary", "pop"],
+  ],
 };
 const DEFAULT_KEYS: [Record<RaceAction, string>, Record<RaceAction, string>] = [
   { left: "KeyA", right: "KeyD", up: "KeyW", down: "KeyS", primary: "KeyF", secondary: "KeyQ" },

@@ -237,6 +237,46 @@ export const HAND_SIGNALS_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("handsignals"),
 };
 
+export const SWEEP_MANIFEST: GameManifest = {
+  ...common,
+  id: "sweep",
+  name: "SWEEP",
+  description: "Clear a minefield; mark hazards and open safe squares.",
+  controls: "ARROWS MOVE · SPACE OPEN · C FLAG · TAP TO OPEN",
+  defaultDifficulty: "standard",
+  category: "puzzle",
+  runLength: "3 to 8 minutes",
+  modes: [SOLO],
+  ai: { opponent: false, watchable: false },
+  playerOneBindings: playerOneBindings("sweep"),
+};
+export const SLIDE_MANIFEST: GameManifest = {
+  ...common,
+  id: "slide",
+  name: "SLIDE",
+  description: "Slide numbered tiles into order on a solvable puzzle board.",
+  controls: "ARROWS MOVE GAP · TAP NEIGHBOR · SWIPE",
+  defaultDifficulty: "standard",
+  category: "puzzle",
+  runLength: "3 to 10 minutes",
+  modes: [SOLO],
+  ai: { opponent: false, watchable: false },
+  playerOneBindings: playerOneBindings("slide"),
+};
+export const POP_MANIFEST: GameManifest = {
+  ...common,
+  id: "pop",
+  name: "POP",
+  description: "Pop the moving targets before the clock runs out.",
+  controls: "ARROWS AIM · SPACE POP · TAP TARGET",
+  defaultDifficulty: "standard",
+  category: "arcade",
+  runLength: "45 seconds",
+  modes: [SOLO],
+  ai: { opponent: false, watchable: false },
+  playerOneBindings: playerOneBindings("pop"),
+};
+
 export const GAME_MANIFESTS: readonly GameManifest[] = [
   SNAKE_MANIFEST,
   BREAKOUT_MANIFEST,
@@ -253,6 +293,9 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   DOTS_BOXES_MANIFEST,
   FLEET_MANIFEST,
   HAND_SIGNALS_MANIFEST,
+  SWEEP_MANIFEST,
+  SLIDE_MANIFEST,
+  POP_MANIFEST,
 ];
 
 export const DEFAULT_GAME_ID = "snake";
@@ -296,6 +339,9 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
   dotsboxes: async () => new (await import("./dotsboxes/game")).DotsBoxesGame(),
   fleet: async () => new (await import("./fleet/game")).FleetGame(),
   handsignals: async () => new (await import("./handsignals/game")).HandSignalsGame(),
+  sweep: async () => new (await import("./sweep/game")).SweepGame(),
+  slide: async () => new (await import("./slide/game")).SlideGame(),
+  pop: async () => new (await import("./pop/game")).PopGame(),
 };
 
 /** Lazy-load a game. A mode must be implemented on this build's surface. */

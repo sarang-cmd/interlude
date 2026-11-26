@@ -133,6 +133,27 @@ const CONTROL_SETS: Record<string, Array<[string, GameAction]>> = {
     ["→", "right"],
     ["CHOOSE", "primary"],
   ],
+  sweep: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+    ["OPEN", "primary"],
+    ["FLAG", "secondary"],
+  ],
+  slide: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+  ],
+  pop: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+    ["POP", "primary"],
+  ],
   tictactoe: [
     ["←", "left"],
     ["↑", "up"],

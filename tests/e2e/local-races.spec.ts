@@ -215,3 +215,43 @@ test("two simultaneous touch points drive both race boards independently", async
     await context.close();
   }
 });
+
+test("SWEEP, SLIDE and POP offer separate seeded race boards and controls", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1300 });
+  await page.addInitScript(
+    (key) => localStorage.setItem(key, JSON.stringify({ sweep: 321, slide: 654, pop: 987 })),
+    WEB_SCORES_KEY,
+  );
+  await page.goto(SITE);
+  for (const [id, name, action] of [
+    ["sweep", "SWEEP", "open"],
+    ["slide", "SLIDE", "move gap left"],
+    ["pop", "POP", "pop"],
+  ] as const) {
+    await selectRace(page, id, name);
+    await page.getByLabel("Round length").selectOption("30");
+    await page.locator("#game-speed").selectOption("400");
+    await page.getByRole("button", { name: "START GAME" }).click();
+    await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "playing");
+    await expect(
+      page.getByRole("button", { name: `Player 1 ${action}`, exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: `Player 2 ${action}`, exact: true }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: `Player 1 ${action}`, exact: true }).click();
+    await page.getByRole("button", { name: `Player 2 ${action}`, exact: true }).click();
+    await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "gameover", {
+      timeout: 15_000,
+    });
+    await expect(page.locator("#local-race .local-history li").first()).toContainText("seed");
+  }
+  const records = await page.evaluate(
+    (key) => JSON.parse(localStorage.getItem(key) ?? "[]"),
+    RACE_RECORDS_KEY,
+  );
+  expect(records.map((record: { game: string }) => record.game)).toEqual(["sweep", "slide", "pop"]);
+  expect(
+    await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "{}"), WEB_SCORES_KEY),
+  ).toEqual({ sweep: 321, slide: 654, pop: 987 });
+});

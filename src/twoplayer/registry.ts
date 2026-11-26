@@ -73,6 +73,12 @@ export async function loadLocalGame(gameId: string, modeId: string): Promise<Arc
       return new (await import("../games/fleet/fleet.2p")).FleetLocalGame();
     case "dotsboxes":
       return new (await import("../games/dotsboxes/dotsboxes.2p")).DotsBoxesLocalGame();
+    case "sweep":
+      return new (await import("../games/sweep/sweep.2p")).SweepLocalRace();
+    case "slide":
+      return new (await import("../games/slide/slide.2p")).SlideLocalRace();
+    case "pop":
+      return new (await import("../games/pop/pop.2p")).PopLocalRace();
     case "snake":
       return new (await import("../games/snake/snake.2p")).SnakeLocalRace();
     case "breakout":

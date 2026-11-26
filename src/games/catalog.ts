@@ -15,6 +15,9 @@ export const GAME_IDS = [
   "dotsboxes",
   "fleet",
   "handsignals",
+  "sweep",
+  "slide",
+  "pop",
 ] as const;
 export type GameId = (typeof GAME_IDS)[number];
 export const SPEED_CHOICES = [25, 50, 75, 100, 125, 150, 200, 300, 400] as const;
@@ -35,6 +38,9 @@ export const GAME_ACTIONS: Record<GameId, readonly string[]> = {
   dotsboxes: ["left", "right", "up", "down", "primary", "pause"],
   fleet: ["left", "right", "up", "down", "primary", "pause"],
   handsignals: ["left", "right", "primary", "pause"],
+  sweep: ["left", "right", "up", "down", "primary", "secondary", "pause"],
+  slide: ["left", "right", "up", "down", "pause"],
+  pop: ["left", "right", "up", "down", "primary", "pause"],
 };
 export const ACTION_DEFAULTS: Record<string, string> = {
   left: "ArrowLeft",

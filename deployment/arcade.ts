@@ -142,6 +142,27 @@ const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> =
     ["→", "right", "Select right"],
     ["CHOOSE", "primary", "Choose signal"],
   ],
+  sweep: [
+    ["←", "left", "Select left"],
+    ["↑", "up", "Select up"],
+    ["↓", "down", "Select down"],
+    ["→", "right", "Select right"],
+    ["OPEN", "primary", "Open square"],
+    ["FLAG", "secondary", "Flag square"],
+  ],
+  slide: [
+    ["←", "left", "Move gap left"],
+    ["↑", "up", "Move gap up"],
+    ["↓", "down", "Move gap down"],
+    ["→", "right", "Move gap right"],
+  ],
+  pop: [
+    ["←", "left", "Aim left"],
+    ["↑", "up", "Aim up"],
+    ["↓", "down", "Aim down"],
+    ["→", "right", "Aim right"],
+    ["POP", "primary", "Pop target"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],

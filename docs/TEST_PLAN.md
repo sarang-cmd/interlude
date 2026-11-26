@@ -48,7 +48,7 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
   DRAFTS check mandatory captures, multiple jumps and crowning. In FLEET,
   verify the next player sees only the privacy screen after a shot and after
   pause or tab hiding, and that repeated shots do not advance the turn.
-- Play all fifteen branch games on keyboard, pointer/touch and a standard focused
+- Play all eighteen branch games on keyboard, pointer/touch and a standard focused
   gamepad; check game-specific rules, remaps/conflicts, sounds, preview and
   records. Assess human difficulty and run length; simulation tests do not prove
   game feel.
