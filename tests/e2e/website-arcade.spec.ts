@@ -14,6 +14,7 @@ const games = [
   { id: "tictactoe", name: "NOUGHTS AND CROSSES", control: "Select left" },
   { id: "dropfour", name: "DROP FOUR", control: "Select left" },
   { id: "flipdisc", name: "FLIP DISC", control: "Select left" },
+  { id: "drafts", name: "DRAFTS", control: "Select left" },
   { id: "dotsboxes", name: "DOTS AND BOXES", control: "Select right" },
 ] as const;
 

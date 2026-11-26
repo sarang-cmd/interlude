@@ -181,6 +181,20 @@ export const FLIP_DISC_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("flipdisc"),
 };
 
+export const DRAFTS_MANIFEST: GameManifest = {
+  ...common,
+  id: "drafts",
+  name: "DRAFTS",
+  description: "Move diagonally, capture opposing pieces and crown kings.",
+  controls: "ARROWS SELECT · SPACE PICK PIECE / DESTINATION · TAP",
+  defaultDifficulty: "regular",
+  category: "board",
+  runLength: "5 to 12 minutes",
+  modes: [CPU],
+  ai: { opponent: true, watchable: false },
+  playerOneBindings: playerOneBindings("drafts"),
+};
+
 export const DOTS_BOXES_MANIFEST: GameManifest = {
   ...common,
   id: "dotsboxes",
@@ -207,6 +221,7 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   TICTACTOE_MANIFEST,
   DROP_FOUR_MANIFEST,
   FLIP_DISC_MANIFEST,
+  DRAFTS_MANIFEST,
   DOTS_BOXES_MANIFEST,
 ];
 
@@ -247,6 +262,7 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
     new (await import("./tictactoe/game")).TicTacToeGame(mode ? mode === "watch" : undefined),
   dropfour: async () => new (await import("./dropfour/game")).DropFourGame(),
   flipdisc: async () => new (await import("./flipdisc/game")).FlipDiscGame(),
+  drafts: async () => new (await import("./drafts/game")).DraftsGame(),
   dotsboxes: async () => new (await import("./dotsboxes/game")).DotsBoxesGame(),
 };
 

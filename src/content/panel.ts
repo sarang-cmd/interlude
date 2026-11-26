@@ -114,6 +114,13 @@ const CONTROL_SETS: Record<string, Array<[string, GameAction]>> = {
     ["→", "right"],
     ["DRAW", "primary"],
   ],
+  drafts: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+    ["SELECT", "primary"],
+  ],
   tictactoe: [
     ["←", "left"],
     ["↑", "up"],
@@ -570,7 +577,9 @@ export class Panel {
   private syncQuickControls(): void {
     this.quickPong.hidden = this.currentGameId !== "pong";
     this.quickTic.hidden = this.currentGameId !== "tictactoe";
-    this.quickBoard.hidden = !["dropfour", "flipdisc", "dotsboxes"].includes(this.currentGameId);
+    this.quickBoard.hidden = !["dropfour", "flipdisc", "drafts", "dotsboxes"].includes(
+      this.currentGameId,
+    );
     this.quickBoardAI.value = String(this.settings.boardDifficulty);
     this.quickSpeed.disabled = !this.currentGameId;
     const value = this.settings[`game.${this.currentGameId}.speed`];

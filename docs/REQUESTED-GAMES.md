@@ -46,8 +46,9 @@ the unreleased local work should be represented as deployed.
 
 ## Implementation status
 
-The eight existing cabinets, NOUGHTS AND CROSSES, DROP FOUR, FLIP DISC and
-DOTS AND BOXES are implemented locally. NOUGHTS AND CROSSES has all three requested sizes; DROP
-FOUR uses 7×6 and FLIP DISC 8×8. Each has website-only hot-seat. The remaining
-12 new titles and their requested modes are not yet implemented or deployed. This document is a scope record, not a
-claim that unfinished work has shipped.
+The eight existing cabinets, NOUGHTS AND CROSSES, DROP FOUR, FLIP DISC, DRAFTS
+and DOTS AND BOXES are implemented locally. NOUGHTS AND CROSSES has all three
+requested sizes; DROP FOUR uses 7×6 and FLIP DISC 8×8. Each has website-only
+hot-seat. The remaining 11 new titles and their requested modes are not yet
+implemented or deployed. This document is a scope record, not a claim that
+unfinished work has shipped.

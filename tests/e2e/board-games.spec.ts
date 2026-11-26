@@ -18,9 +18,7 @@ async function boardTap(page: Page, x: number, y: number, touch = false): Promis
   else await page.mouse.click(px, py);
 }
 
-test("both new boards use real local CPU workers and share a persisted difficulty", async ({
-  page,
-}) => {
+test("new board games use local CPU workers and share a persisted difficulty", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1200 });
   const workers: string[] = [],
     errors: string[] = [];
@@ -31,14 +29,21 @@ test("both new boards use real local CPU workers and share a persisted difficult
     ["DROP FOUR", "dropfour", 320, 220],
     ["FLIP DISC", "flipdisc", 304, 129],
     ["DOTS AND BOXES", "dotsboxes", 230, 60],
+    ["DRAFTS", "drafts", 272, 225],
   ] as const) {
     await select(page, name, id);
     await expect(page.locator("#board-ai option")).toHaveCount(5);
     await page.locator("#board-ai").selectOption("veteran");
     await page.getByRole("button", { name: "START GAME" }).click();
     await boardTap(page, x, y);
+    if (id === "drafts") {
+      await expect(page.locator("#game-announcement")).toContainText(
+        "Selected piece at row 6, column 3",
+      );
+      await boardTap(page, 240, 193);
+    }
     await expect(page.locator("#game-announcement")).toContainText(
-      id === "dotsboxes" ? "CPU drew" : "CPU played",
+      id === "dotsboxes" ? "CPU drew" : id === "drafts" ? "CPU moved" : "CPU played",
       { timeout: 7000 },
     );
     await expect(page.locator("#game-announcement")).toContainText("using search");
@@ -46,7 +51,7 @@ test("both new boards use real local CPU workers and share a persisted difficult
     await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "paused");
   }
   expect(workers.filter((url) => /search-worker-.*\.js/.test(url)).length).toBeGreaterThanOrEqual(
-    2,
+    4,
   );
   await page.reload();
   await select(page, "DROP FOUR", "dropfour");
@@ -133,6 +138,37 @@ test.describe("shared board on a small touch screen", () => {
       "Completed 1 box and plays again",
     );
     await expect(page.locator("#game-announcement")).toContainText("PLAYER 1 / X turn");
+    expect(workers).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      320,
+    );
+  });
+
+  test("DRAFTS moves pieces with two taps and alternates locally", async ({ page }) => {
+    const workers: string[] = [];
+    page.on("worker", (worker) => workers.push(worker.url()));
+    await page.goto(SITE);
+    await select(page, "DRAFTS", "drafts");
+    await page.locator("#race-mode").selectOption("local");
+    await expect(page.locator("#board-ai-field")).toBeHidden();
+    await page.getByRole("button", { name: "START GAME" }).click();
+    await boardTap(page, 272, 225, true);
+    await expect(page.locator("#game-announcement")).toContainText(
+      "Selected piece at row 6, column 3",
+    );
+    await boardTap(page, 240, 193, true);
+    await expect(page.locator("#game-announcement")).toContainText(
+      "PLAYER 1 / X moved from row 6, column 3 to row 5, column 2",
+    );
+    await expect(page.locator("#game-announcement")).toContainText("PLAYER 2 / O turn");
+    await boardTap(page, 240, 129, true);
+    await expect(page.locator("#game-announcement")).toContainText(
+      "Selected piece at row 3, column 2",
+    );
+    await boardTap(page, 208, 161, true);
+    await expect(page.locator("#game-announcement")).toContainText(
+      "PLAYER 2 / O moved from row 3, column 2 to row 4, column 1",
+    );
     expect(workers).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       320,

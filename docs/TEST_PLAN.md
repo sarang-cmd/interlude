@@ -44,8 +44,9 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
 - Exercise DROP FOUR gravity and a four-in-a-row win, and FLIP DISC captures and
   forced passes, in both CPU and website hot-seat modes. Check CPU failure,
   pause, touch and local-score isolation. For DOTS AND BOXES check a capture,
-  the resulting extra turn, a double-box capture and the final tally.
-- Play all twelve branch games on keyboard, pointer/touch and a standard focused
+  the resulting extra turn, a double-box capture and the final tally. For
+  DRAFTS check mandatory captures, multiple jumps and crowning.
+- Play all thirteen branch games on keyboard, pointer/touch and a standard focused
   gamepad; check game-specific rules, remaps/conflicts, sounds, preview and
   records. Assess human difficulty and run length; simulation tests do not prove
   game feel.

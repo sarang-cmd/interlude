@@ -18,6 +18,7 @@ and never use networking.
 | NOUGHTS AND CROSSES | vs CPU, watch CPU | vs CPU, watch CPU, hot-seat    | No         |
 | DROP FOUR           | vs CPU            | vs CPU, hot-seat               | No         |
 | FLIP DISC           | vs CPU            | vs CPU, hot-seat               | No         |
+| DRAFTS              | vs CPU            | vs CPU, hot-seat               | No         |
 | DOTS AND BOXES      | vs CPU            | vs CPU, hot-seat               | No         |
 
 Scores persist separately on each surface. The existing 2048 undo is not a saved
@@ -31,7 +32,7 @@ The extension popup can open each enabled extension cabinet directly, without a
 chat response in progress. Only the selected game is loaded. It uses global
 settings and key remaps, while site-specific overrides remain on their sites.
 Pong and NOUGHTS AND CROSSES expose CPU level and play/watch controls in the popup;
-DROP FOUR, FLIP DISC and DOTS AND BOXES expose a shared CPU-level control. Changing them updates
+DROP FOUR, FLIP DISC, DRAFTS and DOTS AND BOXES expose a shared CPU-level control. Changing them updates
 the global settings. Website-only local matches do not
 appear there. Human runs use ordinary extension-local high scores; CPU watch
 runs do not. Active popup play contributes to the same local Focus Guard totals
@@ -117,6 +118,23 @@ empty square, a draw 200 and a loss zero. Each game has a separate surface-local
 best score; the score is not a ranking across difficulty levels. On the website,
 a same-device match uses one shared keyboard, gamepad or on-screen control set
 and never writes solo scores. Matches are not restored after reload.
+
+## DRAFTS
+
+DRAFTS uses an eight-by-eight English-style draughts board with twelve pieces
+per side. Men move diagonally forward, kings move diagonally in both directions,
+and captures are compulsory. If a piece can continue jumping it must do so;
+reaching the far row crowns a king and ends that move. A player with no legal
+move loses. This implementation declares a draw after 80 consecutive
+non-capturing moves. Use arrows and Space to select a piece and then a marked
+legal destination, or tap each square. The live status announces the board,
+selection, legal destinations and capture continuations.
+
+Five shared board CPU levels use bounded local-worker minimax that understands
+multiple jumps by the same side. If the worker fails, the first legal move is
+used and the canvas shows `CPU: BASIC`. A solo win scores 1,000 plus 100 per
+remaining X piece, a draw scores 400 and a loss scores zero. Website hot-seat
+shares one control set and never changes solo records. Match state is not saved.
 
 ## DOTS AND BOXES
 
@@ -207,7 +225,7 @@ below the normal fixed-step size. Site preferences remain in localStorage.
 
 The reusable AI library includes seeded error and reaction helpers, bounded
 minimax, Monte Carlo playouts and a terminating worker client. NOUGHTS AND CROSSES,
-DROP FOUR, FLIP DISC and DOTS AND BOXES use the local board-search worker; Pong uses the reaction and adaptive helpers
+DROP FOUR, FLIP DISC, DRAFTS and DOTS AND BOXES use the local board-search worker; Pong uses the reaction and adaptive helpers
 directly and does not start a worker. See [ARCHITECTURE.md](ARCHITECTURE.md)
 for the extension-origin worker bridge and cancellation behavior.
 

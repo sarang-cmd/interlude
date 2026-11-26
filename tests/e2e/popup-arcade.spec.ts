@@ -596,21 +596,29 @@ test("popup board cabinets use the shared CPU setting and packaged worker", asyn
   await openArcade();
   await page.getByLabel("CPU level").selectOption("veteran");
   await expect(page.getByLabel("CPU mode")).toBeHidden();
-  for (const id of ["dropfour", "flipdisc", "dotsboxes"]) {
+  for (const id of ["dropfour", "flipdisc", "drafts", "dotsboxes"]) {
     await page.getByLabel("Choose game").selectOption(id);
     await expect(page.locator("#game-canvas")).toHaveAttribute("data-game", id);
     await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "ready");
     await expect(page.getByLabel("CPU level")).toHaveValue("veteran");
     await page.getByRole("button", { name: "START GAME" }).click();
     await page.keyboard.press("Space");
+    if (id === "drafts") {
+      await expect(page.locator("#game-announcement")).toContainText(
+        "Selected piece at row 6, column 3",
+      );
+      await page.keyboard.press("ArrowUp");
+      await page.keyboard.press("ArrowLeft");
+      await page.keyboard.press("Space");
+    }
     await expect(page.locator("#game-announcement")).toContainText(
-      id === "dotsboxes" ? "CPU drew" : "CPU played",
+      id === "dotsboxes" ? "CPU drew" : id === "drafts" ? "CPU moved" : "CPU played",
       { timeout: 7000 },
     );
     await expect(page.locator("#game-announcement")).toContainText("using search");
   }
   expect(workers.filter((url) => /^chrome-extension:\/\//.test(url)).length).toBeGreaterThanOrEqual(
-    2,
+    4,
   );
   expect(await page.locator("#arcade").textContent()).not.toMatch(/two.players|player 2/i);
   await expect
