@@ -381,6 +381,9 @@ test("the in-page LETTERS drawer accepts a session-only word list and plays it u
     .poll(() => callOn(cdp, ".announcement", "function() { return this.textContent; }"))
     .toContain("Word: A _ _ A");
   await page.keyboard.press("ArrowRight");
+  await expect
+    .poll(() => callOn(cdp, ".announcement", "function() { return this.textContent; }"))
+    .toContain("Selected B");
   await page.keyboard.press("Space");
   await expect(host).toHaveAttribute("data-interlude-scene", "gameover");
   await expect

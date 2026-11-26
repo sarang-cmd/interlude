@@ -19,6 +19,7 @@ const LEFT = 180,
   CELL = 40,
   COLS = 7,
   ROWS = 4;
+const GUESS_ACTIONS = ["left", "right", "up", "down", "primary"] as const;
 export class LettersGame implements ArcadeGame {
   readonly manifest = LETTERS_MANIFEST;
   readonly readyHint = "ARROWS SELECT LETTER · SPACE OR TAP GUESS";
@@ -72,7 +73,15 @@ export class LettersGame implements ArcadeGame {
     this.misses = 0;
     this.ended = false;
     this.solved = false;
-    this.armed = false;
+    // Discard the gesture that started this run before accepting new guesses.
+    // If no guess controls are held (for example, Enter started the game),
+    // a separate guess may arrive before the first fixed update and must survive.
+    const input = ctx.input;
+    for (const action of GUESS_ACTIONS) input.consumePresses(action);
+    input.drainTaps();
+    input.drainSwipes();
+    this.armed =
+      GUESS_ACTIONS.every((action) => !input.isDown(action)) && !input.pointerPosition().isDown;
     this.score = 0;
     this.announce(this.word ? "Guess the word." : "Waiting for the word.");
   }
@@ -85,12 +94,11 @@ export class LettersGame implements ArcadeGame {
     const input = this.g.input;
     if (!this.armed) {
       // The key/button/tap that started a run must not also guess a letter.
-      const actions = ["left", "right", "up", "down", "primary"] as const;
-      for (const action of actions) input.consumePresses(action);
+      for (const action of GUESS_ACTIONS) input.consumePresses(action);
       input.drainTaps();
       input.drainSwipes();
       this.armed =
-        actions.every((action) => !input.isDown(action)) && !input.pointerPosition().isDown;
+        GUESS_ACTIONS.every((action) => !input.isDown(action)) && !input.pointerPosition().isDown;
       return;
     }
     const directions = (["left", "right", "up", "down"] as const).filter((key) =>

@@ -97,12 +97,38 @@ describe("LETTERS word lists and rules", () => {
     game.init(context);
     game.setWordSource("custom", "BEE");
     input.virtualDown("primary", "start");
+    game.init(context); // Engine restart occurs while the starting key is held.
     game.fixedUpdate(0.02);
     input.virtualUp("primary", "start");
     game.fixedUpdate(0.02);
     expect(status()).toContain("6 guesses left");
     expect(status()).toContain("Guessed: none");
     press(game, "primary");
+    expect(status()).toContain("A: not in the word");
+    expect(status()).toContain("5 guesses left");
+  });
+  it("discards a starting press even if it was released before the run begins", () => {
+    const { context, input, press, status } = setup();
+    const game = new LettersGame();
+    game.init(context);
+    game.setWordSource("custom", "BEE");
+    input.virtualDown("primary", "start");
+    input.virtualUp("primary", "start");
+    game.init(context); // The engine can process a quick start after keyup.
+    game.fixedUpdate(0.02);
+    expect(status()).toContain("Guessed: none");
+    press(game, "primary");
+    expect(status()).toContain("A: not in the word");
+  });
+  it("accepts a distinct guess immediately after a non-guess start", () => {
+    const { context, input, press, status } = setup();
+    const game = new LettersGame();
+    game.init(context);
+    game.setWordSource("custom", "BEE");
+    input.virtualDown("confirm", "start");
+    game.init(context); // Engine restart happens while the start gesture is active.
+    input.virtualUp("confirm", "start");
+    press(game, "primary"); // A separate guess arrives before the first game update.
     expect(status()).toContain("A: not in the word");
     expect(status()).toContain("5 guesses left");
   });
