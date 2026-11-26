@@ -40,6 +40,15 @@ this is not a security boundary against a fully compromised browser. The built
 privacy audit restricts worker construction, frame source and web-accessible
 resources to the packaged host and search asset.
 
+## Local game privacy limits
+
+The website's secret-word and secret-code entries and hand-off screens reduce
+accidental disclosure between players; they do not protect against observers,
+other browser extensions or inspection of browser memory. LETTERS custom lists
+are held in a cabinet instance rather than saved or transmitted by the app.
+An untrusted chat page may observe keyboard or paste events from its embedded
+panel despite the closed shadow root. Do not enter sensitive text there.
+
 ## Signing and rotation
 
 1. On an offline or appropriately secured machine run

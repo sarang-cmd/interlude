@@ -229,3 +229,41 @@ test.describe("shared board on a small touch screen", () => {
     );
   });
 });
+
+test("newer search boards recover with a legal fallback if a worker cannot start", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1200 });
+  await page.addInitScript(() => {
+    class BlockedWorker {
+      constructor() {
+        throw new Error("Synthetic worker denial");
+      }
+    }
+    window.Worker = BlockedWorker as unknown as typeof Worker;
+  });
+  await page.goto(SITE);
+  for (const [name, id, x, y] of [
+    ["DROP FOUR", "dropfour", 320, 220],
+    ["FLIP DISC", "flipdisc", 304, 129],
+    ["DOTS AND BOXES", "dotsboxes", 230, 60],
+    ["DRAFTS", "drafts", 272, 225],
+  ] as const) {
+    await select(page, name, id);
+    await page.getByRole("button", { name: "START GAME" }).click();
+    await boardTap(page, x, y);
+    if (id === "drafts") {
+      await expect(page.locator("#game-announcement")).toContainText(
+        "Selected piece at row 6, column 3",
+      );
+      await boardTap(page, 240, 193);
+    }
+    await expect(page.locator("#game-announcement")).toContainText("using fallback", {
+      timeout: 7000,
+    });
+    await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "playing");
+    await expect(page.locator("#game-announcement")).toContainText(
+      id === "dotsboxes" ? "CPU drew" : id === "drafts" ? "CPU moved" : "CPU played",
+    );
+  }
+});

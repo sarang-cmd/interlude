@@ -74,17 +74,25 @@ basic local move if the worker cannot complete. The frame and worker are removed
 on completion, cancellation or timeout. No additional extension permissions
 or remote AI services are used.
 
-## Extension-initiated network requests
+## Local matches and custom word lists
 
-CODEBREAK's website secret-setter input is password-masked, is cleared on
-submission and tab hiding, and remains in match memory only; it is never
-persisted or transmitted. This is not a security boundary against someone
+CODEBREAK's and LETTERS' website secret-setter inputs are password-masked and
+are cleared on submission or tab hiding. The secrets stay in match memory; the
+app does not persist or transmit them. LETTERS reveals the word when a round
+ends. FLEET's CPU receives only revealed shot outcomes, not unshot ship
+locations; website hot-seat does not save fleet layouts or match state. These
+screens are visual hand-off aids, not security boundaries against someone
 watching or inspecting browser memory.
 
-FLEET's CPU receives only revealed shot outcomes, not unshot ship locations.
-Website hot-seat hides the boards behind a hand-off screen, and does not store
-fleet layouts or match state. The screen is not a security boundary against
-someone observing the device or inspecting its memory.
+LETTERS' custom lists are held in memory for the lifetime of that cabinet
+instance, not saved to storage or sent by the app. Retries retain the list.
+The popup destroys its instance on Back or close; an in-page panel may retain
+it while hidden until the game is replaced or the tab is reloaded. A host page
+may observe input events even from a closed-shadow panel, so avoid entering
+sensitive text there. Browser extensions or other observers may also see input.
+Scores and ordinary settings are still stored as described above.
+
+## Extension-initiated network requests
 
 There are exactly two automatic JSON check purposes; both are GETs, at most once
 per stated interval, without request body, cookies, authorization credentials,

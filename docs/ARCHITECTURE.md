@@ -64,6 +64,16 @@ The web build requires the registry. Both builds enforce JavaScript budgets,
 including emitted worker JavaScript assets, and emit a bundle report. See
 [GAME-MODES.md](GAME-MODES.md) for shipped modes.
 
+## Word-list and secret-input lifetime
+
+LETTERS shares a bounded list parser and a single-player game module between
+surfaces. Its optional custom list stays in the selected game instance's
+memory and is never written by the app; retries reuse it. The website-only
+secret setter is in `src/twoplayer/` and its local game adapter is `*.2p.ts`,
+so the extension build excludes them. Closing an in-page panel may hide rather
+than destroy its instance; switching games or unloading the tab discards it.
+See the privacy document for the host-page input-event limitation.
+
 ## Local AI search
 
 NOUGHTS AND CROSSES, DROP FOUR, FLIP DISC, DRAFTS and DOTS AND BOXES start a dedicated worker only on a CPU turn. A website worker is

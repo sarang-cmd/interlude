@@ -53,7 +53,7 @@ export function mountSecretInput({ root, game, kind, state, focusGame }: SecretO
     note.textContent = active
       ? kind === "code"
         ? "Player 1: enter four digits from 1 to 6, then pass the device. Repeats are allowed."
-        : "Player 1: enter one word in secret, then pass the device."
+        : "Player 1: enter one word of 2–24 letters A to Z in secret, then pass the device."
       : state() === "ready"
         ? "Press START GAME, then enter a secret. It stays in this match only."
         : "The secret stays in this match only and is not saved.";

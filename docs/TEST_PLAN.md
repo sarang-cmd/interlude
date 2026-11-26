@@ -48,10 +48,15 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
   DRAFTS check mandatory captures, multiple jumps and crowning. In FLEET,
   verify the next player sees only the privacy screen after a shot and after
   pause or tab hiding, and that repeated shots do not advance the turn.
-- Play all twenty-three branch games on keyboard, pointer/touch and a standard focused
+- Play all twenty-four branch games on keyboard, pointer/touch and a standard focused
   gamepad; check game-specific rules, remaps/conflicts, sounds, preview and
   records. Assess human difficulty and run length; simulation tests do not prove
   game feel.
+- In LETTERS test the general and study lists and a pasted list, malformed and
+  duplicate entries, repeated guesses, a win and a loss, keyboard/touch/gamepad,
+  retry behavior, and the website's password-masked secret-word hand-off. Check
+  pause/tab hiding and that a finished local match leaves solo scores unchanged.
+  Confirm the list is absent from storage; note the host-page input-event limit.
 - Exercise overlay dragging and persistence, narrow and large widths, integer
   scaling, themes, reduced motion, mute/music and the two sound packs.
 - Exercise first-message, short-reply, expected-wait, tab-focus, quiet hours,

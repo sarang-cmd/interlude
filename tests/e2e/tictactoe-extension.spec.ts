@@ -210,3 +210,204 @@ test("pausing an extension match terminates a stalled dedicated worker", async (
   await expect.poll(() => shadowNode(cdp, "iframe")).toBe(0);
   await cdp.detach();
 });
+
+test("newer board games use their packaged search workers under restrictive host CSP", async () => {
+  const extension = path.resolve("dist");
+  context = await chromium.launchPersistentContext("", {
+    channel: "chromium",
+    headless: true,
+    viewport: { width: 1100, height: 900 },
+    args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
+  });
+  background = context.serviceWorkers()[0] ?? (await context.waitForEvent("serviceworker"));
+  await background.evaluate(() =>
+    chrome.storage.sync.set({
+      "interlude.settings.v2": {
+        version: 2,
+        global: {
+          delayMs: 0,
+          skipBoot: true,
+          muted: true,
+          updateChecks: false,
+          autoClose: false,
+          game: "dropfour",
+          boardDifficulty: "veteran",
+        },
+        sites: {},
+      },
+    }),
+  );
+  const page = await context.newPage();
+  const workers: string[] = [],
+    errors: string[] = [];
+  page.on("worker", (worker) => workers.push(worker.url()));
+  page.on("pageerror", (error) => errors.push(error.message));
+  const html = fs.readFileSync("test/fixtures/claude/idle.html", "utf8");
+  await page.route("https://claude.ai/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "text/html",
+      headers: {
+        "Content-Security-Policy":
+          "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; frame-src 'none'; worker-src 'none'",
+      },
+      body: html,
+    }),
+  );
+  await page.goto("https://claude.ai/chat/idle");
+  await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]');
+  await expect(host).toBeVisible();
+  const cdp = await context.newCDPSession(page);
+  for (const id of ["dropfour", "flipdisc", "dotsboxes", "drafts"]) {
+    if (id !== "dropfour") {
+      await callOn(
+        cdp,
+        'select[aria-label="Choose game"]',
+        "function(value) { this.value = value; this.dispatchEvent(new Event('change', {bubbles:true})); }",
+        [id],
+      );
+    }
+    await expect(host).toHaveAttribute("data-interlude-game", id);
+    await expect(host).toHaveAttribute("data-interlude-scene", "ready");
+    await callOn(cdp, "canvas", "function() { this.focus(); }");
+    await page.keyboard.press("Enter");
+    await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+    await page.keyboard.press("Space");
+    if (id === "drafts") {
+      await expect
+        .poll(() => callOn(cdp, ".announcement", "function() { return this.textContent; }"))
+        .toContain("Selected piece at row 6, column 3");
+      await page.keyboard.press("ArrowUp");
+      await page.keyboard.press("ArrowLeft");
+      await page.keyboard.press("Space");
+    }
+    await expect
+      .poll(() => callOn(cdp, ".announcement", "function() { return this.textContent; }"), {
+        timeout: 7000,
+      })
+      .toContain("using search");
+    await expect.poll(() => shadowNode(cdp, "iframe")).toBe(0);
+  }
+  expect(
+    workers.filter((url) => /^chrome-extension:\/\/[^/]+\/assets\/search-worker-.*\.js$/.test(url))
+      .length,
+  ).toBeGreaterThanOrEqual(4);
+  expect(errors).toEqual([]);
+  await cdp.detach();
+});
+
+test("the in-page LETTERS drawer accepts a session-only word list and plays it under host CSP", async () => {
+  const extension = path.resolve("dist");
+  context = await chromium.launchPersistentContext("", {
+    channel: "chromium",
+    headless: true,
+    viewport: { width: 1100, height: 900 },
+    args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
+  });
+  background = context.serviceWorkers()[0] ?? (await context.waitForEvent("serviceworker"));
+  await background.evaluate(() =>
+    chrome.storage.sync.set({
+      "interlude.settings.v2": {
+        version: 2,
+        global: {
+          delayMs: 0,
+          skipBoot: true,
+          muted: true,
+          updateChecks: false,
+          autoClose: false,
+          game: "letters",
+        },
+        sites: {},
+      },
+    }),
+  );
+  const page = await context.newPage();
+  const html = fs.readFileSync("test/fixtures/claude/idle.html", "utf8");
+  await page.route("https://claude.ai/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "text/html",
+      headers: {
+        "Content-Security-Policy":
+          "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; frame-src 'none'; worker-src 'none'",
+      },
+      body: html,
+    }),
+  );
+  await page.goto("https://claude.ai/chat/idle");
+  await page.locator('[data-testid="send-button"]').click();
+  const host = page.locator('[data-interlude="panel"]');
+  await expect(host).toBeVisible();
+  await expect(host).toHaveAttribute("data-interlude-game", "letters");
+  await expect(host).toHaveAttribute("data-interlude-scene", "ready");
+  const cdp = await context.newCDPSession(page);
+  await callOn(cdp, ".gear", "function() { this.click(); }");
+  await expect
+    .poll(() => shadowNode(cdp, 'select[aria-label="LETTERS word list"]'))
+    .toBeGreaterThan(0);
+  await callOn(
+    cdp,
+    'select[aria-label="LETTERS word list"]',
+    "function() { this.value = 'custom'; this.dispatchEvent(new Event('change', {bubbles:true})); }",
+  );
+  await callOn(cdp, 'textarea[aria-label="Paste your word list"]', "function() { this.focus(); }");
+  await page.keyboard.type("ABBA");
+  await expect
+    .poll(() =>
+      callOn(
+        cdp,
+        'textarea[aria-label="Paste your word list"]',
+        "function() { return this.value; }",
+      ),
+    )
+    .toBe("ABBA");
+  await expect(host).toHaveAttribute("data-interlude-scene", "ready");
+  await callOn(cdp, ".word-list-custom button", "function() { this.click(); }");
+  await expect
+    .poll(() =>
+      callOn(
+        cdp,
+        'textarea[aria-label="Paste your word list"]',
+        "function() { return this.value; }",
+      ),
+    )
+    .toBe("");
+  await callOn(cdp, "canvas", "function() { this.focus(); }");
+  await page.keyboard.press("Enter");
+  await expect(host).toHaveAttribute("data-interlude-scene", "playing");
+  await page.keyboard.press("Space");
+  await expect
+    .poll(() => callOn(cdp, ".announcement", "function() { return this.textContent; }"))
+    .toContain("Word: A _ _ A");
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Space");
+  await expect(host).toHaveAttribute("data-interlude-scene", "gameover");
+  await expect
+    .poll(() => callOn(cdp, ".announcement", "function() { return this.textContent; }"))
+    .toContain("WORD FOUND / ABBA");
+  await expect
+    .poll(() =>
+      background.evaluate(
+        async () =>
+          (await chrome.storage.local.get("interlude.highscores"))["interlude.highscores"]?.letters,
+      ),
+    )
+    .toBe(1900);
+  const stored = await background.evaluate(async () =>
+    JSON.stringify({
+      local: await chrome.storage.local.get(null),
+      sync: await chrome.storage.sync.get(null),
+    }),
+  );
+  expect(stored).not.toContain("ABBA");
+  await callOn(
+    cdp,
+    'select[aria-label="Choose game"]',
+    "function(value) { this.value = value; this.dispatchEvent(new Event('change', {bubbles:true})); }",
+    ["snake"],
+  );
+  await expect(host).toHaveAttribute("data-interlude-game", "snake");
+  await expect.poll(() => shadowNode(cdp, 'textarea[aria-label="Paste your word list"]')).toBe(0);
+  await cdp.detach();
+});

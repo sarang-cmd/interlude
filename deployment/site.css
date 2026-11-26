@@ -967,3 +967,30 @@ footer a {
     padding: 17px;
   }
 }
+
+.word-list-label {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0;
+  color: var(--hot);
+  font-size: 9px;
+}
+.word-list-label select,
+.word-list-label textarea {
+  width: min(100%, 360px);
+  padding: 7px;
+  background: var(--ink);
+  color: var(--hot);
+  border: 1px solid var(--dim);
+  font:
+    11px "IBM Plex Mono",
+    monospace;
+}
+.word-list-custom[hidden] {
+  display: none;
+}
+.word-list-note {
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--text);
+}

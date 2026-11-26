@@ -346,6 +346,20 @@ export const QUICK_DRAW_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("quickdraw"),
 };
 
+export const LETTERS_MANIFEST: GameManifest = {
+  ...common,
+  id: "letters",
+  name: "LETTERS",
+  description: "Guess a word from general, study or your own word lists.",
+  controls: "ARROWS SELECT · SPACE OR TAP GUESSES",
+  defaultDifficulty: "standard",
+  category: "puzzle",
+  runLength: "1 to 4 minutes",
+  modes: [SOLO],
+  ai: { opponent: false, watchable: false },
+  playerOneBindings: playerOneBindings("letters"),
+};
+
 export const GAME_MANIFESTS: readonly GameManifest[] = [
   SNAKE_MANIFEST,
   BREAKOUT_MANIFEST,
@@ -369,6 +383,7 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   ECHO_MANIFEST,
   CODEBREAK_MANIFEST,
   QUICK_DRAW_MANIFEST,
+  LETTERS_MANIFEST,
   POP_MANIFEST,
 ];
 
@@ -420,6 +435,7 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
   echo: async () => new (await import("./echo/game")).EchoGame(),
   codebreak: async () => new (await import("./codebreak/game")).CodebreakGame(),
   quickdraw: async () => new (await import("./quickdraw/game")).QuickDrawGame(),
+  letters: async () => new (await import("./letters/game")).LettersGame(),
   pop: async () => new (await import("./pop/game")).PopGame(),
 };
 

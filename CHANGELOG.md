@@ -5,6 +5,8 @@
 - Add a playable toolbar popup with lazy-loaded enabled cabinets, local scores,
   CPU controls and the same global pause and Focus Guard restrictions. Closing
   the popup ends the run; it does not save game state.
+- Complete the 24-game roster with LETTERS: general, study and session-only
+  custom lists on both surfaces, plus a website-only hidden-word match.
 - Add QUICK DRAW with a shared-cue two-player duel on the website.
 - Add CODEBREAK with a website-only hidden-code setter and hand-off screen.
 - Add DARK ROOM, a solo maze with a key and exit.

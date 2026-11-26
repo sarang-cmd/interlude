@@ -53,7 +53,8 @@ const SECRET_LOCAL: GameMode = {
 export function localModesFor(gameId: string): readonly GameMode[] {
   if (gameId === "pong") return [PONG_LOCAL];
   if (gameId === "quickdraw") return [DUEL_LOCAL];
-  if (gameId === "handsignals" || gameId === "codebreak") return [SECRET_LOCAL];
+  if (gameId === "handsignals" || gameId === "codebreak" || gameId === "letters")
+    return [SECRET_LOCAL];
   if (gameId === "pairs" || gameId === "echo") return [TICTACTOE_LOCAL];
   if (["tictactoe", "dropfour", "flipdisc", "drafts", "dotsboxes", "fleet"].includes(gameId))
     return [TICTACTOE_LOCAL];
@@ -83,6 +84,8 @@ export async function loadLocalGame(gameId: string, modeId: string): Promise<Arc
       return new (await import("../games/fleet/fleet.2p")).FleetLocalGame();
     case "dotsboxes":
       return new (await import("../games/dotsboxes/dotsboxes.2p")).DotsBoxesLocalGame();
+    case "letters":
+      return new (await import("../games/letters/letters.2p")).LettersLocalGame();
     case "quickdraw":
       return new (await import("../games/quickdraw/quickdraw.2p")).QuickDrawDuelGame();
     case "codebreak":

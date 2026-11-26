@@ -75,6 +75,7 @@ const gameOptions = opts(
   ["echo", "ECHO"],
   ["codebreak", "CODEBREAK"],
   ["quickdraw", "QUICK DRAW"],
+  ["letters", "LETTERS"],
   ["pop", "POP"],
 );
 
@@ -858,6 +859,7 @@ const names: Record<GameId, string> = {
   echo: "ECHO",
   codebreak: "CODEBREAK",
   quickdraw: "QUICK DRAW",
+  letters: "LETTERS",
   pop: "POP",
 };
 const generated: SettingDefinition[] = GAME_IDS.flatMap((game) => [

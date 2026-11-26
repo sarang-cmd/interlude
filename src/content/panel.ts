@@ -1,6 +1,7 @@
 import { Engine, type EngineState } from "../engine/engine";
 import type { GameAction } from "../engine/input";
 import type { ArcadeGame } from "../games/types";
+import type { LettersGame } from "../games/letters/game";
 import { GAME_MANIFESTS } from "../games/manifest";
 import type { MountPointResult, Placement } from "../adapters/types";
 import type { InterludeSettings } from "../shared/storage";
@@ -45,6 +46,7 @@ canvas{display:block;width:100%;max-width:640px;height:auto;margin:0 auto;image-
 .drawer{padding:10px;border-bottom:1px solid #7A5600;background:#171209;font-size:10px}
 .drawer-row{display:grid;grid-template-columns:1fr minmax(110px,180px);gap:8px;align-items:center;padding:5px 0}
 .drawer input{width:100%;accent-color:#FFB000}.drawer select{width:100%;max-width:none}
+.word-list-ui{padding:8px 0}.word-list-label{display:grid;gap:4px;margin:5px 0;color:#FFD36B;font-size:10px}.word-list-label textarea{box-sizing:border-box;width:100%;min-height:60px;padding:6px;background:#0E0B07;color:#FFD36B;border:1px solid #7A5600;font:11px 'IBM Plex Mono',monospace}.word-list-custom button{padding:7px}.word-list-note{font-size:9px;line-height:1.5;color:#C2A86B;margin:6px 0}
 .lock-message{padding:28px 12px;color:#FFB000;font:14px Silkscreen,monospace;text-align:center;line-height:1.6}
 .notice{padding:8px 10px;color:#FFD36B;background:#221A10;font-size:10px}
 .daily{font-size:9px;color:#C2A86B}
@@ -181,6 +183,13 @@ const CONTROL_SETS: Record<string, Array<[string, GameAction]>> = {
     ["SUBMIT", "primary"],
   ],
   quickdraw: [["DRAW", "primary"]],
+  letters: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+    ["GUESS", "primary"],
+  ],
   tictactoe: [
     ["←", "left"],
     ["↑", "up"],
@@ -246,6 +255,9 @@ export class Panel {
   private readonly quickBoardAI = node("select");
   private readonly quickHand = node("div", "quick-hand");
   private readonly quickHandMode = node("select");
+  private readonly quickLetters = node("div", "word-list-ui");
+  private removeWordList: (() => void) | null = null;
+  private wordListVersion = 0;
   private readonly daily = node("span", "daily");
   private readonly notice = node("div", "notice");
   private readonly announcement = node("div", "announcement");
@@ -436,6 +448,8 @@ export class Panel {
     row("HAND SIGNALS RULES", this.quickHandMode, this.quickHand);
     this.quickHand.hidden = true;
     this.drawer.append(this.quickHand);
+    this.quickLetters.hidden = true;
+    this.drawer.append(this.quickLetters);
     this.quickVolume.type = "range";
     this.quickVolume.min = "0";
     this.quickVolume.max = "100";
@@ -590,6 +604,20 @@ export class Panel {
     this.onScene?.(state);
   }
   setGame(game: ArcadeGame, best: number, bindings: Record<string, string>): void {
+    this.removeWordList?.();
+    this.removeWordList = null;
+    const wordVersion = ++this.wordListVersion;
+    if (game.manifest.id === "letters") {
+      void import("../games/letters/list-ui")
+        .then(({ mountWordLists }) => {
+          if (wordVersion === this.wordListVersion)
+            this.removeWordList = mountWordLists(this.quickLetters, game as LettersGame);
+        })
+        .catch(() => {
+          if (wordVersion === this.wordListVersion)
+            this.setNotice("Word-list controls could not load.");
+        });
+    }
     this.currentGameId = game.manifest.id;
     this.syncQuickControls();
     const index = GAME_MANIFESTS.findIndex((entry) => entry.id === game.manifest.id);
@@ -936,6 +964,9 @@ export class Panel {
     }
   }
   destroy(): void {
+    this.wordListVersion++;
+    this.removeWordList?.();
+    this.removeWordList = null;
     if (this.collapseHandler) this.host.removeEventListener("transitionend", this.collapseHandler);
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;

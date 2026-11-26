@@ -46,10 +46,10 @@ the unreleased local work should be represented as deployed.
 
 ## Implementation status
 
-The eight existing cabinets, NOUGHTS AND CROSSES, DROP FOUR, FLIP DISC, DRAFTS,
-DOTS AND BOXES, FLEET, HAND SIGNALS, SWEEP, PAIRS, DARK ROOM, SLIDE, ECHO, CODEBREAK, QUICK DRAW and POP are implemented locally. NOUGHTS AND CROSSES has all
-three requested sizes; DROP FOUR uses 7×6 and FLIP DISC 8×8. Each has a
-website-only hot-seat mode, and FLEET uses a privacy screen at hand-off. The
-remaining title and their requested modes are not yet implemented or
-deployed. This document is a scope record, not a claim that unfinished work has
-shipped.
+All 24 titles and the requested modes are implemented and tested locally.
+NOUGHTS AND CROSSES has all three requested sizes; DROP FOUR uses 7×6 and FLIP
+DISC 8×8. The first seven new games have CPU play on both surfaces; local
+matches and co-op remain website-only, with privacy screens for the relevant
+hand-offs. DARK ROOM is solo. The expansion is unreleased and has not been
+pushed or deployed; the public arcade and published extension are older builds.
+This document records scope and local implementation, not a shipped release.

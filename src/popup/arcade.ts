@@ -8,6 +8,7 @@ import { GAME_ACTIONS, type GameId, type InterludeSettings } from "../settings/s
 import { loadSettings, saveSettings, SETTINGS_KEY } from "../settings/store";
 import { GAME_MANIFESTS, getManifest, loadGame, resolveGameId } from "../games/manifest";
 import type { GameManifest } from "../games/types";
+import type { LettersGame } from "../games/letters/game";
 import { loadPauseUntil, PAUSE_KEY } from "../shared/pause";
 import { loadHighScores, loadKeybindings, loadLastPlayed, saveLastPlayed } from "../shared/storage";
 
@@ -137,6 +138,13 @@ const CONTROLS: Record<string, readonly Control[]> = {
     ["SUBMIT", "primary", "Submit code guess"],
   ],
   quickdraw: [["DRAW", "primary", "Draw"]],
+  letters: [
+    ["←", "left", "Select letter left"],
+    ["↑", "up", "Select letter up"],
+    ["↓", "down", "Select letter down"],
+    ["→", "right", "Select letter right"],
+    ["GUESS", "primary", "Guess letter"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],
@@ -192,6 +200,8 @@ class PopupArcade {
   private readonly boardSize: HTMLSelectElement;
   private readonly handOptions: HTMLElement;
   private readonly handMode: HTMLSelectElement;
+  private readonly wordListRoot: HTMLElement;
+  private removeWordList: (() => void) | null = null;
   private readonly back: HTMLButtonElement;
   private readonly events = new AbortController();
   private engine: Engine | null = null;
@@ -240,6 +250,7 @@ class PopupArcade {
     this.boardSize = element(root, "#board-size");
     this.handOptions = element(root, "#hand-options");
     this.handMode = element(root, "#hand-mode");
+    this.wordListRoot = element(root, "#letters-options");
     this.back = element(root, "#back");
 
     this.canvas.dataset.scene = "loading";
@@ -407,6 +418,8 @@ class PopupArcade {
     const manifest = getManifest(id);
     if (!engine || !manifest || !this.enabledGames().includes(id)) return;
     const sequence = ++this.selection;
+    this.removeWordList?.();
+    this.removeWordList = null;
     this.stopTracking(true);
     engine.stop();
     this.loaded = false;
@@ -421,10 +434,11 @@ class PopupArcade {
     this.aiOptions.hidden = true;
     this.reconcile();
     try {
-      const [game, scores, bindings] = await Promise.all([
+      const [game, scores, bindings, listModule] = await Promise.all([
         loadGame(id),
         loadHighScores(),
         loadKeybindings(),
+        id === "letters" ? import("../games/letters/list-ui") : Promise.resolve(null),
       ]);
       if (this.destroyed || sequence !== this.selection || !this.enabledGames().includes(id))
         return;
@@ -441,6 +455,8 @@ class PopupArcade {
       this.loaded = true;
       this.syncGameSettings();
       engine.start();
+      if (listModule)
+        this.removeWordList = listModule.mountWordLists(this.wordListRoot, game as LettersGame);
       this.reconcile();
       void saveLastPlayed(id).catch(() => {});
     } catch {
@@ -453,6 +469,8 @@ class PopupArcade {
 
   private clearGame(): void {
     this.selection++;
+    this.removeWordList?.();
+    this.removeWordList = null;
     this.stopTracking(true);
     this.engine?.stop();
     this.currentGame = "";
@@ -888,6 +906,8 @@ class PopupArcade {
     if (this.timer !== undefined) clearInterval(this.timer);
     chrome.storage.onChanged.removeListener(this.onStorage);
     this.events.abort();
+    this.removeWordList?.();
+    this.removeWordList = null;
     this.engine?.destroy();
     this.engine = null;
   }

@@ -25,10 +25,11 @@ and never use networking.
 | SWEEP               | Solo              | Solo, split-screen race        | No         |
 | PAIRS               | Solo              | Solo, turn-based match         | No         |
 | DARK ROOM           | Solo              | Solo                           | No         |
+| SLIDE               | Solo              | Solo, split-screen race        | No         |
 | ECHO                | Solo              | Solo, sequence-extension match | No         |
 | CODEBREAK           | Solo              | Solo, secret-setter match      | No         |
 | QUICK DRAW          | Solo              | Solo, simultaneous duel        | No         |
-| SLIDE               | Solo              | Solo, split-screen race        | No         |
+| LETTERS             | Solo              | Solo, secret-word match        | No         |
 | POP                 | Solo              | Solo, split-screen race        | No         |
 
 Scores persist separately on each surface. The existing 2048 undo is not a saved
@@ -201,6 +202,34 @@ hand-off screen. The signals are revealed only after both have chosen. Pausing
 or hiding while choosing returns to the screen. As with FLEET, this is a visual
 hand-off aid, not a defense against a person watching or inspecting memory. No
 match state is saved and local matches never write solo records.
+
+## LETTERS
+
+Guess a word one letter at a time. Arrows move around the alphabet, Space
+selects a letter, and a tap selects and guesses it directly. All copies of a
+correct letter appear; repeating a guess costs nothing. Six distinct wrong
+guesses end the run, revealing the answer. A solo win scores 1,000 plus 150
+for each unused guess; a loss scores zero. All three solo list sources share
+the ordinary LETTERS best score, so scores are not comparable across lists.
+
+The general and study lists each have 36 bundled words. Paste a custom list in
+the cabinet controls: 1–100 entries, each 2–24 ASCII letters A–Z, separated by
+commas, semicolons or new lines, with a 4,000-character total limit. Entries
+are case-insensitive and duplicates are removed. Invalid input leaves the last
+valid source in place. Applying a source resets an unfinished word; after a
+completed game, it applies on retry. The selected custom list stays only in
+memory with that cabinet instance, survives retries, and is not saved or sent by
+the app. Resetting or switching games replaces the instance; closing an in-page
+panel can leave its instance in memory until a later selection or tab reload.
+The popup's Back or close ends its instance. Avoid sensitive words in an in-page
+cabinet: a host page may observe input events.
+
+On the website, choose the secret-word match: after Start, player 1 enters a
+single word into a password-masked input and passes the device behind a privacy
+screen for player 2 to guess. The input clears on submission or tab hiding; the
+screen returns on pause or hiding. The answer is revealed when the run ends.
+The match does not write solo records. Neither the mask nor the hand-off screen
+is a security boundary against a person watching or inspecting browser memory.
 
 ## QUICK DRAW
 

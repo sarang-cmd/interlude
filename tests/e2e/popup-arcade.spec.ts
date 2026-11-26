@@ -687,3 +687,65 @@ test("PAIRS and ECHO play locally in the extension popup", async () => {
   await expect(page.locator("#game-announcement")).toContainText("Completed 1 rounds");
   expect(await page.locator("#arcade").textContent()).not.toMatch(/two.players|player 2/i);
 });
+
+test("CODEBREAK, QUICK DRAW and LETTERS are playable in the popup while offline", async () => {
+  await settings({ game: "codebreak" });
+  await context.setOffline(true);
+  const requests: string[] = [],
+    errors: string[] = [];
+  page.on("request", (request) => requests.push(request.url()));
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto(`${extensionOrigin}/popup.html`);
+  await openArcade();
+  const picker = page.getByLabel("Choose game"),
+    canvas = page.locator("#game-canvas"),
+    status = page.locator("#game-announcement");
+  await expect(canvas).toHaveAttribute("data-game", "codebreak");
+  await page.getByRole("button", { name: "START GAME" }).click();
+  await page.getByRole("button", { name: "Submit code guess" }).click();
+  await expect(status).toContainText("exact");
+  await expect(status).toContainText("misplaced");
+
+  await picker.selectOption("quickdraw");
+  await expect(canvas).toHaveAttribute("data-game", "quickdraw");
+  await expect(canvas).toHaveAttribute("data-scene", "ready");
+  await page.getByRole("button", { name: "START GAME" }).click();
+  await expect(canvas).toHaveAttribute("data-scene", "playing");
+  await page.waitForTimeout(100); // Let the starting gesture release before testing a false start.
+  await page.getByRole("button", { name: "Draw", exact: true }).click();
+  await expect(status).toContainText("FALSE START");
+  await expect(canvas).toHaveAttribute("data-scene", "gameover");
+
+  await picker.selectOption("letters");
+  await expect(canvas).toHaveAttribute("data-game", "letters");
+  await page.getByLabel("LETTERS word list").selectOption("custom");
+  const words = page.getByLabel("Paste your word list");
+  await words.fill("ABBA");
+  await page.getByRole("button", { name: "APPLY LIST" }).click();
+  await expect(words).toHaveValue("");
+  await page.getByRole("button", { name: "START GAME" }).click();
+  await expect(status).toContainText("Word: _ _ _ _");
+  await page.getByRole("button", { name: "Guess letter" }).click();
+  await expect(status).toContainText("Word: A _ _ A");
+  await page.getByRole("button", { name: "Select letter right" }).click();
+  await page.getByRole("button", { name: "Guess letter" }).click();
+  await expect(status).toContainText("WORD FOUND / ABBA");
+  await expect(canvas).toHaveAttribute("data-scene", "gameover");
+  await expect
+    .poll(() =>
+      worker.evaluate(
+        async () =>
+          (await chrome.storage.local.get("interlude.highscores"))["interlude.highscores"]?.letters,
+      ),
+    )
+    .toBe(1900);
+  const stored = await worker.evaluate(async () =>
+    JSON.stringify({
+      local: await chrome.storage.local.get(null),
+      sync: await chrome.storage.sync.get(null),
+    }),
+  );
+  expect(stored).not.toContain("ABBA");
+  expect(requests.filter((url) => /^https?:/i.test(url))).toEqual([]);
+  expect(errors).toEqual([]);
+});
