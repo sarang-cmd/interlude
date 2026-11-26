@@ -639,3 +639,31 @@ test("popup board cabinets use the shared CPU setting and packaged worker", asyn
     )
     .toBe("veteran");
 });
+
+test("HAND SIGNALS optional rules are available and saved in the popup", async () => {
+  await settings({ game: "handsignals" });
+  await page.goto(`${extensionOrigin}/popup.html`);
+  await openArcade();
+  await expect(page.getByLabel("HAND SIGNALS rules")).toHaveValue("classic");
+  await page.getByLabel("HAND SIGNALS rules").selectOption("extended");
+  await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "ready");
+  await page.getByRole("button", { name: "START GAME" }).click();
+  await expect(page.locator("#game-announcement")).toContainText("Lizard Spock is on");
+  for (let i = 0; i < 4; i++) await page.keyboard.press("ArrowRight");
+  await expect(page.locator("#game-announcement")).toContainText("Selected SPOCK");
+  await page.keyboard.press("Space");
+  await expect(page.locator("#game-announcement")).toContainText("YOU chose SPOCK. CPU chose");
+  await expect
+    .poll(() =>
+      worker.evaluate(async () => {
+        const doc = (await chrome.storage.sync.get("interlude.settings.v2"))[
+          "interlude.settings.v2"
+        ];
+        return doc.global.handLizardSpock;
+      }),
+    )
+    .toBe(true);
+  await page.reload();
+  await openArcade();
+  await expect(page.getByLabel("HAND SIGNALS rules")).toHaveValue("extended");
+});

@@ -67,6 +67,7 @@ const gameOptions = opts(
   ["drafts", "DRAFTS"],
   ["dotsboxes", "DOTS AND BOXES"],
   ["fleet", "FLEET"],
+  ["handsignals", "HAND SIGNALS"],
 );
 
 const BASE = [
@@ -361,11 +362,22 @@ const BASE = [
     perSite: true,
   }),
   def({
+    id: "handLizardSpock",
+    type: "boolean",
+    default: false,
+    label: "HAND SIGNALS / Lizard Spock",
+    description:
+      "Add Lizard and Spock to the three classic signals. Changing rules starts a new match.",
+    category: "Games",
+    tags: ["handsignals", "lizard", "spock", "rules"],
+    perSite: true,
+  }),
+  def({
     id: "boardDifficulty",
     type: "enum",
     default: "regular",
     label: "Board games / AI level",
-    description: "Shared CPU strength for DROP FOUR, FLIP DISC, DRAFTS, DOTS AND BOXES and FLEET.",
+    description: "Shared CPU strength for the added board games.",
     category: "Games",
     tags: ["board", "ai", "difficulty"],
     perSite: true,
@@ -830,6 +842,7 @@ const names: Record<GameId, string> = {
   drafts: "DRAFTS",
   dotsboxes: "DOTS AND BOXES",
   fleet: "FLEET",
+  handsignals: "HAND SIGNALS",
 };
 const generated: SettingDefinition[] = GAME_IDS.flatMap((game) => [
   {

@@ -31,6 +31,7 @@ it("persists valid local AI and per-game speed choices", () => {
   settings.pongAdaptive = true;
   settings.pongFirstTo = 3;
   settings.boardDifficulty = "hard";
+  settings.handLizardSpock = true;
   settings.tictactoeDifficulty = "veteran";
   settings.tictactoeWatch = true;
   settings.tictactoeSize = "5";
@@ -49,6 +50,7 @@ it("drops malformed values and stays usable without storage", () => {
       pongAdaptive: true,
       pongFirstTo: 500,
       boardDifficulty: "unknown",
+      handLizardSpock: "yes",
       tictactoeDifficulty: "unknown",
       tictactoeWatch: "yes",
       tictactoeSize: "999",
@@ -62,6 +64,7 @@ it("drops malformed values and stays usable without storage", () => {
     pongAdaptive: true,
     pongFirstTo: 5,
     boardDifficulty: "regular",
+    handLizardSpock: false,
     tictactoeDifficulty: "regular",
     tictactoeWatch: false,
     tictactoeSize: "3",

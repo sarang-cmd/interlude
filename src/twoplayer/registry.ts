@@ -34,8 +34,17 @@ const TICTACTOE_LOCAL: GameMode = {
   surfaces: ["web"],
 };
 
+const SECRET_LOCAL: GameMode = {
+  id: "local",
+  label: "TWO PLAYERS / SECRET HANDOFF",
+  description: "Choose in secret on one device; a privacy screen covers each hand-off.",
+  players: 2,
+  surfaces: ["web"],
+};
+
 export function localModesFor(gameId: string): readonly GameMode[] {
   if (gameId === "pong") return [PONG_LOCAL];
+  if (gameId === "handsignals") return [SECRET_LOCAL];
   if (["tictactoe", "dropfour", "flipdisc", "drafts", "dotsboxes", "fleet"].includes(gameId))
     return [TICTACTOE_LOCAL];
   if (gameId === "twenty48") return [RACE_LOCAL, COOP_2048];
@@ -58,6 +67,8 @@ export async function loadLocalGame(gameId: string, modeId: string): Promise<Arc
       return new (await import("../games/grid-duel/grid.2p")).LocalGridGame("flip-disc");
     case "drafts":
       return new (await import("../games/drafts/drafts.2p")).LocalDraftsGame();
+    case "handsignals":
+      return new (await import("../games/handsignals/handsignals.2p")).LocalHandSignalsGame();
     case "fleet":
       return new (await import("../games/fleet/fleet.2p")).FleetLocalGame();
     case "dotsboxes":

@@ -21,6 +21,7 @@ and never use networking.
 | DRAFTS              | vs CPU            | vs CPU, hot-seat               | No         |
 | DOTS AND BOXES      | vs CPU            | vs CPU, hot-seat               | No         |
 | FLEET               | vs CPU            | vs CPU, private hot-seat       | No         |
+| HAND SIGNALS        | vs CPU            | vs CPU, secret hand-off        | No         |
 
 Scores persist separately on each surface. The existing 2048 undo is not a saved
 run. The shared manifest lists default player-one keys, inputs, categories and
@@ -33,7 +34,7 @@ The extension popup can open each enabled extension cabinet directly, without a
 chat response in progress. Only the selected game is loaded. It uses global
 settings and key remaps, while site-specific overrides remain on their sites.
 Pong and NOUGHTS AND CROSSES expose CPU level and play/watch controls in the popup;
-DROP FOUR, FLIP DISC, DRAFTS, DOTS AND BOXES and FLEET expose a shared
+DROP FOUR, FLIP DISC, DRAFTS, DOTS AND BOXES, FLEET and HAND SIGNALS expose a shared
 CPU-level control. Changing them updates
 the global settings. Website-only local matches do not
 appear there. Human runs use ordinary extension-local high scores; CPU watch
@@ -176,6 +177,22 @@ whether the preceding shot missed, hit or sank a ship, not board positions.
 It is a visual hand-off aid, not protection against someone watching or
 inspecting browser memory. Fleets and match state are not saved; local matches
 never write solo records.
+
+## HAND SIGNALS
+
+Choose rock, paper or scissors with the keyboard, gamepad, on-screen controls
+or by tapping a signal. An optional Lizard Spock setting adds two signals and
+uses the standard five-gesture relationships; changing rules starts a new match.
+The first to five round wins takes the match; draws do not award a point.
+The CPU commits before the player chooses and uses only previous choices, never
+the current selection. Higher shared difficulty levels are more likely to try
+countering frequent earlier choices; they are not guaranteed to win.
+
+On the website two players share one device, choosing in secret behind a
+hand-off screen. The signals are revealed only after both have chosen. Pausing
+or hiding while choosing returns to the screen. As with FLEET, this is a visual
+hand-off aid, not a defense against a person watching or inspecting memory. No
+match state is saved and local matches never write solo records.
 
 ## Split-screen races
 

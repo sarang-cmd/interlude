@@ -22,9 +22,9 @@ series scoreboard. Race boards are independent. 2048 also has shared-board
 co-op with alternating turns. This branch adds a ninth game, NOUGHTS AND CROSSES, with
 3×3, 4×4 and 5×5 boards, five CPU levels, watch mode and a website-only
 shared-control hot-seat match.
-This branch also adds DROP FOUR, FLIP DISC, DRAFTS, DOTS AND BOXES and FLEET
+This branch also adds DROP FOUR, FLIP DISC, DRAFTS, DOTS AND BOXES, FLEET and HAND SIGNALS
 against the CPU, with local play on the website. FLEET's hot-seat mode uses a
-privacy screen. These additions are not deployed yet. The remaining ten
+privacy screen. These additions are not deployed yet. The remaining nine
 requested games are not implemented. Watch and local matches
 do not change solo records. Speed controls cover 25% to 400%.
 
@@ -79,6 +79,7 @@ normal one-time tab reload.
 | DRAFTS              | Draughts with captures and kings; website hot-seat.           |
 | DOTS AND BOXES      | Draw edges and complete boxes; website hot-seat.              |
 | FLEET               | Find a hidden fleet; private website hot-seat.                |
+| HAND SIGNALS        | Three or five signals; secret website hand-offs.              |
 
 Each cabinet has configurable enablement, speed, difficulty, mute and key
 bindings. Keyboard input is focus-gated; pointer, touch and standard gamepad

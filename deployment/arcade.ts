@@ -48,6 +48,8 @@ const ticSettings = element<HTMLElement>("#tictactoe-settings");
 const ticAI = element<HTMLSelectElement>("#tictactoe-ai");
 const boardAI = element<HTMLSelectElement>("#board-ai");
 const boardAIField = element<HTMLElement>("#board-ai-field");
+const handMode = element<HTMLSelectElement>("#hand-mode");
+const handModeField = element<HTMLElement>("#hand-mode-field");
 const ticSize = element<HTMLSelectElement>("#tictactoe-size");
 const ticSizeField = element<HTMLElement>("#tictactoe-size-field");
 const pongMode = element<HTMLSelectElement>("#pong-mode");
@@ -135,6 +137,11 @@ const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> =
     ["→", "right", "Select right"],
     ["FIRE", "primary", "Fire at target"],
   ],
+  handsignals: [
+    ["←", "left", "Select left"],
+    ["→", "right", "Select right"],
+    ["CHOOSE", "primary", "Choose signal"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],
@@ -163,6 +170,7 @@ let settings: InterludeSettings = {
   pongWatch: preferences.pongWatch,
   pongFirstTo: preferences.pongFirstTo,
   boardDifficulty: preferences.boardDifficulty,
+  handLizardSpock: preferences.handLizardSpock,
   tictactoeDifficulty: preferences.tictactoeDifficulty,
   tictactoeWatch: preferences.tictactoeWatch,
   tictactoeSize: preferences.tictactoeSize,
@@ -332,8 +340,9 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     const mode = id === "pong" ? pongModeId : (raceModeByGame[id] ?? manifest.modes[0]!.id);
     const local = id === "pong" && mode === "local";
     const hotseat =
-      ["tictactoe", "dropfour", "flipdisc", "drafts", "dotsboxes", "fleet"].includes(id) &&
-      mode === "local";
+      ["tictactoe", "dropfour", "flipdisc", "drafts", "dotsboxes", "fleet", "handsignals"].includes(
+        id,
+      ) && mode === "local";
     const splitRace = id !== "pong" && !hotseat && mode === "local";
     const watching = (id === "pong" || id === "tictactoe") && mode === "watch";
     const sharedCoop = id === "twenty48" && mode === "coop";
@@ -364,7 +373,9 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     descriptionLabel.textContent = hotseat
       ? id === "fleet"
         ? "Pass the device behind a privacy screen between turns. Fleets are placed automatically."
-        : "Two people share a board and take turns. Solo scores are not changed."
+        : id === "handsignals"
+          ? "Pass the device and choose in secret. Choices are revealed after both players choose."
+          : "Two people share a board and take turns. Solo scores are not changed."
       : id === "tictactoe" && watching
         ? "Watch two CPU opponents play. Solo scores are not changed."
         : manifest.description;
@@ -375,7 +386,7 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
         : sharedCoop
           ? "SHARED BOARD · TAKE TURNS · P PAUSES"
           : hotseat
-            ? id === "fleet"
+            ? id === "fleet" || id === "handsignals"
               ? "PASS DEVICE · SPACE REVEALS · P PAUSES"
               : "SHARED CONTROLS · TAKE TURNS · P PAUSES"
             : watching
@@ -384,8 +395,10 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     pongSettings.hidden = id !== "pong";
     ticSettings.hidden = id !== "tictactoe" || hotseat;
     boardAIField.hidden =
-      !["dropfour", "flipdisc", "drafts", "dotsboxes", "fleet"].includes(id) || hotseat;
+      !["dropfour", "flipdisc", "drafts", "dotsboxes", "fleet", "handsignals"].includes(id) ||
+      hotseat;
     ticSizeField.hidden = id !== "tictactoe";
+    handModeField.hidden = id !== "handsignals";
     raceModeField.hidden = id === "pong" || !modes.some((choice) => choice.players === 2);
     if (id !== "pong") {
       raceModes = modes;
@@ -501,6 +514,7 @@ pongMode.value = preferences.pongWatch ? "watch" : "cpu";
 pongAI.value = preferences.pongDifficulty;
 ticAI.value = preferences.tictactoeDifficulty;
 boardAI.value = preferences.boardDifficulty;
+handMode.value = preferences.handLizardSpock ? "extended" : "classic";
 for (const [value, label] of [
   ["3", "3×3 / THREE IN A ROW"],
   ["4", "4×4 / FOUR IN A ROW"],
@@ -535,6 +549,13 @@ pongMode.addEventListener("change", () => {
   changeSettings({ pongWatch: preferences.pongWatch });
   saveWebPreferences(storage, preferences);
   void chooseGame("pong");
+});
+handMode.addEventListener("change", () => {
+  if (!["classic", "extended"].includes(handMode.value)) return;
+  preferences.handLizardSpock = handMode.value === "extended";
+  changeSettings({ handLizardSpock: preferences.handLizardSpock });
+  saveWebPreferences(storage, preferences);
+  void chooseGame("handsignals");
 });
 boardAI.addEventListener("change", () => {
   if (!isAIDifficulty(boardAI.value)) return;

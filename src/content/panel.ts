@@ -128,6 +128,11 @@ const CONTROL_SETS: Record<string, Array<[string, GameAction]>> = {
     ["→", "right"],
     ["FIRE", "primary"],
   ],
+  handsignals: [
+    ["←", "left"],
+    ["→", "right"],
+    ["CHOOSE", "primary"],
+  ],
   tictactoe: [
     ["←", "left"],
     ["↑", "up"],
@@ -191,6 +196,8 @@ export class Panel {
   private readonly quickTicSize = node("select");
   private readonly quickBoard = node("div", "quick-board");
   private readonly quickBoardAI = node("select");
+  private readonly quickHand = node("div", "quick-hand");
+  private readonly quickHandMode = node("select");
   private readonly daily = node("span", "daily");
   private readonly notice = node("div", "notice");
   private readonly announcement = node("div", "announcement");
@@ -366,6 +373,21 @@ export class Panel {
     row("BOARD CPU", this.quickBoardAI, this.quickBoard);
     this.quickBoard.hidden = true;
     this.drawer.append(this.quickBoard);
+    for (const [value, label] of [
+      ["false", "CLASSIC"],
+      ["true", "LIZARD SPOCK"],
+    ]) {
+      const option = node("option", "", label);
+      option.value = value!;
+      this.quickHandMode.append(option);
+    }
+    this.quickHandMode.setAttribute("aria-label", "HAND SIGNALS rules");
+    this.quickHandMode.addEventListener("change", () =>
+      this.events.onQuickChange({ handLizardSpock: this.quickHandMode.value === "true" }),
+    );
+    row("HAND SIGNALS RULES", this.quickHandMode, this.quickHand);
+    this.quickHand.hidden = true;
+    this.drawer.append(this.quickHand);
     this.quickVolume.type = "range";
     this.quickVolume.min = "0";
     this.quickVolume.max = "100";
@@ -584,10 +606,17 @@ export class Panel {
   private syncQuickControls(): void {
     this.quickPong.hidden = this.currentGameId !== "pong";
     this.quickTic.hidden = this.currentGameId !== "tictactoe";
-    this.quickBoard.hidden = !["dropfour", "flipdisc", "drafts", "dotsboxes", "fleet"].includes(
-      this.currentGameId,
-    );
+    this.quickBoard.hidden = ![
+      "dropfour",
+      "flipdisc",
+      "drafts",
+      "dotsboxes",
+      "fleet",
+      "handsignals",
+    ].includes(this.currentGameId);
     this.quickBoardAI.value = String(this.settings.boardDifficulty);
+    this.quickHand.hidden = this.currentGameId !== "handsignals";
+    this.quickHandMode.value = String(this.settings.handLizardSpock);
     this.quickSpeed.disabled = !this.currentGameId;
     const value = this.settings[`game.${this.currentGameId}.speed`];
     const speed = typeof value === "number" ? value : 100;

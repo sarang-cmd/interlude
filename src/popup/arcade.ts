@@ -84,6 +84,11 @@ const CONTROLS: Record<string, readonly Control[]> = {
     ["→", "right", "Select right"],
     ["FIRE", "primary", "Fire at target"],
   ],
+  handsignals: [
+    ["←", "left", "Select left"],
+    ["→", "right", "Select right"],
+    ["CHOOSE", "primary", "Choose signal"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],
@@ -137,6 +142,8 @@ class PopupArcade {
   private readonly cpuModeField: HTMLElement;
   private readonly boardOptions: HTMLElement;
   private readonly boardSize: HTMLSelectElement;
+  private readonly handOptions: HTMLElement;
+  private readonly handMode: HTMLSelectElement;
   private readonly back: HTMLButtonElement;
   private readonly events = new AbortController();
   private engine: Engine | null = null;
@@ -183,6 +190,8 @@ class PopupArcade {
     this.cpuModeField = element(root, "#cpu-mode-field");
     this.boardOptions = element(root, "#board-options");
     this.boardSize = element(root, "#board-size");
+    this.handOptions = element(root, "#hand-options");
+    this.handMode = element(root, "#hand-mode");
     this.back = element(root, "#back");
 
     this.canvas.dataset.scene = "loading";
@@ -218,6 +227,16 @@ class PopupArcade {
         if (["3", "4", "5"].includes(this.boardSize.value)) {
           this.changeSetting({ tictactoeSize: this.boardSize.value });
           void this.chooseGame("tictactoe");
+        }
+      },
+      { signal },
+    );
+    this.handMode.addEventListener(
+      "change",
+      () => {
+        if (["classic", "extended"].includes(this.handMode.value)) {
+          this.changeSetting({ handLizardSpock: this.handMode.value === "extended" });
+          void this.chooseGame("handsignals");
         }
       },
       { signal },
@@ -396,6 +415,7 @@ class PopupArcade {
     this.controls.replaceChildren();
     this.aiOptions.hidden = true;
     this.boardOptions.hidden = true;
+    this.handOptions.hidden = true;
     this.renderPicker();
     this.reconcile();
   }
@@ -422,12 +442,19 @@ class PopupArcade {
     if (!this.settings) return;
     const isPong = this.currentGame === "pong";
     const isTic = this.currentGame === "tictactoe";
-    const isBoard = ["dropfour", "flipdisc", "drafts", "dotsboxes", "fleet"].includes(
-      this.currentGame,
-    );
+    const isBoard = [
+      "dropfour",
+      "flipdisc",
+      "drafts",
+      "dotsboxes",
+      "fleet",
+      "handsignals",
+    ].includes(this.currentGame);
     this.aiOptions.hidden = !isPong && !isTic && !isBoard;
     this.cpuModeField.hidden = isBoard;
     this.boardOptions.hidden = !isTic;
+    this.handOptions.hidden = this.currentGame !== "handsignals";
+    this.handMode.value = this.settings.handLizardSpock ? "extended" : "classic";
     this.boardSize.value = this.settings.tictactoeSize;
     if (isPong || isTic || isBoard) {
       this.cpuLevel.value = isPong
@@ -453,7 +480,9 @@ class PopupArcade {
         ? "pongDifficulty"
         : this.currentGame === "tictactoe"
           ? "tictactoeDifficulty"
-          : ["dropfour", "flipdisc", "drafts", "dotsboxes", "fleet"].includes(this.currentGame)
+          : ["dropfour", "flipdisc", "drafts", "dotsboxes", "fleet", "handsignals"].includes(
+                this.currentGame,
+              )
             ? "boardDifficulty"
             : "";
     if (key) this.changeSetting({ [key]: this.cpuLevel.value });

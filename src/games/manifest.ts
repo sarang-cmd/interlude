@@ -223,6 +223,20 @@ export const FLEET_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("fleet"),
 };
 
+export const HAND_SIGNALS_MANIFEST: GameManifest = {
+  ...common,
+  id: "handsignals",
+  name: "HAND SIGNALS",
+  description: "Choose a signal against the CPU. Optional Lizard Spock rules.",
+  controls: "LEFT/RIGHT SELECT · SPACE CHOOSE · TAP A SIGNAL",
+  defaultDifficulty: "regular",
+  category: "board",
+  runLength: "1 to 3 minutes",
+  modes: [CPU],
+  ai: { opponent: true, watchable: false },
+  playerOneBindings: playerOneBindings("handsignals"),
+};
+
 export const GAME_MANIFESTS: readonly GameManifest[] = [
   SNAKE_MANIFEST,
   BREAKOUT_MANIFEST,
@@ -238,6 +252,7 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   DRAFTS_MANIFEST,
   DOTS_BOXES_MANIFEST,
   FLEET_MANIFEST,
+  HAND_SIGNALS_MANIFEST,
 ];
 
 export const DEFAULT_GAME_ID = "snake";
@@ -280,6 +295,7 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
   drafts: async () => new (await import("./drafts/game")).DraftsGame(),
   dotsboxes: async () => new (await import("./dotsboxes/game")).DotsBoxesGame(),
   fleet: async () => new (await import("./fleet/game")).FleetGame(),
+  handsignals: async () => new (await import("./handsignals/game")).HandSignalsGame(),
 };
 
 /** Lazy-load a game. A mode must be implemented on this build's surface. */
