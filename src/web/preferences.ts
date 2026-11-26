@@ -10,6 +10,7 @@ export interface WebPreferences {
   pongAdaptive: boolean;
   pongWatch: boolean;
   pongFirstTo: number;
+  boardDifficulty: AIDifficulty;
   tictactoeDifficulty: AIDifficulty;
   tictactoeWatch: boolean;
   tictactoeSize: "3" | "4" | "5";
@@ -22,6 +23,7 @@ export function readWebPreferences(storage: Storage | null): WebPreferences {
     pongAdaptive: false,
     pongWatch: false,
     pongFirstTo: 5,
+    boardDifficulty: "regular",
     tictactoeDifficulty: "regular",
     tictactoeWatch: false,
     tictactoeSize: "3",
@@ -31,6 +33,7 @@ export function readWebPreferences(storage: Storage | null): WebPreferences {
     if (!value || typeof value !== "object" || Array.isArray(value)) return defaults;
     const data = value as Record<string, unknown>;
     if (isAIDifficulty(data.pongDifficulty)) defaults.pongDifficulty = data.pongDifficulty;
+    if (isAIDifficulty(data.boardDifficulty)) defaults.boardDifficulty = data.boardDifficulty;
     if (isAIDifficulty(data.tictactoeDifficulty))
       defaults.tictactoeDifficulty = data.tictactoeDifficulty;
     if (typeof data.tictactoeWatch === "boolean") defaults.tictactoeWatch = data.tictactoeWatch;

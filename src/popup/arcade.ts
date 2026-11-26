@@ -51,6 +51,18 @@ const CONTROLS: Record<string, readonly Control[]> = {
     ["FIRE", "primary", "Fire"],
   ],
   dashline: [["JUMP / HOLD", "primary", "Jump or hold to jump higher"]],
+  dropfour: [
+    ["←", "left", "Select left"],
+    ["→", "right", "Select right"],
+    ["DROP", "primary", "Drop disc"],
+  ],
+  flipdisc: [
+    ["←", "left", "Select left"],
+    ["↑", "up", "Select up"],
+    ["↓", "down", "Select down"],
+    ["→", "right", "Select right"],
+    ["PLACE", "primary", "Place disc"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],
@@ -101,6 +113,7 @@ class PopupArcade {
   private readonly aiOptions: HTMLElement;
   private readonly cpuLevel: HTMLSelectElement;
   private readonly cpuMode: HTMLSelectElement;
+  private readonly cpuModeField: HTMLElement;
   private readonly boardOptions: HTMLElement;
   private readonly boardSize: HTMLSelectElement;
   private readonly back: HTMLButtonElement;
@@ -146,6 +159,7 @@ class PopupArcade {
     this.aiOptions = element(root, "#ai-options");
     this.cpuLevel = element(root, "#cpu-level");
     this.cpuMode = element(root, "#cpu-mode");
+    this.cpuModeField = element(root, "#cpu-mode-field");
     this.boardOptions = element(root, "#board-options");
     this.boardSize = element(root, "#board-size");
     this.back = element(root, "#back");
@@ -387,13 +401,17 @@ class PopupArcade {
     if (!this.settings) return;
     const isPong = this.currentGame === "pong";
     const isTic = this.currentGame === "tictactoe";
-    this.aiOptions.hidden = !isPong && !isTic;
+    const isBoard = ["dropfour", "flipdisc"].includes(this.currentGame);
+    this.aiOptions.hidden = !isPong && !isTic && !isBoard;
+    this.cpuModeField.hidden = isBoard;
     this.boardOptions.hidden = !isTic;
     this.boardSize.value = this.settings.tictactoeSize;
-    if (isPong || isTic) {
+    if (isPong || isTic || isBoard) {
       this.cpuLevel.value = isPong
         ? this.settings.pongDifficulty
-        : this.settings.tictactoeDifficulty;
+        : isTic
+          ? this.settings.tictactoeDifficulty
+          : String(this.settings.boardDifficulty);
       this.cpuMode.value = this.watching() ? "watch" : "play";
     }
     const manifest = getManifest(this.currentGame);
@@ -412,7 +430,9 @@ class PopupArcade {
         ? "pongDifficulty"
         : this.currentGame === "tictactoe"
           ? "tictactoeDifficulty"
-          : "";
+          : ["dropfour", "flipdisc"].includes(this.currentGame)
+            ? "boardDifficulty"
+            : "";
     if (key) this.changeSetting({ [key]: this.cpuLevel.value });
   }
   private changeCpuMode(): void {

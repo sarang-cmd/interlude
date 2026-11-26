@@ -5,6 +5,9 @@
 - Add a playable toolbar popup with lazy-loaded enabled cabinets, local scores,
   CPU controls and the same global pause and Focus Guard restrictions. Closing
   the popup ends the run; it does not save game state.
+- Add DROP FOUR and FLIP DISC on both surfaces with shared five-level CPU
+  difficulty and website-only shared-board matches. Searches run locally in a
+  bounded worker; local matches do not change solo scores.
 - Add NOUGHTS AND CROSSES on both surfaces with 3×3, 4×4 and 5×5 boards,
   five CPU levels, CPU watch and a website-only shared-board hot-seat mode. A bounded local worker performs
   search; watch and hot-seat matches do not write solo scores.

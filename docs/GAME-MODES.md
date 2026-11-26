@@ -16,6 +16,8 @@ and never use networking.
 | Rockfall Belt       | Solo              | Solo, split-screen race        | No         |
 | ENDLESS RUNNER      | Solo              | Solo, split-screen race        | No         |
 | NOUGHTS AND CROSSES | vs CPU, watch CPU | vs CPU, watch CPU, hot-seat    | No         |
+| DROP FOUR           | vs CPU            | vs CPU, hot-seat               | No         |
+| FLIP DISC           | vs CPU            | vs CPU, hot-seat               | No         |
 
 Scores persist separately on each surface. The existing 2048 undo is not a saved
 run. The shared manifest lists default player-one keys, inputs, categories and
@@ -28,7 +30,8 @@ The extension popup can open each enabled extension cabinet directly, without a
 chat response in progress. Only the selected game is loaded. It uses global
 settings and key remaps, while site-specific overrides remain on their sites.
 Pong and NOUGHTS AND CROSSES expose CPU level and play/watch controls in the popup;
-changing them updates the global settings. Website-only local matches do not
+DROP FOUR and FLIP DISC expose a shared CPU-level control. Changing them updates
+the global settings. Website-only local matches do not
 appear there. Human runs use ordinary extension-local high scores; CPU watch
 runs do not. Active popup play contributes to the same local Focus Guard totals
 as site cabinets, and global pause, study, quiet hours and budget lockout apply.
@@ -92,6 +95,27 @@ maximizing wins against random mistakes.
 | Regular |      253 |            13 |    34 |
 | Hard    |      267 |             4 |    29 |
 | Veteran |      248 |             0 |    52 |
+
+## DROP FOUR and FLIP DISC
+
+DROP FOUR is a seven-column, six-row gravity board: X starts, and the first
+horizontal, vertical or diagonal line of four wins. FLIP DISC is an eight-by-eight
+board: place a disc to bracket and flip at least one opposing run in any
+direction. A player with no legal move automatically passes. When neither can
+move, the side with more discs wins. Legal FLIP DISC squares are marked with a
+dot. Arrows select and Space confirms; pointer and touch can choose the board
+directly. The live status reports moves, turns and board rows. FLIP DISC also
+announces disc totals.
+
+Each has five shared difficulty levels (Rookie through Veteran), a bounded
+minimax search in the same local worker and a visible `CPU: BASIC` fallback if
+search fails or exceeds its deadline. The difficulty setting is shared between
+the two games on each surface; on the extension it supports per-site overrides.
+Neither game claims perfect play. A solo win scores 1,000 plus 10 per remaining
+empty square, a draw 200 and a loss zero. Each game has a separate surface-local
+best score; the score is not a ranking across difficulty levels. On the website,
+a same-device match uses one shared keyboard, gamepad or on-screen control set
+and never writes solo scores. Matches are not restored after reload.
 
 ## Split-screen races
 
@@ -165,8 +189,8 @@ speeds per game. Extension settings also accept other multiples of five within
 below the normal fixed-step size. Site preferences remain in localStorage.
 
 The reusable AI library includes seeded error and reaction helpers, bounded
-minimax, Monte Carlo playouts and a terminating worker client. NOUGHTS AND CROSSES uses
-the local three-in-a-row worker; Pong uses the reaction and adaptive helpers
+minimax, Monte Carlo playouts and a terminating worker client. NOUGHTS AND CROSSES,
+DROP FOUR and FLIP DISC use the local board-search worker; Pong uses the reaction and adaptive helpers
 directly and does not start a worker. See [ARCHITECTURE.md](ARCHITECTURE.md)
 for the extension-origin worker bridge and cancellation behavior.
 

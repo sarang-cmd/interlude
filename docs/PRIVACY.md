@@ -62,7 +62,7 @@ the host, as with any website.
 
 ## Local game AI
 
-NOUGHTS AND CROSSES search runs in a dedicated local worker. The website loads that
+NOUGHTS AND CROSSES, DROP FOUR and FLIP DISC search run in a dedicated local worker. The website loads that
 worker as a static asset from its own host. On the extension, a temporary
 extension-origin frame hosts the packaged worker because a content script cannot
 start an extension-origin worker directly from a chat page. The private message

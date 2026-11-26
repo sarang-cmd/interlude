@@ -1,4 +1,5 @@
 import type { AdapterDiagnostics } from "../adapters/types";
+import { GAME_IDS } from "../games/catalog";
 
 export type LiveDiagnostics = AdapterDiagnostics & {
   selectorSource: string;
@@ -28,16 +29,7 @@ const allowedGroups = new Set([
 ]);
 const allowedPhases = new Set(["idle", "starting", "generating", "finishing"]);
 const allowedScenes = new Set(["boot", "ready", "playing", "paused", "gameover", "done"]);
-const allowedGames = new Set([
-  "snake",
-  "breakout",
-  "flappy",
-  "twenty48",
-  "pong",
-  "blockfall",
-  "rockfall",
-  "dashline",
-]);
+const allowedGames = new Set<string>(GAME_IDS);
 const allowedChecks = new Set([
   "VERIFIED",
   "CHECKED",

@@ -128,7 +128,7 @@ export function isThreeSearchTask(value: unknown): value is ThreeSearchTask {
     !!position &&
     Array.isArray(position.cells) &&
     [9, 16, 25].includes(position.cells.length) &&
-    position.cells.every((cell) => cell === -1 || cell === 0 || cell === 1) &&
+    Array.from(position.cells).every((cell) => cell === -1 || cell === 0 || cell === 1) &&
     (position.turn === 1 || position.turn === -1) &&
     (task.method === "minimax" || task.method === "monte-carlo") &&
     bounded(task.depth, 1, 9) &&

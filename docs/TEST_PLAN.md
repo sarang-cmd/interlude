@@ -41,7 +41,10 @@ first-frame budget passed unless the measured **delay-adjusted** number does.
   For NOUGHTS AND CROSSES, try 3×3, 4×4 and 5×5, all CPU levels, watch a match,
   and play the website hot-seat board with shared controls and touch. Verify
   pause/fallback and that watch and hot-seat results do not change solo scores.
-- Play all nine branch games on keyboard, pointer/touch and a standard focused
+- Exercise DROP FOUR gravity and a four-in-a-row win, and FLIP DISC captures and
+  forced passes, in both CPU and website hot-seat modes. Check CPU failure,
+  pause, touch and local-score isolation.
+- Play all eleven branch games on keyboard, pointer/touch and a standard focused
   gamepad; check game-specific rules, remaps/conflicts, sounds, preview and
   records. Assess human difficulty and run length; simulation tests do not prove
   game feel.

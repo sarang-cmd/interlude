@@ -1,5 +1,5 @@
 import type { SearchResult } from "./search";
-import type { ThreeSearchTask } from "./three-in-row";
+import type { SearchTask } from "./tasks";
 import { AIWorkerTimeout } from "./worker-client";
 
 /**
@@ -8,7 +8,7 @@ import { AIWorkerTimeout } from "./worker-client";
  * private MessagePort crosses the boundary; no chat DOM or text is sent.
  */
 export function searchInExtensionFrame(
-  task: ThreeSearchTask,
+  task: SearchTask,
   canvas: HTMLCanvasElement,
   timeoutMs: number,
   signal?: AbortSignal,

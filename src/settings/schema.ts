@@ -62,6 +62,8 @@ const gameOptions = opts(
   ["rockfall", "ROCKFALL BELT"],
   ["dashline", "ENDLESS RUNNER"],
   ["tictactoe", "NOUGHTS AND CROSSES"],
+  ["dropfour", "DROP FOUR"],
+  ["flipdisc", "FLIP DISC"],
 );
 
 const BASE = [
@@ -354,6 +356,23 @@ const BASE = [
     category: "Games",
     tags: ["pong", "score"],
     perSite: true,
+  }),
+  def({
+    id: "boardDifficulty",
+    type: "enum",
+    default: "regular",
+    label: "Board games / AI level",
+    description: "Shared CPU strength for DROP FOUR and FLIP DISC.",
+    category: "Games",
+    tags: ["board", "ai", "difficulty"],
+    perSite: true,
+    options: opts(
+      ["rookie", "Rookie"],
+      ["easy", "Easy"],
+      ["regular", "Regular"],
+      ["hard", "Hard"],
+      ["veteran", "Veteran"],
+    ),
   }),
   def({
     id: "tictactoeDifficulty",
@@ -803,6 +822,8 @@ const names: Record<GameId, string> = {
   rockfall: "ROCKFALL BELT",
   dashline: "ENDLESS RUNNER",
   tictactoe: "NOUGHTS AND CROSSES",
+  dropfour: "DROP FOUR",
+  flipdisc: "FLIP DISC",
 };
 const generated: SettingDefinition[] = GAME_IDS.flatMap((game) => [
   {

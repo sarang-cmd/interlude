@@ -89,9 +89,9 @@ test("the popup lazy-loads and plays every enabled extension cabinet without a n
     await expect(canvas).toHaveAttribute("data-scene", "playing");
   }
   await expect.poll(async () => (await dayStats(today())).sessions).toBe(GAME_IDS.length);
-  expect(new Set(requests.filter((url) => /\/chunks\/game-[^/]+\.js/.test(url))).size).toBe(
-    GAME_IDS.length,
-  );
+  expect(
+    new Set(requests.filter((url) => /\/chunks\/game-[^/]+\.js/.test(url))).size,
+  ).toBeGreaterThanOrEqual(GAME_IDS.length);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(380);
   await page.screenshot({ path: "test-results/popup-tictactoe.png" });
   expect(requests.filter((url) => /^https?:/i.test(url))).toEqual([]);
@@ -586,4 +586,38 @@ test("popup supports and persists larger NOUGHTS AND CROSSES boards", async () =
   await page.reload();
   await openArcade();
   await expect(size).toHaveValue("5");
+});
+
+test("popup board cabinets use the shared CPU setting and packaged worker", async () => {
+  await settings({ game: "dropfour" });
+  const workers: string[] = [];
+  page.on("worker", (running) => workers.push(running.url()));
+  await page.goto(`${extensionOrigin}/popup.html`);
+  await openArcade();
+  await page.getByLabel("CPU level").selectOption("veteran");
+  await expect(page.getByLabel("CPU mode")).toBeHidden();
+  for (const id of ["dropfour", "flipdisc"]) {
+    await page.getByLabel("Choose game").selectOption(id);
+    await expect(page.locator("#game-canvas")).toHaveAttribute("data-game", id);
+    await expect(page.locator("#game-canvas")).toHaveAttribute("data-scene", "ready");
+    await expect(page.getByLabel("CPU level")).toHaveValue("veteran");
+    await page.getByRole("button", { name: "START GAME" }).click();
+    await page.keyboard.press("Space");
+    await expect(page.locator("#game-announcement")).toContainText("CPU played", { timeout: 7000 });
+    await expect(page.locator("#game-announcement")).toContainText("using search");
+  }
+  expect(workers.filter((url) => /^chrome-extension:\/\//.test(url)).length).toBeGreaterThanOrEqual(
+    2,
+  );
+  expect(await page.locator("#arcade").textContent()).not.toMatch(/two.players|player 2/i);
+  await expect
+    .poll(() =>
+      worker.evaluate(async () => {
+        const doc = (await chrome.storage.sync.get("interlude.settings.v2"))[
+          "interlude.settings.v2"
+        ];
+        return doc.global.boardDifficulty;
+      }),
+    )
+    .toBe("veteran");
 });

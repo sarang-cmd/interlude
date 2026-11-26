@@ -1,5 +1,5 @@
 import type { SearchResult } from "./search";
-import type { ThreeSearchTask } from "./three-in-row";
+import type { SearchTask } from "./tasks";
 
 export class AIWorkerTimeout extends Error {
   constructor() {
@@ -72,7 +72,7 @@ export function runWorker<Request, Result>(
 }
 
 export function searchInWorker(
-  task: ThreeSearchTask,
+  task: SearchTask,
   timeoutMs = 500,
   signal?: AbortSignal,
 ): Promise<SearchResult<number>> {

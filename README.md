@@ -22,8 +22,10 @@ series scoreboard. Race boards are independent. 2048 also has shared-board
 co-op with alternating turns. This branch adds a ninth game, NOUGHTS AND CROSSES, with
 3×3, 4×4 and 5×5 boards, five CPU levels, watch mode and a website-only
 shared-control hot-seat match.
-These additions are not deployed yet. Watch and local matches do not change
-solo records. Speed controls cover 25% to 400%.
+This branch also adds DROP FOUR and FLIP DISC against the CPU, with local
+shared-board play on the website. These additions are not deployed yet. The
+remaining thirteen requested games are not implemented. Watch and local matches
+do not change solo records. Speed controls cover 25% to 400%.
 
 > Claude, ChatGPT and Gemini use structural signals. ChatGPT and Gemini are
 > **BETA**. Automated site checks use synthetic pages rather than signed-in
@@ -71,6 +73,8 @@ normal one-time tab reload.
 | Rockfall Belt       | Inertial flight, splitting rocks and shields.                 |
 | ENDLESS RUNNER      | Tap or hold to vary jump height.                              |
 | NOUGHTS AND CROSSES | Three board sizes against CPU; hot-seat on the website.       |
+| DROP FOUR           | Seven-column gravity board against CPU; website hot-seat.     |
+| FLIP DISC           | Eight-by-eight disc-flipping against CPU; website hot-seat.   |
 
 Each cabinet has configurable enablement, speed, difficulty, mute and key
 bindings. Keyboard input is focus-gated; pointer, touch and standard gamepad

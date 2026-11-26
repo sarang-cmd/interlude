@@ -46,6 +46,8 @@ const speedSelect = element<HTMLSelectElement>("#game-speed");
 const pongSettings = element<HTMLElement>("#pong-settings");
 const ticSettings = element<HTMLElement>("#tictactoe-settings");
 const ticAI = element<HTMLSelectElement>("#tictactoe-ai");
+const boardAI = element<HTMLSelectElement>("#board-ai");
+const boardAIField = element<HTMLElement>("#board-ai-field");
 const ticSize = element<HTMLSelectElement>("#tictactoe-size");
 const ticSizeField = element<HTMLElement>("#tictactoe-size-field");
 const pongMode = element<HTMLSelectElement>("#pong-mode");
@@ -100,6 +102,18 @@ const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> =
     ["FIRE", "primary", "Fire"],
   ],
   dashline: [["JUMP / HOLD", "primary", "Jump or hold to jump higher"]],
+  dropfour: [
+    ["←", "left", "Select left"],
+    ["→", "right", "Select right"],
+    ["DROP", "primary", "Drop disc"],
+  ],
+  flipdisc: [
+    ["←", "left", "Select left"],
+    ["↑", "up", "Select up"],
+    ["↓", "down", "Select down"],
+    ["→", "right", "Select right"],
+    ["PLACE", "primary", "Place disc"],
+  ],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],
@@ -127,6 +141,7 @@ let settings: InterludeSettings = {
   pongAdaptive: preferences.pongAdaptive,
   pongWatch: preferences.pongWatch,
   pongFirstTo: preferences.pongFirstTo,
+  boardDifficulty: preferences.boardDifficulty,
   tictactoeDifficulty: preferences.tictactoeDifficulty,
   tictactoeWatch: preferences.tictactoeWatch,
   tictactoeSize: preferences.tictactoeSize,
@@ -293,9 +308,9 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
   stateLabel.textContent = "LOADING";
   selectButtons(id);
   try {
-    const mode = id === "pong" ? pongModeId : (raceModeByGame[id] ?? "solo");
+    const mode = id === "pong" ? pongModeId : (raceModeByGame[id] ?? manifest.modes[0]!.id);
     const local = id === "pong" && mode === "local";
-    const hotseat = id === "tictactoe" && mode === "local";
+    const hotseat = ["tictactoe", "dropfour", "flipdisc"].includes(id) && mode === "local";
     const splitRace = id !== "pong" && !hotseat && mode === "local";
     const watching = (id === "pong" || id === "tictactoe") && mode === "watch";
     const sharedCoop = id === "twenty48" && mode === "coop";
@@ -341,6 +356,7 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
               : `${manifest.controls} · P PAUSES`;
     pongSettings.hidden = id !== "pong";
     ticSettings.hidden = id !== "tictactoe" || hotseat;
+    boardAIField.hidden = !["dropfour", "flipdisc"].includes(id) || hotseat;
     ticSizeField.hidden = id !== "tictactoe";
     raceModeField.hidden = id === "pong" || !modes.some((choice) => choice.players === 2);
     if (id !== "pong") {
@@ -450,11 +466,13 @@ for (const mode of getManifest("pong")!.modes) addOption(pongMode, mode.id, mode
 for (const level of AI_LEVELS) {
   addOption(pongAI, level, level.toUpperCase());
   addOption(ticAI, level, level.toUpperCase());
+  addOption(boardAI, level, level.toUpperCase());
 }
 for (const target of PONG_TARGETS) addOption(pongTarget, String(target), String(target));
 pongMode.value = preferences.pongWatch ? "watch" : "cpu";
 pongAI.value = preferences.pongDifficulty;
 ticAI.value = preferences.tictactoeDifficulty;
+boardAI.value = preferences.boardDifficulty;
 for (const [value, label] of [
   ["3", "3×3 / THREE IN A ROW"],
   ["4", "4×4 / FOUR IN A ROW"],
@@ -489,6 +507,12 @@ pongMode.addEventListener("change", () => {
   changeSettings({ pongWatch: preferences.pongWatch });
   saveWebPreferences(storage, preferences);
   void chooseGame("pong");
+});
+boardAI.addEventListener("change", () => {
+  if (!isAIDifficulty(boardAI.value)) return;
+  preferences.boardDifficulty = boardAI.value;
+  changeSettings({ boardDifficulty: boardAI.value });
+  saveWebPreferences(storage, preferences);
 });
 ticSize.addEventListener("change", () => {
   const size = ticSize.value;

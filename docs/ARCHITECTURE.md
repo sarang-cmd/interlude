@@ -66,7 +66,7 @@ including emitted worker JavaScript assets, and emit a bundle report. See
 
 ## Local AI search
 
-NOUGHTS AND CROSSES starts a dedicated worker only on a CPU turn. A website worker is
+NOUGHTS AND CROSSES, DROP FOUR and FLIP DISC start a dedicated worker only on a CPU turn. A website worker is
 loaded from a same-origin static asset. A Chrome content script cannot directly
 construct a `chrome-extension://` worker from the chat page's origin; the
 extension instead opens a short-lived, extension-origin worker-host iframe in
@@ -79,8 +79,8 @@ three permitted sites; it offers no arbitrary-code or storage interface.
 
 The worker is terminated on completion, error, deadline, pause, hidden tab,
 close or game change. Results are validated and applied only in the game loop,
-never in a paused frame; cancellation invalidates late results. A bounded
-immediate-win/block fallback keeps the game playable if the worker cannot load.
+never in a paused frame; cancellation invalidates late results. A bounded fallback keeps each game playable if the worker cannot load. For the
+line games, it checks immediate wins and blocks.
 The build privacy audit permits only the static local worker and its matching
 extension-origin frame; negative tests still reject remote workers, arbitrary
 frames and extra web-accessible resources.

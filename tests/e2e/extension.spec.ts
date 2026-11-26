@@ -253,22 +253,12 @@ test("reparents the original closed host when the latest turn is replaced", asyn
   await expect(host).toHaveCount(1);
 });
 
-test("all nine lazy-loaded games start from the picker", async () => {
+test("all lazy-loaded games start from the picker", async () => {
   await openFixture();
   await page.locator('[data-testid="send-button"]').click();
   const host = page.locator('[data-interlude="panel"]');
   await expect(host).toBeVisible();
-  for (const id of [
-    "snake",
-    "breakout",
-    "flappy",
-    "twenty48",
-    "pong",
-    "blockfall",
-    "rockfall",
-    "dashline",
-    "tictactoe",
-  ]) {
+  for (const id of GAME_IDS) {
     await selectGame(id);
     await expect(host).toHaveAttribute("data-interlude-game", id);
     await expect(host).toHaveAttribute("data-interlude-scene", "ready");

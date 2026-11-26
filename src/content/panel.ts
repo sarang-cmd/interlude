@@ -95,6 +95,18 @@ const CONTROL_SETS: Record<string, Array<[string, GameAction]>> = {
     ["FIRE", "primary"],
   ],
   dashline: [["JUMP / HOLD", "primary"]],
+  dropfour: [
+    ["←", "left"],
+    ["→", "right"],
+    ["DROP", "primary"],
+  ],
+  flipdisc: [
+    ["←", "left"],
+    ["↑", "up"],
+    ["↓", "down"],
+    ["→", "right"],
+    ["PLACE", "primary"],
+  ],
   tictactoe: [
     ["←", "left"],
     ["↑", "up"],
@@ -156,6 +168,8 @@ export class Panel {
   private readonly quickTicAI = node("select");
   private readonly quickTicWatch = node("select");
   private readonly quickTicSize = node("select");
+  private readonly quickBoard = node("div", "quick-board");
+  private readonly quickBoardAI = node("select");
   private readonly daily = node("span", "daily");
   private readonly notice = node("div", "notice");
   private readonly announcement = node("div", "announcement");
@@ -319,6 +333,18 @@ export class Panel {
     row("BOARD SIZE", this.quickTicSize, this.quickTic);
     this.quickTic.hidden = true;
     this.drawer.append(this.quickTic);
+    for (const level of AI_LEVELS) {
+      const option = node("option", "", level.toUpperCase());
+      option.value = level;
+      this.quickBoardAI.append(option);
+    }
+    this.quickBoardAI.setAttribute("aria-label", "Board CPU level");
+    this.quickBoardAI.addEventListener("change", () =>
+      this.events.onQuickChange({ boardDifficulty: this.quickBoardAI.value }),
+    );
+    row("BOARD CPU", this.quickBoardAI, this.quickBoard);
+    this.quickBoard.hidden = true;
+    this.drawer.append(this.quickBoard);
     this.quickVolume.type = "range";
     this.quickVolume.min = "0";
     this.quickVolume.max = "100";
@@ -537,6 +563,8 @@ export class Panel {
   private syncQuickControls(): void {
     this.quickPong.hidden = this.currentGameId !== "pong";
     this.quickTic.hidden = this.currentGameId !== "tictactoe";
+    this.quickBoard.hidden = !["dropfour", "flipdisc"].includes(this.currentGameId);
+    this.quickBoardAI.value = String(this.settings.boardDifficulty);
     this.quickSpeed.disabled = !this.currentGameId;
     const value = this.settings[`game.${this.currentGameId}.speed`];
     const speed = typeof value === "number" ? value : 100;

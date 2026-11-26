@@ -154,6 +154,33 @@ export const TICTACTOE_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("tictactoe"),
 };
 
+export const DROP_FOUR_MANIFEST: GameManifest = {
+  ...common,
+  id: "dropfour",
+  name: "DROP FOUR",
+  description: "Drop discs into a seven-column, six-row board. Connect four to win.",
+  controls: "LEFT/RIGHT SELECT · SPACE DROP · TAP A COLUMN",
+  defaultDifficulty: "regular",
+  category: "board",
+  runLength: "2 to 5 minutes",
+  modes: [CPU],
+  ai: { opponent: true, watchable: false },
+  playerOneBindings: playerOneBindings("dropfour"),
+};
+export const FLIP_DISC_MANIFEST: GameManifest = {
+  ...common,
+  id: "flipdisc",
+  name: "FLIP DISC",
+  description: "Surround and flip discs on an 8×8 board. Finish with the most discs.",
+  controls: "ARROWS SELECT · SPACE PLACE · TAP A SQUARE",
+  defaultDifficulty: "regular",
+  category: "board",
+  runLength: "3 to 8 minutes",
+  modes: [CPU],
+  ai: { opponent: true, watchable: false },
+  playerOneBindings: playerOneBindings("flipdisc"),
+};
+
 export const GAME_MANIFESTS: readonly GameManifest[] = [
   SNAKE_MANIFEST,
   BREAKOUT_MANIFEST,
@@ -164,6 +191,8 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   ROCKFALL_MANIFEST,
   DASHLINE_MANIFEST,
   TICTACTOE_MANIFEST,
+  DROP_FOUR_MANIFEST,
+  FLIP_DISC_MANIFEST,
 ];
 
 export const DEFAULT_GAME_ID = "snake";
@@ -201,6 +230,8 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
   dashline: async () => new (await import("./dashline/game")).DashlineGame(),
   tictactoe: async (mode) =>
     new (await import("./tictactoe/game")).TicTacToeGame(mode ? mode === "watch" : undefined),
+  dropfour: async () => new (await import("./dropfour/game")).DropFourGame(),
+  flipdisc: async () => new (await import("./flipdisc/game")).FlipDiscGame(),
 };
 
 /** Lazy-load a game. A mode must be implemented on this build's surface. */

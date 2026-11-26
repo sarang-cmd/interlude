@@ -1,8 +1,8 @@
-import { isThreeSearchTask } from "./three-in-row";
+import { isSearchTask } from "./tasks";
 import { searchInWorker } from "./worker-client";
 
 // The frame has no access to chat content. Accept one private port from its
-// immediate parent and only bounded, data-only three-in-a-row requests.
+// immediate parent and only explicitly validated, bounded data-only board-search requests.
 let connected = false;
 const controller = new AbortController();
 window.addEventListener("pagehide", () => controller.abort(), { once: true });
@@ -28,7 +28,7 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
   const port = event.ports[0]!;
   port.onmessage = (request: MessageEvent<unknown>): void => {
     port.onmessage = null;
-    if (!isThreeSearchTask(request.data)) {
+    if (!isSearchTask(request.data)) {
       port.postMessage({ ok: false });
       port.close();
       return;
