@@ -21,6 +21,7 @@ export const GAME_IDS = [
   "slide",
   "echo",
   "codebreak",
+  "quickdraw",
   "pop",
 ] as const;
 export type GameId = (typeof GAME_IDS)[number];
@@ -48,6 +49,7 @@ export const GAME_ACTIONS: Record<GameId, readonly string[]> = {
   slide: ["left", "right", "up", "down", "pause"],
   echo: ["left", "right", "up", "down", "pause"],
   codebreak: ["left", "right", "up", "down", "primary", "pause"],
+  quickdraw: ["primary", "pause"],
   pop: ["left", "right", "up", "down", "primary", "pause"],
 };
 export const ACTION_DEFAULTS: Record<string, string> = {

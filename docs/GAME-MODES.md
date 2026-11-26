@@ -27,6 +27,7 @@ and never use networking.
 | DARK ROOM           | Solo              | Solo                           | No         |
 | ECHO                | Solo              | Solo, sequence-extension match | No         |
 | CODEBREAK           | Solo              | Solo, secret-setter match      | No         |
+| QUICK DRAW          | Solo              | Solo, simultaneous duel        | No         |
 | SLIDE               | Solo              | Solo, split-screen race        | No         |
 | POP                 | Solo              | Solo, split-screen race        | No         |
 
@@ -200,6 +201,19 @@ hand-off screen. The signals are revealed only after both have chosen. Pausing
 or hiding while choosing returns to the screen. As with FLEET, this is a visual
 hand-off aid, not a defense against a person watching or inspecting memory. No
 match state is saved and local matches never write solo records.
+
+## QUICK DRAW
+
+Wait for the GO cue, then press Space or tap. Pressing early is a false start;
+not responding within four game seconds ends the run. The score rewards a
+quicker response. The timing is approximate game-time milliseconds, not a
+laboratory reaction-time measurement: browser scheduling, display refresh,
+input latency and the selected game speed affect the result.
+
+In the website-only duel both players see the same cue. Player 1 uses F and
+player 2 J, or the separate on-screen controls; the first registered draw
+wins and a false start gives the other player the win. Browser event order
+breaks near-simultaneous ties. The duel does not write solo records.
 
 ## CODEBREAK
 

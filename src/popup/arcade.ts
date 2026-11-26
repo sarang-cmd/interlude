@@ -136,6 +136,7 @@ const CONTROLS: Record<string, readonly Control[]> = {
     ["→", "right", "Select digit right"],
     ["SUBMIT", "primary", "Submit code guess"],
   ],
+  quickdraw: [["DRAW", "primary", "Draw"]],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],

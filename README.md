@@ -25,9 +25,9 @@ shared-control hot-seat match.
 This branch also adds DROP FOUR, FLIP DISC, DRAFTS, DOTS AND BOXES, FLEET and HAND SIGNALS
 against the CPU, with local play on the website. SWEEP, SLIDE and POP have
 solo play and website-only races. PAIRS and ECHO have solo play and
-website-only turn-based modes. DARK ROOM is a solo maze; CODEBREAK has a website-only secret-setter mode. FLEET's hot-seat mode uses a
-privacy screen. These additions are not deployed yet. The remaining two
-requested games are not implemented. Watch and local matches
+website-only turn-based modes. DARK ROOM is a solo maze; CODEBREAK has a website-only secret-setter mode, and QUICK DRAW a website-only duel. FLEET's hot-seat mode uses a
+privacy screen. These additions are not deployed yet. The remaining one
+requested game are not implemented. Watch and local matches
 do not change solo records. Speed controls cover 25% to 400%.
 
 > Claude, ChatGPT and Gemini use structural signals. ChatGPT and Gemini are
@@ -87,6 +87,7 @@ normal one-time tab reload.
 | DARK ROOM           | Find a key and escape a dark maze.                            |
 | ECHO                | Repeat a growing sequence; website turn-based challenge.      |
 | CODEBREAK           | Crack a code; website secret-setter mode.                     |
+| QUICK DRAW          | Reaction challenge; website simultaneous duel.                |
 | SLIDE               | Solve a sliding-tile puzzle; website split-screen race.       |
 | POP                 | Pop timed targets; website split-screen race.                 |
 

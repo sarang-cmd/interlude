@@ -180,6 +180,7 @@ const CONTROL_SETS: Record<string, Array<[string, GameAction]>> = {
     ["→", "right"],
     ["SUBMIT", "primary"],
   ],
+  quickdraw: [["DRAW", "primary"]],
   tictactoe: [
     ["←", "left"],
     ["↑", "up"],

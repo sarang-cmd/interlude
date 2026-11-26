@@ -332,6 +332,20 @@ export const CODEBREAK_MANIFEST: GameManifest = {
   playerOneBindings: playerOneBindings("codebreak"),
 };
 
+export const QUICK_DRAW_MANIFEST: GameManifest = {
+  ...common,
+  id: "quickdraw",
+  name: "QUICK DRAW",
+  description: "Wait for the signal, then react as quickly as you can.",
+  controls: "WAIT FOR GO · SPACE OR TAP TO DRAW",
+  defaultDifficulty: "standard",
+  category: "casual",
+  runLength: "Under a minute",
+  modes: [SOLO],
+  ai: { opponent: false, watchable: false },
+  playerOneBindings: playerOneBindings("quickdraw"),
+};
+
 export const GAME_MANIFESTS: readonly GameManifest[] = [
   SNAKE_MANIFEST,
   BREAKOUT_MANIFEST,
@@ -354,6 +368,7 @@ export const GAME_MANIFESTS: readonly GameManifest[] = [
   SLIDE_MANIFEST,
   ECHO_MANIFEST,
   CODEBREAK_MANIFEST,
+  QUICK_DRAW_MANIFEST,
   POP_MANIFEST,
 ];
 
@@ -404,6 +419,7 @@ const loaders: Record<string, (modeId?: string) => Promise<ArcadeGame>> = {
   slide: async () => new (await import("./slide/game")).SlideGame(),
   echo: async () => new (await import("./echo/game")).EchoGame(),
   codebreak: async () => new (await import("./codebreak/game")).CodebreakGame(),
+  quickdraw: async () => new (await import("./quickdraw/game")).QuickDrawGame(),
   pop: async () => new (await import("./pop/game")).PopGame(),
 };
 

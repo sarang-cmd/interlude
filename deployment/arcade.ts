@@ -12,6 +12,7 @@ import type { PongLocalGame } from "../src/games/pong/pong.2p";
 import type { SplitRaceGame } from "../src/twoplayer/split-race";
 import type { Coop2048Game } from "../src/games/2048/coop.2p";
 import type { SecretGame } from "../src/twoplayer/secret-ui";
+import type { QuickDrawDuelGame } from "../src/games/quickdraw/quickdraw.2p";
 import { defaults, type InterludeSettings, type SettingValue } from "../src/settings/schema";
 import { isAIDifficulty } from "../src/ai/difficulty";
 import {
@@ -190,6 +191,7 @@ const controlSets: Record<string, ReadonlyArray<[string, GameAction, string]>> =
     ["→", "right", "Select digit right"],
     ["SUBMIT", "primary", "Submit code guess"],
   ],
+  quickdraw: [["DRAW", "primary", "Draw"]],
   tictactoe: [
     ["←", "left", "Select left"],
     ["↑", "up", "Select up"],
@@ -403,7 +405,8 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
         "echo",
         "codebreak",
       ].includes(id) && mode === "local";
-    const splitRace = id !== "pong" && !hotseat && mode === "local";
+    const duel = id === "quickdraw" && mode === "local";
+    const splitRace = id !== "pong" && !hotseat && !duel && mode === "local";
     const secretMode = id === "codebreak" && mode === "local";
     const watching = (id === "pong" || id === "tictactoe") && mode === "watch";
     const sharedCoop = id === "twenty48" && mode === "coop";
@@ -421,14 +424,20 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
       __PLATFORM__ === "web" && secretMode
         ? import("../src/twoplayer/secret-ui")
         : Promise.resolve(null);
-    const [game, modes, localModule, raceModule, coopModule, secretModule] = await Promise.all([
-      loadGame(id, mode),
-      availableModes(id),
-      localUI,
-      raceUI,
-      coopUI,
-      secretUI,
-    ]);
+    const duelUI =
+      __PLATFORM__ === "web" && duel
+        ? import("../src/twoplayer/quickdraw-ui")
+        : Promise.resolve(null);
+    const [game, modes, localModule, raceModule, coopModule, secretModule, duelModule] =
+      await Promise.all([
+        loadGame(id, mode),
+        availableModes(id),
+        localUI,
+        raceUI,
+        coopUI,
+        secretUI,
+        duelUI,
+      ]);
     if (sequence !== requestNumber) return;
     if (!modes.length || (mode && !modes.some((item) => item.id === mode)))
       throw new Error("No mode available");
@@ -436,34 +445,38 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     const index = GAME_MANIFESTS.findIndex((entry) => entry.id === id);
     numberLabel.textContent = `GAME ${String(index + 1).padStart(2, "0")} / ${String(GAME_MANIFESTS.length).padStart(2, "0")}`;
     nameLabel.textContent = manifest.name;
-    descriptionLabel.textContent = hotseat
-      ? id === "fleet"
-        ? "Pass the device behind a privacy screen between turns. Fleets are placed automatically."
-        : id === "handsignals"
-          ? "Pass the device and choose in secret. Choices are revealed after both players choose."
-          : id === "codebreak"
-            ? "One player sets a hidden code; the other tries to crack it."
-            : id === "echo"
-              ? "Take turns repeating the sequence and adding one signal. The first mistake loses."
-              : id === "pairs"
-                ? "Take turns finding pairs. A match earns another turn."
-                : "Two people share a board and take turns. Solo scores are not changed."
-      : id === "tictactoe" && watching
-        ? "Watch two CPU opponents play. Solo scores are not changed."
-        : manifest.description;
-    hintLabel.textContent = local
-      ? "LOCAL MATCH · SET KEYS BELOW · P PAUSES"
-      : splitRace
-        ? "SPLIT SCREEN · TWO SETS OF CONTROLS · P PAUSES"
-        : sharedCoop
-          ? "SHARED BOARD · TAKE TURNS · P PAUSES"
-          : hotseat
-            ? id === "fleet" || id === "handsignals" || id === "codebreak"
-              ? "PASS DEVICE · SPACE REVEALS · P PAUSES"
-              : "SHARED CONTROLS · TAKE TURNS · P PAUSES"
-            : watching
-              ? "WATCH CPU · P PAUSES · ESC RELEASES FOCUS"
-              : `${manifest.controls} · P PAUSES`;
+    descriptionLabel.textContent = duel
+      ? "Both players wait for one signal, then race to draw. A false start loses."
+      : hotseat
+        ? id === "fleet"
+          ? "Pass the device behind a privacy screen between turns. Fleets are placed automatically."
+          : id === "handsignals"
+            ? "Pass the device and choose in secret. Choices are revealed after both players choose."
+            : id === "codebreak"
+              ? "One player sets a hidden code; the other tries to crack it."
+              : id === "echo"
+                ? "Take turns repeating the sequence and adding one signal. The first mistake loses."
+                : id === "pairs"
+                  ? "Take turns finding pairs. A match earns another turn."
+                  : "Two people share a board and take turns. Solo scores are not changed."
+        : id === "tictactoe" && watching
+          ? "Watch two CPU opponents play. Solo scores are not changed."
+          : manifest.description;
+    hintLabel.textContent = duel
+      ? "PLAYER 1 / F · PLAYER 2 / J · P PAUSES"
+      : local
+        ? "LOCAL MATCH · SET KEYS BELOW · P PAUSES"
+        : splitRace
+          ? "SPLIT SCREEN · TWO SETS OF CONTROLS · P PAUSES"
+          : sharedCoop
+            ? "SHARED BOARD · TAKE TURNS · P PAUSES"
+            : hotseat
+              ? id === "fleet" || id === "handsignals" || id === "codebreak"
+                ? "PASS DEVICE · SPACE REVEALS · P PAUSES"
+                : "SHARED CONTROLS · TAKE TURNS · P PAUSES"
+              : watching
+                ? "WATCH CPU · P PAUSES · ESC RELEASES FOCUS"
+                : `${manifest.controls} · P PAUSES`;
     pongSettings.hidden = id !== "pong";
     ticSettings.hidden = id !== "tictactoe" || hotseat;
     boardAIField.hidden =
@@ -490,10 +503,10 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
     canvas.dataset.game = id;
     canvas.setAttribute(
       "aria-label",
-      `${manifest.name}${splitRace ? " two-player split screen" : sharedCoop ? " shared co-op board" : hotseat ? " shared board" : " game screen"}`,
+      `${manifest.name}${duel ? " two-player duel" : splitRace ? " two-player split screen" : sharedCoop ? " shared co-op board" : hotseat ? " shared board" : " game screen"}`,
     );
     updateBest();
-    makeControls(manifest, splitRace || sharedCoop, watching);
+    makeControls(manifest, splitRace || sharedCoop || duel, watching);
     engine.setGame(game, scores[id] ?? 0);
     engine.start();
     if (local && localModule) {
@@ -514,6 +527,19 @@ async function chooseGame(id: string, reveal = false): Promise<void> {
         focusGame: () => focusGame(false),
         acceptsInput: () => loaded && engine.getState() !== "paused",
       });
+    } else if (duel && duelModule) {
+      const mounted = duelModule.mountQuickDrawDuel({
+        root: localRace,
+        controlRoot: localRaceControls,
+        game: game as QuickDrawDuelGame,
+        state: () => engine.getState(),
+        focusGame: () => focusGame(false),
+      });
+      refreshLocalUI = mounted.refresh;
+      removeLocalUI = () => {
+        refreshLocalUI = null;
+        mounted.destroy();
+      };
     } else if (secretMode && secretModule) {
       const mounted = secretModule.mountSecretInput({
         root: localRace,

@@ -24,6 +24,7 @@ const games = [
   { id: "slide", name: "SLIDE", control: "Move gap left" },
   { id: "echo", name: "ECHO", control: "Echo up" },
   { id: "codebreak", name: "CODEBREAK", control: "Increase digit" },
+  { id: "quickdraw", name: "QUICK DRAW", control: "Draw" },
   { id: "pop", name: "POP", control: "Aim left" },
 ] as const;
 
